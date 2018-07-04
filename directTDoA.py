@@ -22,7 +22,7 @@ from shutil import copyfile
 import webbrowser
 
 
-VERSION = "directTDoA v2.20 by linkz"
+VERSION = "directTDoA v2.21 by linkz"
 
 
 class RunUpdate(threading.Thread):
@@ -476,13 +476,13 @@ class Zoom_Advanced(Frame):
             lon_min_map = str(lonmax)
 
         w, h = self.canvas.winfo_width(), self.canvas.winfo_height()
-        if event.x > 0.9*w:
+        if event.x > 0.98*w:
             self.canvas.xview_scroll(1, 'units')
-        elif event.x < 0.1*w:
+        elif event.x < 0.02*w:
             self.canvas.xview_scroll(-1, 'units')
-        if event.y > 0.9*h:
+        if event.y > 0.98*h:
             self.canvas.yview_scroll(1, 'units')
-        elif event.y < 0.1*h:
+        elif event.y < 0.02*h:
             self.canvas.yview_scroll(-1, 'units')
         # expand rectangle as you drag the mouse
         self.canvas.coords(self.rect, self.start_x, self.start_y, curX, curY)
@@ -1255,7 +1255,7 @@ class MainWindow(Frame):
             self.writelog("ERROR: Please enter a frequency first !")
         elif self.Entry1.get() == '' or float(self.Entry1.get()) < 0 or float(self.Entry1.get()) > 30000:
             self.writelog("ERROR: Please check the frequency !")
-        elif len(namelist) < 1:
+        elif len(namelist) < 3:
             self.writelog("ERROR: Select at least 3 nodes for TDoA processing !")
         else:
             frequency = str(float(self.Entry1.get()))
