@@ -17,6 +17,7 @@ This piece of software is JUST a GUI written for Python 2.7 designed to compute 
 * v2.00 : current work, update & dynamic maps full of GPS enabled nodes, auto octave code run, easier to use
 * v2.10beta : adding differents maps that can be choosed by the user, early work on SNR and tiny waterfall for nodes
 * v2.20: adding favorite/blacklist node management, popup menu when clicking a node gives: add for TDoA proc + Open KiwiSDR in browser
+* v2.21: reducing the map boundaries red rectangle 'sensivity' when mouse is near main window borders
 
 ## TODO LIST
 * adding a list of known MIL/GOV/MARITIME/AERO/DIPLO/... TX site locations beside the list of World cities
