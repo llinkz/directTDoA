@@ -1269,7 +1269,7 @@ class MainWindow(Frame):
                         for gnssfiles in glob.glob("../gnss_pos/*txt"):  # purge gnss_pos directory
                             os.remove(gnssfiles)
                     time.sleep(0.5)
-                    #StartKiwiSDR(self).start()
+                    StartKiwiSDR(self).start()
             else:
                 pass
 
