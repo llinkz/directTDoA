@@ -190,23 +190,23 @@ class OctaveProcessing(threading.Thread):
                                 shell=False)
         while True:
             line = proc.stdout.readline()
-            # name = re.search(r'^   (.*)   (.*)$', line)
-            #  regexp:  ^   (.*)   (.*)$
             if line != '':
-                # self.parent.writelog("OCTAVE full", line.rstrip())
                 pass  # self.parent.writelog("Octave INFO", line.rstrip())
             if "iq/" in line:
                 self.parent.writelog("processing " + line.rstrip())
             if "tdoa" in line:
                 self.parent.writelog(line.rstrip())
+            if "most likely position:" in line:
+                tdoa_position = line.rstrip()
             if "finished" in line:
                 self.parent.writelog("processing finished, killing " + str(proc.pid) + " pid.")
                 os.kill(proc.pid, signal.SIGKILL)
-                executable = sys.executable
-                args = sys.argv[:]
-                args.insert(0, sys.executable)
-                os.execvp(sys.executable, args)
-                #os.kill(os.getpid(), signal.SIGKILL)
+                finish = tkMessageBox.showinfo("PROCESS ENDED", str(tdoa_position) + "\n\nClick to restart the GUI")
+                if finish:
+                    executable = sys.executable
+                    args = sys.argv[:]
+                    args.insert(0, sys.executable)
+                    os.execvp(sys.executable, args)
 
 
 class SnrProcessing(threading.Thread):  # work in progress
@@ -1218,72 +1218,63 @@ class MainWindow(Frame):
 
     def clickstart(self):
         global namelist, hostlist, namelisting, frequency, hostlisting, latmin, latmax, lonmin, lonmax, lpcut, hpcut
-        global serverlist, portlist, portlisting, starttime, x1, x2, y1, y2
+        global serverlist, portlist, portlisting, starttime, x1, x2, y1, y2, mapboundaries_set
         if mapboundaries_set is None:
-            setbound = tkMessageBox.askyesno(title="  ¯\_(ツ)_/¯ ",
-                                             message="TDoA map boundaries are default (covering Europe) Are you Sure ?")
-            if setbound is True:
-                lonmin = str((((bbox2[0] - 1910) * 180) / 1910)).rsplit('.')[0]  # LONGITUDE MIN
-                lonmax = str(((bbox2[2] - 1910) * 180) / 1910).rsplit('.')[0]  # LONGITUDE MAX
-                latmax = str(0 - ((bbox2[1] - 990) / 11)).rsplit('.')[0]  # LATITUDE MAX
-                latmin = str(20 - ((bbox2[3] - 990) / 11)).rsplit('.')[0]  # LATITUDE MIN
-                namelisting = ""
-                hostlisting = ""
-                portlisting = ""
-                for i in range(len(serverlist)):
-                    ip = re.search(
-                        r'\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b',
-                        serverlist[i])
-                    if ip:
-                        namelisting = namelisting + "ip" + str(ip.group(1)) + str(ip.group(2)) + str(ip.group(3)) + str(
-                            ip.group(4)) + ','
-                    else:
-                        namelisting = namelisting + serverlist[i].replace(".", "").replace("-", "") + ','
-                namelisting = "--station=" + namelisting[:-1]
-                for i in range(len(serverlist)):
-                    hostlisting = hostlisting + serverlist[i] + ','
-                hostlisting = hostlisting[:-1]
-                for i in range(len(portlist)):
-                    portlisting = portlisting + portlist[i] + ','
-                portlisting = portlisting[:-1]
-                starttime = str(time.strftime('%Y%m%dT%H%M%S'))
-                if self.Entry1.get() == 'Enter Frequency here (kHz)':
-                    self.writelog("ERROR: Please enter a frequency first !")
-                elif self.Entry1.get() == '' or float(self.Entry1.get()) < 0 or float(self.Entry1.get()) > 30000:
-                    self.writelog("ERROR: Please check the frequency !")
-                elif len(namelist) < 3:
-                    self.writelog("ERROR: Select at least 3 nodes for TDoA processing !")
+            tkMessageBox.showinfo("WARNING",
+                                  message="Set TDoA map Geographical boundaries, right click and draw red rectangle")
+        else:
+            lonmin = str((((bbox2[0] - 1910) * 180) / 1910)).rsplit('.')[0]  # LONGITUDE MIN
+            lonmax = str(((bbox2[2] - 1910) * 180) / 1910).rsplit('.')[0]  # LONGITUDE MAX
+            latmax = str(0 - ((bbox2[1] - 990) / 11)).rsplit('.')[0]  # LATITUDE MAX
+            latmin = str(20 - ((bbox2[3] - 990) / 11)).rsplit('.')[0]  # LATITUDE MIN
+            namelisting = ""
+            hostlisting = ""
+            portlisting = ""
+            for i in range(len(serverlist)):
+                ip = re.search(
+                    r'\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b',
+                    serverlist[i])
+                if ip:
+                    namelisting = namelisting + "ip" + str(ip.group(1)) + str(ip.group(2)) + str(ip.group(3)) + str(ip.group(4)) + ','
                 else:
-                    frequency = str(float(self.Entry1.get()))
-                    self.Button1.configure(state="disabled")
-                    self.Button2.configure(state="normal")
-                    self.Button3.configure(state='disabled')
-                    if platform.system() == "Windows":
-                        for wavfiles in glob.glob("..\\iq\\*wav"):  # purge iq directory
-                            os.remove(wavfiles)
-                        for gnssfiles in glob.glob("..\\gnss_pos\\*txt"):  # purge gnss_pos directory
-                            os.remove(gnssfiles)
-                    if platform.system() == "Linux":
-                        for wavfiles in glob.glob("../iq/*wav"):  # purge iq directory
-                            os.remove(wavfiles)
-                        for gnssfiles in glob.glob("../gnss_pos/*txt"):  # purge gnss_pos directory
-                            os.remove(gnssfiles)
-                    time.sleep(0.5)
-                    StartKiwiSDR(self).start()
+                    namelisting = namelisting + serverlist[i].replace(".", "").replace("-", "") + ','
+            namelisting = "--station=" + namelisting[:-1]
+            for i in range(len(serverlist)):
+                hostlisting = hostlisting + serverlist[i] + ','
+            hostlisting = hostlisting[:-1]
+            for i in range(len(portlist)):
+                portlisting = portlisting + portlist[i] + ','
+            portlisting = portlisting[:-1]
+            starttime = str(time.strftime('%Y%m%dT%H%M%S'))
+            if self.Entry1.get() == 'Enter Frequency here (kHz)':
+                self.writelog("ERROR: Please enter a frequency first !")
+            elif self.Entry1.get() == '' or float(self.Entry1.get()) < 0 or float(self.Entry1.get()) > 30000:
+                self.writelog("ERROR: Please check the frequency !")
+            elif len(namelist) < 3:
+                self.writelog("ERROR: Select at least 3 nodes for TDoA processing !")
             else:
-                pass
+                frequency = str(float(self.Entry1.get()))
+                self.Button1.configure(state="disabled")
+                self.Button2.configure(state="normal")
+                self.Button3.configure(state='disabled')
+                if platform.system() == "Windows":
+                    for wavfiles in glob.glob("..\\iq\\*wav"):
+                        os.remove(wavfiles)
+                    for gnssfiles in glob.glob("..\\gnss_pos\\*txt"):
+                        os.remove(gnssfiles)
+                if platform.system() == "Linux":
+                    for wavfiles in glob.glob("../iq/*wav"):
+                        os.remove(wavfiles)
+                    for gnssfiles in glob.glob("../gnss_pos/*txt"):
+                        os.remove(gnssfiles)
+                time.sleep(1)
+                StartKiwiSDR(self).start()
 
     def clickstop(self):
         global IQfiles, frequency, varfile, proc2, selectedlat, selectedlon
         global selectedcity, starttime, latmin, latmax, lonmin, lonmax, nbfile
         global lat_min_map, lat_max_map, lon_min_map, lon_max_map
-        if lat_min_map == "":  # set default map geo boundaries
-            lat_min_map = 30
-            lat_max_map = 60
-            lon_min_map = -10
-            lon_max_map = 20
         os.kill(proc2.pid, signal.SIGINT)
-        # CheckFileSize(self).stop()
         if platform.system() == "Windows":
             for file in os.listdir("..\iq\\"):
                 if file.endswith(".wav"):
