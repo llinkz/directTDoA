@@ -10,7 +10,7 @@ from shutil import copyfile
 from tkColorChooser import askcolor
 
 
-VERSION = "directTDoA v2.31 by linkz"
+VERSION = "directTDoA v2.32 by linkz"
 
 
 class CheckFileSize(threading.Thread):
@@ -987,6 +987,12 @@ class MainWindow(Frame):
                                foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
                                text="RESET", command=self.resetcity, state="disabled")
 
+        self.Button5 = Button(parent)  # Stop button
+        self.Button5.place(relx=0.81, rely=0.94, height=24, relwidth=0.08)
+        self.Button5.configure(activebackground=bgc, activeforeground=fgc, background="red", disabledforeground=dfgc,
+                               foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
+                               text="Restart GUI", command=self.restartgui, state="normal")
+
         self.Button3 = Button(parent)  # Update button
         self.Button3.place(relx=0.90, rely=0.94, height=24, relwidth=0.08)
         self.Button3.configure(activebackground=bgc, activeforeground=fgc, background=bgc, disabledforeground=dfgc,
@@ -1010,6 +1016,7 @@ class MainWindow(Frame):
                              highlightcolor=fgc, insertbackground=fgc, selectbackground="#c4c4c4",
                              selectforeground=fgc, undo="1", width=970, wrap="word")
 
+        # -------------------------------------------------LOGGING AND MENUS--------------------------------------------
         menubar = Menu(self)
         parent.config(menu=menubar)
         filemenu = Menu(menubar, tearoff=0)
@@ -1035,10 +1042,10 @@ class MainWindow(Frame):
         submenu1.add_command(label="Snow cover 2",
                              command=lambda *args: self.saveconfig('maps/directTDoA_map_snow2.jpg'))
         filemenu.add_cascade(label='Map Filter', menu=submenu2, underline=0)
-        submenu2.add_command(label="Display All nodes", command=lambda *args: self.setMapFilter('0'))
-        submenu2.add_command(label="Display Standard + Favorites", command=lambda *args: self.setMapFilter('1'))
-        submenu2.add_command(label="Display Favorites", command=lambda *args: self.setMapFilter('2'))
-        submenu2.add_command(label="Display Blacklisted", command=lambda *args: self.setMapFilter('3'))
+        submenu2.add_command(label="Display All nodes", command=lambda *args: self.setmapfilter('0'))
+        submenu2.add_command(label="Display Standard + Favorites", command=lambda *args: self.setmapfilter('1'))
+        submenu2.add_command(label="Display Favorites", command=lambda *args: self.setmapfilter('2'))
+        submenu2.add_command(label="Display Blacklisted", command=lambda *args: self.setmapfilter('3'))
         filemenu.add_cascade(label='Set Colors', menu=submenu3, underline=0)
         submenu3.add_command(label="Standard node color", command=lambda *args: self.color_change(0))
         submenu3.add_command(label="Favorite node color", command=lambda *args: self.color_change(1))
@@ -1047,7 +1054,12 @@ class MainWindow(Frame):
         menubar.add_command(label="How to TDoA with this tool", command=self.about)
         menubar.add_command(label="General infos", command=self.general)
 
-    # -------------------------------------------------LOGGING------------------------------------------------------
+    @staticmethod
+    def restartgui():
+        executable = sys.executable
+        args = sys.argv[:]
+        args.insert(0, sys.executable)
+        os.execvp(sys.executable, args)
 
     def writelog(self, msg):  # the main console log text feed
         self.Text2.insert('end -1 lines', "[" + str(time.strftime('%H:%M.%S', time.gmtime())) + "] - " + msg + "\n")
@@ -1118,7 +1130,7 @@ class MainWindow(Frame):
     is activated...""")
 
     @staticmethod
-    def setMapFilter(dmapfilter):
+    def setmapfilter(dmapfilter):
         ReadConfigFile().read_cfg()
         os.remove('directTDoA.cfg')
         with open('directTDoA.cfg', "w") as u:
@@ -1189,7 +1201,7 @@ class MainWindow(Frame):
         self.Button3.configure(state="disabled")
         RunUpdate(self).start()  # start the update thread
 
-    # ---------------------------------------------------MAIN-------------------------------------------------------
+    # ---------------------------------------------------MAIN-----------------------------------------------------------
     def clickfreq(self, ff):
         self.Button1.configure(state='normal')
         # self.Entry1.delete(0, 'end')
