@@ -10,7 +10,7 @@ from shutil import copyfile
 from tkColorChooser import askcolor
 
 
-VERSION = "directTDoA v2.32 by linkz"
+VERSION = "directTDoA v2.33 by linkz"
 
 
 class CheckFileSize(threading.Thread):
@@ -172,10 +172,7 @@ class RunUpdate(threading.Thread):
                         pass
             f.close()
             os.remove('kiwisdr.com_public_TDoA.htm')
-            if platform.system() == "Windows":
-                copyfile("directTDoA_server_list.db", "directTDoA_server_list.db.bak")
-            if platform.system() == "Linux":
-                copyfile("directTDoA_server_list.db", "directTDoA_server_list.db.bak")
+            copyfile("directTDoA_server_list.db", "directTDoA_server_list.db.bak")
             os.remove('directTDoA_server_list.db')
             u = 0
             node_block = []
@@ -220,10 +217,10 @@ class OctaveProcessing(threading.Thread):
         global varfile, tdoa_position
         tdoa_filename = "proc_tdoa_" + varfile + ".m"
         if platform.system() == "Windows":  # not working
-            exec_octave = 'C:\Octave\Octave-4.2.1\octave.vbs --no-gui '
-            tdoa_filename = 'C:\Users\linkz\Desktop\TDoA-master-win\\' + tdoa_filename
-        if platform.system() == "Linux":
-            exec_octave = '/usr/bin/octave-cli'
+            exec_octave = 'C:\Octave\Octave-4.2.1\octave.vbs --no-gui'
+            # tdoa_filename = 'C:\Users\linkz\Desktop\TDoA-master-win\\' + tdoa_filename
+        if platform.system() == "Linux" or platform.system() == "Darwin":
+            exec_octave = 'octave'
         proc = subprocess.Popen([exec_octave, tdoa_filename], cwd=dirname(dirname(abspath(__file__))), stdout=PIPE,
                                 shell=False)
         while True:
@@ -252,7 +249,7 @@ class SnrProcessing(threading.Thread):  # work in progress
         global proc3, snrfreq
         if platform.system() == "Windows":
             execname = 'python'
-        if platform.system() == "Linux":
+        if platform.system() == "Linux" or platform.system() == "Darwin":
             execname = 'python2'
         proc3 = subprocess.Popen(
             [execname, 'microkiwi_waterfall.py', '--file=wf.bin', '-z', '8', '-o', str(snrfreq), '-s', str(snrhost)], stdout=PIPE, shell=False)
@@ -1290,7 +1287,7 @@ class MainWindow(Frame):
                         os.remove(wavfiles)
                     for gnssfiles in glob.glob("..\\gnss_pos\\*txt"):
                         os.remove(gnssfiles)
-                if platform.system() == "Linux":
+                if platform.system() == "Linux" or platform.system() == "Darwin":
                     for wavfiles in glob.glob("../iq/*wav"):
                         os.remove(wavfiles)
                     for gnssfiles in glob.glob("../gnss_pos/*txt"):
@@ -1309,8 +1306,7 @@ class MainWindow(Frame):
             for file in os.listdir("..\iq\\"):
                 if file.endswith(".wav"):
                     IQfiles.append(os.path.split(file)[1])
-
-        if platform.system() == "Linux":
+        if platform.system() == "Linux" or platform.system() == "Darwin":
             for file in os.listdir("../iq//"):
                 if file.endswith(".wav"):
                     IQfiles.append(os.path.split(file)[1])
@@ -1318,10 +1314,8 @@ class MainWindow(Frame):
         varfile = str(firstfile.split("_", 2)[1].split("_", 1)[0])
         for i in range(len(IQfiles)):
             nbfile = len(IQfiles)
-
         self.writelog("IQ Recording(s) has been stopped...")
         self.Button2.configure(state="disabled")
-
         # make a backup of IQ and gnss_pos files in a new directory named by the datetime process start and frequency
         time.sleep(1)
         if platform.system() == "Windows":
@@ -1332,8 +1326,7 @@ class MainWindow(Frame):
             for file in os.listdir("..\gnss_pos\\"):
                 if file.endswith(".txt"):
                     copyfile("..\gnss_pos\\" + file, "..\iq\\" + starttime + "_F" + str(frequency) + "\\" + file)
-
-        if platform.system() == "Linux":
+        if platform.system() == "Linux" or platform.system() == "Darwin":
             os.makedirs("../iq/" + starttime + "_F" + str(frequency))
             for file in os.listdir("../iq//"):
                 if file.endswith(".wav"):
@@ -1403,7 +1396,7 @@ endfunction """)
         if platform.system() == "Windows":
             copyfile("..\\proc_tdoa_" + varfile + ".m",
                      "..\\iq\\" + starttime + "_F" + str(frequency) + "\\proc_tdoa_" + varfile + ".m")
-        if platform.system() == "Linux":
+        if platform.system() == "Linux" or platform.system() == "Darwin":
             copyfile("../proc_tdoa_" + varfile + ".m",
                      "../iq/" + starttime + "_F" + str(frequency) + "/proc_tdoa_" + varfile + ".m")
         self.writelog("running Octave process now... please wait")
