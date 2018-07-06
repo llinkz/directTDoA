@@ -272,7 +272,7 @@ class StartKiwiSDR(threading.Thread):
 
     def run(self):
         global parent, line, nbfile, IQfiles, hostlisting, namelisting, frequency, portlisting, lpcut, hpcut, proc2, t
-        global proc2_pid, checkfilesize, should_stop
+        global proc2_pid, checkfilesize
         IQfiles = []
         line = []
         nbfile = 1
@@ -286,21 +286,6 @@ class StartKiwiSDR(threading.Thread):
              str(portlisting), '-L', str(lpcut), '-H', str(hpcut), '-m', 'iq', '-w'], stdout=PIPE, shell=False)
         self.parent.writelog("IQ recording in progress...please wait")
         proc2_pid = proc2.pid
-                    #
-                    # if platform.system() == "Windows":
-                    #     for wavfiles in glob.glob("..\\iq\\*wav"):
-                    #         os.path.getsize(wavfiles)
-                    #         filename = wavfiles.replace("..\\iq\\", "")
-                    #         self.parent.writelog2(
-                    #             "~" + str(filename[17:]) + " - " + str(os.path.getsize(wavfiles) / 1024) + "KB")
-                    #     t = 0
-                    # if platform.system() == "Linux":
-                    #     for wavfiles in glob.glob("../iq/*wav"):
-                    #         os.path.getsize(wavfiles)
-                    #         filename = wavfiles.replace("../iq/", "")
-                    #         self.parent.writelog2(
-                    #             "~" + str(filename[17:]) + " - " + str(os.path.getsize(wavfiles) / 1024) + "KB")
-                    #     t = 0
 
 
 class FillMapWithNodes(threading.Thread):
@@ -810,11 +795,10 @@ class MainWindow(Frame):
         # self.parent = parent
         self.member1 = Zoom_Advanced(parent)
         global frequency, checkfilesize
-        global line, kiwi_update, i, bgc, fgc, dfgc, city, citylat, citylon, lpcut, hpcut, should_stop
+        global line, kiwi_update, i, bgc, fgc, dfgc, city, citylat, citylon, lpcut, hpcut
         global latmin, latmax, lonmin, lonmax, bbox1, lat_min_map, lat_max_map, lon_min_map, lon_max_map
         global selectedlat, selectedlon
         frequency = DoubleVar()
-        should_stop = True
         bgc = '#d9d9d9'
         fgc = '#000000'
         dfgc = '#a3a3a3'
@@ -1182,13 +1166,8 @@ class MainWindow(Frame):
 
     @staticmethod
     def saveconfig(dmap):  # save config menu
-        global bbox2  # mapfilter
+        global bbox2
         ReadConfigFile().read_cfg()
-        # with open('directTDoA.cfg', "r") as c:
-        #     configline = c.readlines()
-        #     white = configline[7].replace("\n", "").split(',')
-        #     black = configline[9].replace("\n", "").split(',')
-        # c.close()
         os.remove('directTDoA.cfg')
         with open('directTDoA.cfg', "w") as u:
             u.write("# Default map geometry \n%s,%s,%s,%s\n" % (bbox2[0], bbox2[1], bbox2[2], bbox2[3]))
@@ -1287,7 +1266,7 @@ class MainWindow(Frame):
                 self.writelog("ERROR: Please enter a frequency first !")
             elif self.Entry1.get() == '' or float(self.Entry1.get()) < 0 or float(self.Entry1.get()) > 30000:
                 self.writelog("ERROR: Please check the frequency !")
-            elif len(namelist) < 1:
+            elif len(namelist) < 3:
                 self.writelog("ERROR: Select at least 3 nodes for TDoA processing !")
             else:
                 frequency = str(float(self.Entry1.get()))
@@ -1314,7 +1293,6 @@ class MainWindow(Frame):
         global lat_min_map, lat_max_map, lon_min_map, lon_max_map, checkfilesize
         checkfilesize = 0
         os.kill(proc2_pid, signal.SIGINT)
-        # self.Text3.destroy()
         if platform.system() == "Windows":
             for file in os.listdir("..\iq\\"):
                 if file.endswith(".wav"):
