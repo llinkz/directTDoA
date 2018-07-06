@@ -10,7 +10,45 @@ from shutil import copyfile
 from tkColorChooser import askcolor
 
 
-VERSION = "directTDoA v2.30 by linkz"
+VERSION = "directTDoA v2.31 by linkz"
+
+
+class CheckFileSize(threading.Thread):
+    def __init__(self, parent=None):
+        super(CheckFileSize, self).__init__()
+        self.parent = parent
+
+    def run(self):
+        global t, checkfilesize
+        checkfilesize = 1
+        while t == 0:
+            time.sleep(0.5)
+            if platform.system() == "Windows":
+                for wavfiles in glob.glob("..\\iq\\*wav"):
+                    os.path.getsize(wavfiles)
+                    filename = wavfiles.replace("..\\iq\\", "")
+                    self.parent.writelog2("~" + str(filename[17:]) + " - " + str(os.path.getsize(wavfiles) / 1024) + "KB")
+                t = 0
+            if platform.system() == "Linux":
+                for wavfiles in glob.glob("../iq/*wav"):
+                    os.path.getsize(wavfiles)
+                    filename = wavfiles.replace("../iq/", "")
+                    self.parent.writelog2("~" + str(filename[17:]) + " - " + str(os.path.getsize(wavfiles) / 1024) + "KB")
+                t = 0
+
+
+class ProcessFinished:
+    def __init__(self):
+        pass
+
+    def run(self):
+        global tdoa_position
+        finish = tkMessageBox.showinfo("PROCESS ENDED", str(tdoa_position) + "\n\nClick to restart the GUI")
+        if finish:
+            executable = sys.executable
+            args = sys.argv[:]
+            args.insert(0, sys.executable)
+            os.execvp(sys.executable, args)
 
 
 class ReadConfigFile:
@@ -179,7 +217,7 @@ class OctaveProcessing(threading.Thread):
         self.parent = parent
 
     def run(self):
-        global varfile
+        global varfile, tdoa_position
         tdoa_filename = "proc_tdoa_" + varfile + ".m"
         if platform.system() == "Windows":  # not working
             exec_octave = 'C:\Octave\Octave-4.2.1\octave.vbs --no-gui '
@@ -198,15 +236,11 @@ class OctaveProcessing(threading.Thread):
                 self.parent.writelog(line.rstrip())
             if "most likely position:" in line:
                 tdoa_position = line.rstrip()
+                self.parent.writelog(line.rstrip())
             if "finished" in line:
-                self.parent.writelog("processing finished, killing " + str(proc.pid) + " pid.")
-                os.kill(proc.pid, signal.SIGKILL)
-                finish = tkMessageBox.showinfo("PROCESS ENDED", str(tdoa_position) + "\n\nClick to restart the GUI")
-                if finish:
-                    executable = sys.executable
-                    args = sys.argv[:]
-                    args.insert(0, sys.executable)
-                    os.execvp(sys.executable, args)
+                #self.parent.writelog("processing finished, killing " + str(proc.pid) + " pid.")
+                ProcessFinished().run()
+                #os.kill(proc.pid, signal.SIGKILL)
 
 
 class SnrProcessing(threading.Thread):  # work in progress
@@ -238,6 +272,7 @@ class StartKiwiSDR(threading.Thread):
 
     def run(self):
         global parent, line, nbfile, IQfiles, hostlisting, namelisting, frequency, portlisting, lpcut, hpcut, proc2, t
+        global proc2_pid, checkfilesize, should_stop
         IQfiles = []
         line = []
         nbfile = 1
@@ -250,22 +285,22 @@ class StartKiwiSDR(threading.Thread):
             [execname, 'kiwirecorder.py', '-s', str(hostlisting), str(namelisting), '-f', str(frequency), '-p',
              str(portlisting), '-L', str(lpcut), '-H', str(hpcut), '-m', 'iq', '-w'], stdout=PIPE, shell=False)
         self.parent.writelog("IQ recording in progress...please wait")
-        while proc2.pid is not None:
-            time.sleep(1)
-            if platform.system() == "Windows":
-                for wavfiles in glob.glob("..\\iq\\*wav"):
-                    os.path.getsize(wavfiles)
-                    filename = wavfiles.replace("..\\iq\\", "")
-                    self.parent.writelog2(
-                        "~" + str(filename[17:]) + " - " + str(os.path.getsize(wavfiles) / 1024) + "KB")
-                t = 0
-            if platform.system() == "Linux":
-                for wavfiles in glob.glob("../iq/*wav"):
-                    os.path.getsize(wavfiles)
-                    filename = wavfiles.replace("../iq/", "")
-                    self.parent.writelog2(
-                        "~" + str(filename[17:]) + " - " + str(os.path.getsize(wavfiles) / 1024) + "KB")
-                t = 0
+        proc2_pid = proc2.pid
+                    #
+                    # if platform.system() == "Windows":
+                    #     for wavfiles in glob.glob("..\\iq\\*wav"):
+                    #         os.path.getsize(wavfiles)
+                    #         filename = wavfiles.replace("..\\iq\\", "")
+                    #         self.parent.writelog2(
+                    #             "~" + str(filename[17:]) + " - " + str(os.path.getsize(wavfiles) / 1024) + "KB")
+                    #     t = 0
+                    # if platform.system() == "Linux":
+                    #     for wavfiles in glob.glob("../iq/*wav"):
+                    #         os.path.getsize(wavfiles)
+                    #         filename = wavfiles.replace("../iq/", "")
+                    #         self.parent.writelog2(
+                    #             "~" + str(filename[17:]) + " - " + str(os.path.getsize(wavfiles) / 1024) + "KB")
+                    #     t = 0
 
 
 class FillMapWithNodes(threading.Thread):
@@ -774,11 +809,12 @@ class MainWindow(Frame):
         Frame.__init__(self, parent)
         # self.parent = parent
         self.member1 = Zoom_Advanced(parent)
-        global frequency, checkfilepid
-        global line, kiwi_update, i, bgc, fgc, dfgc, city, citylat, citylon, lpcut, hpcut
+        global frequency, checkfilesize
+        global line, kiwi_update, i, bgc, fgc, dfgc, city, citylat, citylon, lpcut, hpcut, should_stop
         global latmin, latmax, lonmin, lonmax, bbox1, lat_min_map, lat_max_map, lon_min_map, lon_max_map
         global selectedlat, selectedlon
         frequency = DoubleVar()
+        should_stop = True
         bgc = '#d9d9d9'
         fgc = '#000000'
         dfgc = '#a3a3a3'
@@ -1035,13 +1071,14 @@ class MainWindow(Frame):
         self.Text2.see('end')
 
     def writelog2(self, msg):  # the Checkfile log text feed
-        global t
-        if t == 0:
+        global t, checkfilesize
+        if t == 0 and checkfilesize == 1:
             self.Text3.delete("0.0", END)
             t = 1
-        self.Text3.insert('end -1 lines', msg + "\n")
-        time.sleep(0.01)
-        self.Text2.see('end')
+        if checkfilesize == 1:
+            self.Text3.insert('end -1 lines', msg + "\n")
+            time.sleep(0.01)
+            self.Text2.see('end')
 
     @staticmethod
     def about():  # about menu
@@ -1250,7 +1287,7 @@ class MainWindow(Frame):
                 self.writelog("ERROR: Please enter a frequency first !")
             elif self.Entry1.get() == '' or float(self.Entry1.get()) < 0 or float(self.Entry1.get()) > 30000:
                 self.writelog("ERROR: Please check the frequency !")
-            elif len(namelist) < 3:
+            elif len(namelist) < 1:
                 self.writelog("ERROR: Select at least 3 nodes for TDoA processing !")
             else:
                 frequency = str(float(self.Entry1.get()))
@@ -1269,12 +1306,15 @@ class MainWindow(Frame):
                         os.remove(gnssfiles)
                 time.sleep(1)
                 StartKiwiSDR(self).start()
+                CheckFileSize(self).start()
 
     def clickstop(self):
         global IQfiles, frequency, varfile, proc2, selectedlat, selectedlon
-        global selectedcity, starttime, latmin, latmax, lonmin, lonmax, nbfile
-        global lat_min_map, lat_max_map, lon_min_map, lon_max_map
-        os.kill(proc2.pid, signal.SIGINT)
+        global selectedcity, starttime, latmin, latmax, lonmin, lonmax, nbfile, proc2_pid
+        global lat_min_map, lat_max_map, lon_min_map, lon_max_map, checkfilesize
+        checkfilesize = 0
+        os.kill(proc2_pid, signal.SIGINT)
+        # self.Text3.destroy()
         if platform.system() == "Windows":
             for file in os.listdir("..\iq\\"):
                 if file.endswith(".wav"):
