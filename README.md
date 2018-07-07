@@ -5,7 +5,6 @@ This piece of software is JUST a GUI written for Python 2.7 designed to compute 
 ## INSTALL AND RUN
 * git clone --recursive https://github.com/llinkz/directTDoA.git
 * cp -r directTDoA/* TDoA/kiwiclient
-* python2 TDoA/kiwiclient/directTDoA.py
 * cd TDoA/kiwiclient
 * python2 directTDoA.py
 
