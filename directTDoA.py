@@ -971,13 +971,16 @@ class MainWindow(Frame):
 
     def on_select(self, event):  # KNOWN POINT SELECTION
         global selectedlat, selectedlon, selectedcity
-        self.label7.configure(text="LAT: " + str(
+        if event.widget.get(event.widget.curselection()) == " ":
+            tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ",message="Type something in the left box to search a point")
+        else:
+            self.label7.configure(text="LAT: " + str(
             my_info2[my_info1.index(event.widget.get(event.widget.curselection()))]) + " LON: " + str(
             my_info3[my_info1.index(event.widget.get(event.widget.curselection()))]))
-        selectedlat = str(my_info2[my_info1.index(event.widget.get(event.widget.curselection()))])
-        selectedlon = str(my_info3[my_info1.index(event.widget.get(event.widget.curselection()))])
-        selectedcity = event.widget.get(event.widget.curselection())
-        self.member1.createPoint(selectedlat, selectedlon, selectedcity)
+            selectedlat = str(my_info2[my_info1.index(event.widget.get(event.widget.curselection()))])
+            selectedlon = str(my_info3[my_info1.index(event.widget.get(event.widget.curselection()))])
+            selectedcity = event.widget.get(event.widget.curselection())
+            self.member1.createPoint(selectedlat, selectedlon, selectedcity)
 
     def resetcity(self, my_info1):
         global selectedlat, selectedlon, selectedcity
