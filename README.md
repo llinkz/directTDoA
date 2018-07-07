@@ -22,6 +22,7 @@ This piece of software is JUST a GUI written for Python 2.7 designed to compute 
 * v2.31: bugfix on checkfilesize process
 * v2.32: adding a restart GUI button
 * v2.33: adding MacOS X compatibility, thx Nicolas M.
+* v2.40: known points (world capitals) listing is now a file, format is 'name,lat,lon' - easier for you to add yours :-)
 
 ## TODO LIST
 * adding a list of known MIL/GOV/MARITIME/AERO/DIPLO/... TX site locations beside the list of World cities
