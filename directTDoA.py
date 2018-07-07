@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from Tkinter import *
-import threading, os, signal, subprocess, platform, tkMessageBox, time, urllib2, re, glob, webbrowser, ttk
+import threading, os, signal, subprocess, platform, tkMessageBox, time, urllib2, re, glob, webbrowser
 from os.path import dirname, abspath
 from subprocess import PIPE
 from PIL import Image, ImageTk
@@ -10,7 +10,30 @@ from shutil import copyfile
 from tkColorChooser import askcolor
 
 
-VERSION = "directTDoA v2.33 by linkz"
+VERSION = "directTDoA v2.40 by linkz"
+
+
+class ReadKnownPointFile:
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def run():
+        with open('directTDoA_knownpoints.db') as h:
+            global my_info1, my_info2, my_info3
+            i = 0
+            lines = h.readlines()
+            my_info1 = []
+            my_info2 = []
+            my_info3 = []
+            while i < sum(1 for _ in open('directTDoA_knownpoints.db')):
+                line = lines[i]
+                inforegexp = re.search(r"(.*),(.*),(.*)", line)
+                my_info1.append(inforegexp.group(1))
+                my_info2.append(inforegexp.group(2))
+                my_info3.append(inforegexp.group(3))
+                i += 1
+        h.close()
 
 
 class CheckFileSize(threading.Thread):
@@ -183,7 +206,10 @@ class RunUpdate(threading.Thread):
                     node_block.append(kiwi_hostname[u])
                     node_block.append(kiwi_lat[u])
                     node_block.append(kiwi_lon[u])
-                    node_block.append(kiwi_names[u].replace("\xe2\x80\xa2 ", "").replace("\xc2\xb3", "").replace("\xf0\x9f\x93\xbb", ""))
+                    node_block.append(
+                        kiwi_names[u].replace("\xe2\x80\xa2 ", "").replace("\xc2\xb3", "").replace("\xf0\x9f\x93\xbb",
+                                                                                                   "").replace(
+                            "\xc2\xb2", ""))
                     node_block.append(kiwi_users[u])
                     node_block.append(kiwi_users_max[u])
                     node_block.append(kiwi_sdr_hw[u])
@@ -317,12 +343,6 @@ class FillMapWithNodes(threading.Thread):
                 my_usermx.append(id.group(7))
                 i += 1
         h.close()
-        # with open('directTDoA.cfg', "r") as c:
-        #     configline = c.readlines()
-        #     mapfilter = configline[5].split('\n')[0]
-        #     white = configline[7].replace("\n", "").split(',')
-        #     black = configline[9].replace("\n", "").split(',')
-        # c.close()
         my_x_zeros = []
         my_y_zeros = []
         my_x_ones = []
@@ -791,10 +811,11 @@ class MainWindow(Frame):
         Frame.__init__(self, parent)
         # self.parent = parent
         self.member1 = Zoom_Advanced(parent)
+        ReadKnownPointFile().run()
         global frequency, checkfilesize
-        global line, kiwi_update, i, bgc, fgc, dfgc, city, citylat, citylon, lpcut, hpcut
+        global line, kiwi_update, i, bgc, fgc, dfgc, lpcut, hpcut
         global latmin, latmax, lonmin, lonmax, bbox1, lat_min_map, lat_max_map, lon_min_map, lon_max_map
-        global selectedlat, selectedlon
+        global selectedlat, selectedlon, selectedcity
         frequency = DoubleVar()
         bgc = '#d9d9d9'
         fgc = '#000000'
@@ -808,127 +829,7 @@ class MainWindow(Frame):
         lon_max_map = ""
         selectedlat = ""
         selectedlon = ""
-        city = ['pick a city for TDoA map point display or leave as it to hide (choose once)',
-                  'Abu_Dhabi (United Arab Emirates)', 'Abuja (Nigeria)', 'Accra (Ghana)',
-                  'Adamstown (Pitcairn Islands)', 'Addis_Ababa (Ethiopia)', 'Algiers (Algeria)', 'Alofi (Niue)',
-                  'Amman (Jordan)', 'Amsterdam (Netherlands)', 'Andorra_la_Vella (Andorra)', 'Ankara (Turkey)',
-                  'Antananarivo (Madagascar)', 'Apia (Samoa)', 'Ashgabat (Turkmenistan)', 'Asmara (Eritrea)',
-                  'Astana (Kazakhstan)', 'Asuncion (Paraguay)', 'Atafu (Tokelau)', 'Athens (Greece)',
-                  'Avarua (Cook Islands)', 'Baghdad (Iraq)', 'Baku (Azerbaijan)', 'Bamako (Mali)',
-                  'Bandar_Seri_Begawan (Brunei Darussalam)', 'Bangkok (Thailand)', 'Bangui (Central African Republic)',
-                  'Banjul (The Gambia)', 'Basseterre (Saint Kitts and Nevis)', 'Beijing (China)', 'Beirut (Lebanon)',
-                  'Belgrade (Serbia)', 'Belmopan (Belize)', 'Berlin (Germany)', 'Bern (Switzerland)',
-                  'Bishkek (Kyrgyzstan)', 'Bissau (Guinea-Bissau)', 'Bogota (Colombia)', 'Brasilia (Brazil)',
-                  'Bratislava (Slovakia)', 'Brazzaville (Republic of Congo)', 'Bridgetown (Barbados)',
-                  'Brussels (Belgium)', 'Bucharest (Romania)', 'Budapest (Hungary)', 'Buenos_Aires (Argentina)',
-                  'Bujumbura (Burundi)', 'Cairo (Egypt)', 'Canberra (Australia)', 'Caracas (Venezuela)',
-                  'Castries (Saint Lucia)', 'Charlotte_Amalie (US Virgin Islands)', 'Chisinau (Moldova)',
-                  'Colombo (Sri Lanka)', 'Conakry (Guinea)', 'Copenhagen (Denmark)', 'Dakar (Senegal)',
-                  'Damascus (Syria)', 'Dar_es_Salaam (Tanzania)', 'Dhaka (Bangladesh)',
-                  'Diego_Garcia (British Indian Ocean Territory)', 'Dili (Timor-Leste)', 'Djibouti (Djibouti)',
-                  'Doha (Qatar)', 'Douglas (Isle of Man)', 'Dublin (Ireland)', 'Dushanbe (Tajikistan)',
-                  'El_Ayoun (Western Sahara)', 'Freetown (Sierra Leone)', 'Funafuti (Tuvalu)', 'Gaborone (Botswana)',
-                  'George_Town (Cayman Islands)', 'Georgetown (Guyana)', 'Gibraltar (Gibraltar)',
-                  'Grand_Turk (Turks and Caicos Islands)', 'Guatemala_City (Guatemala)', 'Gustavia (Saint Barthelemy)',
-                  'Hagatna (Guam)', 'Hamilton (Bermuda)', 'Hanoi (Vietnam)', 'Harare (Zimbabwe)',
-                  'Hargeisa (Somaliland)', 'Havana (Cuba)', 'Helsinki (Finland)', 'Honiara (Solomon Islands)',
-                  'Islamabad (Pakistan)', 'Jakarta (Indonesia)', 'Jamestown (Saint Helena)', 'Jerusalem (Israel)',
-                  'Jerusalem (Palestine)', 'Juba (South Sudan)', 'Kabul (Afghanistan)', 'Kampala (Uganda)',
-                  'Kathmandu (Nepal)', 'Khartoum (Sudan)', 'Kigali (Rwanda)',
-                  'King_Edward_Point (South Georgia and South Sandwich Islands)', 'Kingston (Jamaica)',
-                  'Kingston (Norfolk Island)', 'Kingstown (Saint Vincent and the Grenadines)',
-                  'Kinshasa (Democratic Republic of the Congo)', 'Kuala_Lumpur (Malaysia)', 'Kuwait_City (Kuwait)',
-                  'Kyiv (Ukraine)', 'La_Paz (Bolivia)', 'Libreville (Gabon)', 'Lilongwe (Malawi)', 'Lima (Peru)',
-                  'Lisbon (Portugal)', 'Ljubljana (Slovenia)', 'Lome (Togo)', 'London (United Kingdom)',
-                  'Longyearbyen (Svalbard)', 'Luanda (Angola)', 'Lusaka (Zambia)', 'Luxembourg (Luxembourg)',
-                  'Madrid (Spain)', 'Majuro (Marshall Islands)', 'Malabo (Equatorial Guinea)', 'Male (Maldives)',
-                  'Managua (Nicaragua)', 'Manama (Bahrain)', 'Manila (Philippines)', 'Maputo (Mozambique)',
-                  'Mariehamn (Aland Islands)', 'Marigot (Saint Martin)', 'Maseru (Lesotho)',
-                  'Mata_Utu (Wallis and Futuna)', 'Mbabane (Swaziland)', 'Melekeok (Palau)', 'Mexico_City (Mexico)',
-                  'Minsk (Belarus)', 'Mogadishu (Somalia)', 'Monaco (Monaco)', 'Monrovia (Liberia)',
-                  'Montevideo (Uruguay)', 'Moroni (Comoros)', 'Moscow (Russia)', 'Muscat (Oman)', 'Antarctica',
-                  'Heard Island and McDonald Islands', 'Hong Kong', 'Macau', 'Nairobi (Kenya)',
-                  'Nassau (Bahamas)', 'N_Djamena (Chad)', 'New_Delhi (India)', 'Niamey (Niger)', 'Nicosia (Cyprus)',
-                  'North_Nicosia (Northern Cyprus)', 'Nouakchott (Mauritania)', 'Noumea (New Caledonia)',
-                  'Nuku_alofa (Tonga)', 'Nuuk (Greenland)', 'Oranjestad (Aruba)', 'Oslo (Norway)', 'Ottawa (Canada)',
-                  'Ouagadougou (Burkina Faso)', 'Pago_Pago (American Samoa)',
-                  'Palikir (Federated States of Micronesia)', 'Panama_City (Panama)', 'Papeete (French Polynesia)',
-                  'Paramaribo (Suriname)', 'Paris (France)', 'Philipsburg (Sint Maarten)', 'Phnom_Penh (Cambodia)',
-                  'Plymouth (Montserrat)', 'Podgorica (Montenegro)', 'Port_Louis (Mauritius)',
-                  'Port_Moresby (Papua New Guinea)', 'Port_of_Spain (Trinidad and Tobago)', 'Port_au_Prince (Haiti)',
-                  'Port_aux_Francais (French Southern and Antarctic Lands)', 'Porto_Novo (Benin)',
-                  'Port_Vila (Vanuatu)', 'Prague (Czech Republic)', 'Praia (Cape Verde)', 'Pretoria (South Africa)',
-                  'Pristina (Kosovo)', 'Pyongyang (North Korea)', 'Quito (Ecuador)', 'Rabat (Morocco)',
-                  'Rangoon (Myanmar)', 'Reykjavik (Iceland)', 'Riga (Latvia)', 'Riyadh (Saudi Arabia)',
-                  'Road_Town (British Virgin Islands)', 'Rome (Italy)', 'Roseau (Dominica)', 'Saint_Georges (Grenada)',
-                  'Saint_Helier (Jersey)', 'Saint_Johns (Antigua and Barbuda)', 'Saint_Peter_Port (Guernsey)',
-                  'Saint_Pierre (Saint Pierre and Miquelon)', 'Saipan (Northern Mariana Islands)',
-                  'San_Jose (Costa Rica)', 'San_Juan (Puerto Rico)', 'San_Marino (San Marino)',
-                  'San_Salvador (El Salvador)', 'Sanaa (Yemen)', 'Santiago (Chile)',
-                  'Santo_Domingo (Dominican Republic)', 'Sao_Tome (Sao Tome and Principe)',
-                  'Sarajevo (Bosnia and Herzegovina)', 'Seoul (South Korea)', 'Singapore (Singapore)',
-                  'Skopje (Macedonia)', 'Sofia (Bulgaria)', 'Stanley (Falkland Islands)', 'Stockholm (Sweden)',
-                  'Suva (Fiji)', 'Taipei (Taiwan)', 'Tallinn (Estonia)', 'Tarawa (Kiribati)', 'Tashkent (Uzbekistan)',
-                  'Tbilisi (Georgia)', 'Tegucigalpa (Honduras)', 'Tehran (Iran)', 'The_Settlement (Christmas Island)',
-                  'The_Valley (Anguilla)', 'Thimphu (Bhutan)', 'Tirana (Albania)', 'Tokyo (Japan)',
-                  'Torshavn (Faroe Islands)', 'Tripoli (Libya)', 'Tunis (Tunisia)', 'Ulaanbaatar (Mongolia)',
-                  'Vaduz (Liechtenstein)', 'Valletta (Malta)', 'Vatican_City (Vatican City)', 'Victoria (Seychelles)',
-                  'Vienna (Austria)', 'Vientiane (Laos)', 'Vilnius (Lithuania)', 'Warsaw (Poland)',
-                  'Washington (United States)', 'Wellington (New Zealand)', 'West_Island (Cocos Islands)',
-                  'Willemstad (CuraÃ§ao)', 'Windhoek (Namibia)', 'Yamoussoukro (Cote d Ivoire)', 'Yaounde (Cameroon)',
-                  'Yaren (Nauru)', 'Yerevan (Armenia)', 'Zagreb (Croatia)']
-        citylat = ['0', '24.466', '9.0833', '5.55', '-25.0667', '9.0333', '36.75', '-19.0167', '31.95', '52.35', '42.5',
-                   '39.9333', '-18.9167', '-13.8167', '37.95', '15.3333', '51.1667', '-25.2667', '-9.1667', '37.9833',
-                   '-21.2', '33.3333', '40.3833', '12.65', '4.8833', '13.75', '4.3667', '13.45', '17.3', '39.9167',
-                   '33.8667', '44.8333', '17.25', '52.5167', '46.9167', '42.8667', '11.85', '4.6', '-15.7833', '48.15',
-                   '-4.25', '13.1', '50.8333', '44.4333', '47.5', '-34.5833', '-3.3667', '30.05', '-35.2667', '10.4833',
-                   '14', '18.35', '47', '6.9167', '9.5', '55.6667', '14.7333', '33.5', '-6.8', '23.7167', '-7.3',
-                   '-8.5833', '11.5833', '25.2833', '54.15', '53.3167', '38.55', '27.1536', '8.4833', '-8.5167',
-                   '-24.6333', '19.3', '6.8', '36.1333', '21.4667', '14.6167', '17.8833', '13.4667', '32.2833',
-                   '21.0333', '-17.8167', '9.55', '23.1167', '60.1667', '-9.4333', '33.6833', '-6.1667', '-15.9333',
-                   '31.7667', '31.7667', '4.85', '34.5167', '0.3167', '27.7167', '15.6', '-1.95', '-54.2833', '18',
-                   '-29.05', '13.1333', '-4.3167', '3.1667', '29.3667', '50.4333', '-16.5', '0.3833', '-13.9667',
-                   '-12.05', '38.7167', '46.05', '6.1167', '51.5', '78.2167', '-8.8333', '-15.4167', '49.6', '40.4',
-                   '7.1', '3.75', '4.1667', '12.1333', '26.2333', '14.6', '-25.95', '60.1167', '18.0731', '-29.3167',
-                   '-13.95', '-26.3167', '7.4833', '19.4333', '53.9', '2.0667', '43.7333', '6.3', '-34.85', '-11.7',
-                   '55.75', '23.6167', '0', '0', '0', '0', '-1.2833', '25.0833', '12.1', '28.6', '13.5167', '35.1667',
-                   '35.1833', '18.0667', '-22.2667', '-21.1333', '64.1833', '12.5167', '59.9167', '45.4167', '12.3667',
-                   '-14.2667', '6.9167', '8.9667', '-17.5333', '5.8333', '48.8667', '18.0167', '11.55', '16.7',
-                   '42.4333', '-20.15', '-9.45', '10.65', '18.5333', '-49.35', '6.4833', '-17.7333', '50.0833',
-                   '14.9167', '-25.7', '42.6667', '39.0167', '-0.2167', '34.0167', '16.8', '64.15', '56.95', '24.65',
-                   '18.4167', '41.9', '15.3', '12.05', '49.1833', '17.1167', '49.45', '46.7667', '15.2', '9.9333',
-                   '18.4667', '43.9333', '13.7', '15.35', '-33.45', '18.4667', '0.3333', '43.8667', '37.55', '1.2833',
-                   '42', '42.6833', '-51.7', '59.3333', '-18.1333', '25.0333', '59.4333', '-0.8833', '41.3167',
-                   '41.6833', '14.1', '35.7', '-10.4167', '18.2167', '27.4667', '41.3167', '35.6833', '62', '32.8833',
-                   '36.8', '47.9167', '47.1333', '35.8833', '41.9', '-4.6167', '48.2', '17.9667', '54.6833', '52.25',
-                   '38.8833', '-41.3', '-12.1667', '12.1', '-22.5667', '6.8167', '3.8667', '-0.5477', '40.1667', '45.8']
-        citylon = ['0', '54.3667', '7.5333', '-0.2167', '-130.0833', '38.7', '3.05', '-169.9167', '35.9333', '4.9167',
-                   '1.5167', '32.8667', '47.5167', '-171.7667', '58.3833', '38.9333', '71.4167', '-57.6667',
-                   '-171.8333', '23.7333', '-159.7667', '44.4', '49.8667', '-8', '114.9333', '100.5167', '18.5833',
-                   '-16.5667', '-62.7167', '116.3833', '35.5', '20.5', '-88.7667', '13.4', '7.4667', '74.6', '-15.5833',
-                   '-74.0833', '-47.9167', '17.1167', '15.2833', '-59.6167', '4.3333', '26.1', '19.0833', '-58.6667',
-                   '29.35', '31.25', '149.1333', '-66.8667', '-61', '-64.9333', '28.85', '79.8333', '-13.7', '12.5833',
-                   '-17.6333', '36.3', '39.2833', '90.4', '72.4', '125.6', '43.15', '51.5333', '-4.4833', '-6.2333',
-                   '68.7667', '-13.2033', '-13.2333', '179.2167', '25.9', '-81.3833', '-58.15', '-5.35', '-71.1333',
-                   '-90.5167', '-62.85', '144.7333', '-64.7833', '105.85', '31.0333', '44.05', '-82.35', '24.9333',
-                   '159.95', '73.05', '106.8167', '-5.7167', '35.2333', '35.2333', '31.6167', '69.1833', '32.55',
-                   '85.3167', '32.5333', '30.05', '-36.5', '-76.8', '167.9667', '-61.2167', '15.3', '101.7', '47.9667',
-                   '30.5167', '-68.15', '9.45', '33.7833', '-77.05', '-9.1333', '14.5167', '1.2167', '-0.0833',
-                   '15.6333', '13.2167', '28.2833', '6.1167', '-3.6833', '171.3833', '8.7833', '73.5', '-86.25',
-                   '50.5667', '120.9667', '32.5833', '19.9', '-63.0822', '27.4833', '-171.9333', '31.1333', '134.6333',
-                   '-99.1333', '27.5667', '45.3333', '7.4167', '-10.8', '-56.1667', '43.2333', '37.6', '58.5833', '0',
-                   '0', '0', '0', '36.8167', '-77.35', '15.0333', '77.2', '2.1167', '33.3667', '33.3667', '-15.9667',
-                   '166.45', '-175.2', '-51.75', '-70.0333', '10.75', '-75.7', '-1.5167', '-170.7', '158.15',
-                   '-79.5333', '-149.5667', '-55.1667', '2.3333', '-63.0333', '104.9167', '-62.2167', '19.2667',
-                   '57.4833', '147.1833', '-61.5167', '-72.3333', '70.2167', '2.6167', '168.3167', '14.4667',
-                   '-23.5167', '28.2167', '21.1667', '125.75', '-78.5', '-6.8167', '96.15', '-21.95', '24.1', '46.7',
-                   '-64.6167', '12.4833', '-61.4', '-61.75', '-2.1', '-61.85', '-2.5333', '-56.1833', '145.75',
-                   '-84.0833', '-66.1167', '12.4167', '-89.2', '44.2', '-70.6667', '-69.9', '6.7333', '18.4167',
-                   '126.9833', '103.85', '21.4333', '23.3167', '-57.85', '18.05', '178.4167', '121.5167', '24.7167',
-                   '169.5333', '69.25', '44.8333', '-87.2167', '51.4167', '105.7167', '-63.05', '89.6333', '19.8167',
-                   '139.75', '-6.7667', '13.1667', '10.1833', '106.9167', '9.5167', '14.5', '12.45', '55.45', '16.3667',
-                   '102.6', '25.3167', '21', '-77', '174.7833', '96.8333', '-68.9167', '17.0833', '-5.2667', '11.5167',
-                   '166.9209', '44.5', '16']
+        selectedcity = ""
 
         self.label0 = Label(parent)
         self.label0.place(relx=0, rely=0.69, relheight=0.4, relwidth=1)
@@ -963,28 +864,22 @@ class MainWindow(Frame):
         # self.TCombobox1 = ttk.Combobox(parent, state=DISABLED)  # IQ BW Combobox disabled until it's functionnal
         # self.TCombobox1.place(relx=0.24, rely=0.892, height=24, relwidth=0.1)
         # self.TCombobox1.configure(font="TkTextFont",
-        #                           values=["IQ bandwidth", "10000", "5000", "4000", "3000", "2000", "1000", "500", "400",
+        #                         values=["IQ bandwidth", "10000", "5000", "4000", "3000", "2000", "1000", "500", "400",
         #                                   "300", "200", "100", "50"])
         # self.TCombobox1.current(0)
         # self.TCombobox1.bind("<<ComboboxSelected>>", self.bwchoice)
 
         #  2nd part of buttons
-        self.citylist = ttk.Combobox(parent, values=list(city), state="readonly")  # KNOWN POINT to display on TDoA map
-        self.citylist.place(relx=0.01, rely=0.94, relheight=0.03, relwidth=0.45)
-        self.citylist.current(0)
-        self.citylist.bind('<<ComboboxSelected>>', self.citychoice)
 
-        self.label7 = Label(parent)  # LABEL for KNOWN POINT coordinates
-        self.label7.place(relx=0.52, rely=0.935, relheight=0.04, relwidth=0.3)
+        self.Choice = Entry(parent)
+        self.Choice.place(relx=0.01, rely=0.95, height=21, relwidth=0.1)
+        self.ListBox = Listbox(parent)
+        self.ListBox.place(relx=0.12, rely=0.95, height=21, relwidth=0.2)
+        self.label7 = Label(parent)  # KNOWN POINT
+        self.label7.place(relx=0.34, rely=0.95, height=21, relwidth=0.3)
         self.label7.configure(background=bgc, font="TkFixedFont", foreground=fgc, width=214, text="", anchor="w")
 
-        self.Button4 = Button(parent)  # KNOWN POINT RESET
-        self.Button4.place(relx=0.465, rely=0.94, height=22, relwidth=0.05)
-        self.Button4.configure(activebackground=bgc, activeforeground=fgc, background=bgc, disabledforeground=dfgc,
-                               foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
-                               text="RESET", command=self.resetcity, state="disabled")
-
-        self.Button5 = Button(parent)  # Stop button
+        self.Button5 = Button(parent)  # Restart GUI button
         self.Button5.place(relx=0.81, rely=0.94, height=24, relwidth=0.08)
         self.Button5.configure(activebackground=bgc, activeforeground=fgc, background="red", disabledforeground=dfgc,
                                foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
@@ -1050,6 +945,49 @@ class MainWindow(Frame):
         submenu3.add_command(label="Known map point color", command=lambda *args: self.color_change(3))
         menubar.add_command(label="How to TDoA with this tool", command=self.about)
         menubar.add_command(label="General infos", command=self.general)
+
+        self.listbox_update(my_info1)
+        self.ListBox.bind('<<ListboxSelect>>', self.on_select)
+        self.Choice.bind('<FocusIn>', self.resetcity)
+        self.Choice.bind('<KeyRelease>', self.on_keyrelease)
+
+    def on_keyrelease(self, event):
+        value = event.widget.get()
+        value = value.strip().lower()
+        if value == '':
+            data = my_info1
+        else:
+            data = []
+            for item in my_info1:
+                if value in item.lower():
+                    data.append(item)
+        self.listbox_update(data)
+
+    def listbox_update(self, data):
+        self.ListBox.delete(0, 'end')
+        data = sorted(data, key=str.lower)
+        for item in data:
+            self.ListBox.insert('end', item)
+
+    def on_select(self, event):  # KNOWN POINT SELECTION
+        global selectedlat, selectedlon, selectedcity
+        self.label7.configure(text="LAT: " + str(
+            my_info2[my_info1.index(event.widget.get(event.widget.curselection()))]) + " LON: " + str(
+            my_info3[my_info1.index(event.widget.get(event.widget.curselection()))]))
+        selectedlat = str(my_info2[my_info1.index(event.widget.get(event.widget.curselection()))])
+        selectedlon = str(my_info3[my_info1.index(event.widget.get(event.widget.curselection()))])
+        selectedcity = event.widget.get(event.widget.curselection())
+        self.member1.createPoint(selectedlat, selectedlon, selectedcity)
+
+    def resetcity(self, my_info1):
+        global selectedlat, selectedlon, selectedcity
+        self.Choice.delete(0, 'end')
+        self.label7.configure(text="")
+        if selectedcity is not "":
+            self.member1.deletePoint(selectedlat, selectedlon, selectedcity)
+            selectedcity = ""
+            selectedlat = ""
+            selectedlon = ""
 
     @staticmethod
     def restartgui():
@@ -1212,27 +1150,6 @@ class MainWindow(Frame):
         bw = self.TCombobox1.get()
         self.writelog("|<----" + str(int(bw)/2) + "Hz ----[tune frequency]---- " + str(int(bw)/2) + "Hz ---->|")
         lpcut = hpcut = int(bw) / 2
-
-    def citychoice(self, m):  # affects only the main window apparance, real-time
-        global city, citylat, citylon, selectedlat, selectedlon, selectedcity
-        self.label7.configure(text="LAT: " + str(citylat[city.index(self.citylist.get())]) + " LON: " + str(
-            citylon[city.index(self.citylist.get())]))
-        selectedlat = str(citylat[city.index(self.citylist.get())])
-        selectedlon = str(citylon[city.index(self.citylist.get())])
-        selectedcity = self.citylist.get()
-        self.member1.createPoint(selectedlat, selectedlon, selectedcity)
-        self.citylist.configure(state='disabled')
-        self.Button4.configure(state='normal')
-
-    def resetcity(self):
-        global selectedlat, selectedlon
-        self.citylist.configure(state='normal')
-        self.citylist.current(0)
-        self.citylist.selection_clear()
-        self.label7.configure(text="")
-        selectedlat = ""
-        selectedlon = ""
-        self.member1.deletePoint(selectedlat, selectedlon, selectedcity)
 
     def checksnr(self):
         global snrcheck, snrfreq
@@ -1407,10 +1324,12 @@ endfunction """)
 class MainW(Tk, object):
 
     def __init__(self):
+        global test_list
         Tk.__init__(self)
         Tk.option_add(self, '*Dialog.msg.font', 'TkFixedFont 7')
         self.window = Zoom_Advanced(self)
         self.window2 = MainWindow(self)
+
 
 if __name__ == '__main__':
     app = MainW()
