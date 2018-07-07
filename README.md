@@ -3,7 +3,7 @@
 This piece of software is JUST a GUI written for Python 2.7 designed to compute TDoA maps with GPS enabled KiwiSDR servers around the world using GNU Octave & the EXCELLENT work of Christoph Mayer @ https://github.com/hcab14/TDoA + his forked "kiwiclient" python stuff (original code by Dmitry Janushkevich)
 
 ## INSTALL AND RUN
-* git clone --recursive https://github.com/llinkz/directTDoA.git
+* git clone https://github.com/llinkz/directTDoA.git
 * cp -r directTDoA/* TDoA/kiwiclient
 * cd TDoA/kiwiclient
 * python2 directTDoA.py
