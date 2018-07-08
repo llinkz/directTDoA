@@ -10,7 +10,7 @@ from shutil import copyfile
 from tkColorChooser import askcolor
 
 
-VERSION = "directTDoA v2.42 by linkz"
+VERSION = "directTDoA v2.43 by linkz"
 
 
 class ReadKnownPointFile:
@@ -109,8 +109,9 @@ class RunUpdate(threading.Thread):
                 w.write(datatowrite) # dl listing source
             nbnode = 0
             idfound = namefound = usersfound = usersmaxfound = latfound = lonfound = hostnamefound = gpsfound = None
-            copyfile("directTDoA_server_list.db", "directTDoA_server_list.db.bak")
-            os.remove('directTDoA_server_list.db')
+            if os.path.isfile('directTDoA_server_list.db') is True:
+                copyfile("directTDoA_server_list.db", "directTDoA_server_list.db.bak")
+                os.remove('directTDoA_server_list.db')
             with open('directTDoA_server_list.db', "w") as g:
                 g.write("   \n")
                 g.write("['ffffffffffff', 'linkz.ddns.net:8073', '45.5', '5.5', 'hf_linkz', '0', '4']\n")
@@ -263,95 +264,118 @@ class FillMapWithNodes(threading.Thread):
 
     def run(self):
         time.sleep(0.5)
-        with open('directTDoA_server_list.db') as h:
-            global my_x_zeros, my_y_zeros, my_x_ones, my_y_ones, mycolor, my_host, my_tag, select
-            i = 1
-            lines = h.readlines()
-            nbgpsnodes = lines[0]
-            my_tag = []
-            my_host = []
-            my_lat = []
-            my_lon = []
-            my_name = []
-            my_user = []
-            my_usermx = []
-            while i < (int(nbgpsnodes) + 1):
-                line = lines[i]
-                id = re.search(r"\['(.*)', '(.*)', '(.*)', '(.*)', '(.*)', '(.*)', '(.*)'\]$", line)
-                my_tag.append(id.group(1))
-                my_host.append(id.group(2))
-                my_lat.append(id.group(3))
-                my_lon.append(id.group(4))
-                my_name.append(id.group(5).replace(" ", "_"))
-                my_user.append(id.group(6))
-                my_usermx.append(id.group(7))
-                i += 1
-        h.close()
-        my_x_zeros = []
-        my_y_zeros = []
-        my_x_ones = []
-        my_y_ones = []
-        mycolor = []
-        n = 0
-        while n < len(my_tag):
-            if float(my_lon[n]) > 0:  # nodes are between LONGITUDE 0 to +180
-                my_x_zeros.append(1907.5 + ((float(my_lon[n]) * 1910) / 180))
-                my_x_ones.append(my_x_zeros[n] + 5)
-            else:  # nodes are between LONGITUDE -180 to 0
-                my_x_zeros.append(1907.5 + ((float(my_lon[n]) * 1910) / 180))
-                my_x_ones.append(my_x_zeros[n] + 5)
-            if float(my_lat[n]) > 0:  # nodes are between LATITUDE 0 to +90
-                my_y_zeros.append(987.5 - (float(my_lat[n]) * 11))
-                my_y_ones.append(987.5 - (float(my_lat[n]) * 11) + 5)
-            else:  # nodes are between LATITUDE 0 to -60
-                my_y_zeros.append(987.5 + (float(0 - float(my_lat[n])) * 11))
-                my_y_ones.append(987.5 + (float(0 - float(my_lat[n])) * 11) + 5)
-            if (int(my_user[n])) / (int(my_usermx[n])) == 0:  # OK slots available on the node
-                if my_tag[n] in white:  # if favorite  node color = white
-                    mycolor.append(colorline[1])
-                elif my_tag[n] in black:  # if blacklisted  node color = black
-                    mycolor.append(colorline[2])
+        if os.path.isfile('directTDoA_server_list.db') is True:
+            with open('directTDoA_server_list.db') as h:
+                global my_x_zeros, my_y_zeros, my_x_ones, my_y_ones, mycolor, my_host, my_tag, select
+                i = 1
+                lines = h.readlines()
+                nbgpsnodes = lines[0]
+                my_tag = []
+                my_host = []
+                my_lat = []
+                my_lon = []
+                my_name = []
+                my_user = []
+                my_usermx = []
+                while i < (int(nbgpsnodes) + 1):
+                    line = lines[i]
+                    id = re.search(r"\['(.*)', '(.*)', '(.*)', '(.*)', '(.*)', '(.*)', '(.*)'\]$", line)
+                    my_tag.append(id.group(1))
+                    my_host.append(id.group(2))
+                    my_lat.append(id.group(3))
+                    my_lon.append(id.group(4))
+                    my_name.append(id.group(5).replace(" ", "_"))
+                    my_user.append(id.group(6))
+                    my_usermx.append(id.group(7))
+                    i += 1
+            h.close()
+            my_x_zeros = []
+            my_y_zeros = []
+            my_x_ones = []
+            my_y_ones = []
+            mycolor = []
+            n = 0
+            while n < len(my_tag):
+                if float(my_lon[n]) > 0:  # nodes are between LONGITUDE 0 to +180
+                    my_x_zeros.append(1907.5 + ((float(my_lon[n]) * 1910) / 180))
+                    my_x_ones.append(my_x_zeros[n] + 5)
+                else:  # nodes are between LONGITUDE -180 to 0
+                    my_x_zeros.append(1907.5 + ((float(my_lon[n]) * 1910) / 180))
+                    my_x_ones.append(my_x_zeros[n] + 5)
+                if float(my_lat[n]) > 0:  # nodes are between LATITUDE 0 to +90
+                    my_y_zeros.append(987.5 - (float(my_lat[n]) * 11))
+                    my_y_ones.append(987.5 - (float(my_lat[n]) * 11) + 5)
+                else:  # nodes are between LATITUDE 0 to -60
+                    my_y_zeros.append(987.5 + (float(0 - float(my_lat[n])) * 11))
+                    my_y_ones.append(987.5 + (float(0 - float(my_lat[n])) * 11) + 5)
+                if (int(my_user[n])) / (int(my_usermx[n])) == 0:  # OK slots available on the node
+                    if my_tag[n] in white:  # if favorite  node color = white
+                        mycolor.append(colorline[1])
+                    elif my_tag[n] in black:  # if blacklisted  node color = black
+                        mycolor.append(colorline[2])
+                    else:
+                        mycolor.append(colorline[0])  # if normal node color = green
                 else:
-                    mycolor.append(colorline[0])  # if normal node color = green
-            else:
-                mycolor.append('red')  # if no slots, map point is always created red
-            n += 1
+                    mycolor.append('red')  # if no slots, map point is always created red
+                n += 1
 
-        if dmapfilter == "0":  # display all nodes
-            m = 0
-            while m < len(my_tag):
-                self.parent.canvas.create_rectangle(my_x_zeros[m], my_y_zeros[m], my_x_ones[m], my_y_ones[m], fill=mycolor[m], outline="black", activefill='white', tag=str(my_host[m] + "$" + my_tag[m] + "$" + my_name[m] + "$" + my_user[m] + "$" + my_usermx[m]))
-                self.parent.canvas.tag_bind(str(my_host[m] + "$" + my_tag[m] + "$" + my_name[m] + "$" + my_user[m] + "$" + my_usermx[m]), "<Button-1>", self.parent.onClick)
-                m += 1
-        if dmapfilter == "1":  # display standard + favorites
-            m = 0
-            while m < len(my_tag):
-                if my_tag[m] not in black:
-                    self.parent.canvas.create_rectangle(my_x_zeros[m], my_y_zeros[m], my_x_ones[m], my_y_ones[m], fill=mycolor[m], outline="black", activefill='white', tag=str(my_host[m] + "$" + my_tag[m] + "$" + my_name[m] + "$" + my_user[m] + "$" + my_usermx[m]))
-                    self.parent.canvas.tag_bind(str(my_host[m] + "$" + my_tag[m] + "$" + my_name[m] + "$" + my_user[m] + "$" + my_usermx[m]), "<Button-1>", self.parent.onClick)
-                else:
-                    pass
-                m += 1
-        if dmapfilter == "2":  # display favorites only
-            m = 0
-            while m < len(my_tag):
-                if my_tag[m] in white:
-                    self.parent.canvas.create_rectangle(my_x_zeros[m], my_y_zeros[m], my_x_ones[m], my_y_ones[m], fill=mycolor[m], outline="black", activefill='white', tag=str(my_host[m] + "$" + my_tag[m] + "$" + my_name[m] + "$" + my_user[m] + "$" + my_usermx[m]))
-                    self.parent.canvas.tag_bind(str(my_host[m] + "$" + my_tag[m] + "$" + my_name[m] + "$" + my_user[m] + "$" + my_usermx[m]), "<Button-1>", self.parent.onClick)
-                else:
-                    pass
-                m += 1
-        if dmapfilter == "3":  # display blacklisted only
-            m = 0
-            while m < len(my_tag):
-                if my_tag[m] in black:
-                    self.parent.canvas.create_rectangle(my_x_zeros[m], my_y_zeros[m], my_x_ones[m], my_y_ones[m], fill=mycolor[m], outline="black", activefill='white', tag=str(my_host[m] + "$" + my_tag[m] + "$" + my_name[m] + "$" + my_user[m] + "$" + my_usermx[m]))
-                    self.parent.canvas.tag_bind(str(my_host[m] + "$" + my_tag[m] + "$" + my_name[m] + "$" + my_user[m] + "$" + my_usermx[m]), "<Button-1>", self.parent.onClick)
-                else:
-                    pass
-                m += 1
-        self.parent.canvas.scan_dragto(-int(dx0.split('.')[0]), -int(dy0.split('.')[0]), gain=1)  # adjust map position
-        self.parent.show_image()
+            if dmapfilter == "0":  # display all nodes
+                m = 0
+                while m < len(my_tag):
+                    self.parent.canvas.create_rectangle(my_x_zeros[m], my_y_zeros[m], my_x_ones[m], my_y_ones[m],
+                                                        fill=mycolor[m], outline="black", activefill='white', tag=str(
+                            my_host[m] + "$" + my_tag[m] + "$" + my_name[m] + "$" + my_user[m] + "$" + my_usermx[m]))
+                    self.parent.canvas.tag_bind(
+                        str(my_host[m] + "$" + my_tag[m] + "$" + my_name[m] + "$" + my_user[m] + "$" + my_usermx[m]),
+                        "<Button-1>", self.parent.onClick)
+                    m += 1
+            if dmapfilter == "1":  # display standard + favorites
+                m = 0
+                while m < len(my_tag):
+                    if my_tag[m] not in black:
+                        self.parent.canvas.create_rectangle(my_x_zeros[m], my_y_zeros[m], my_x_ones[m], my_y_ones[m],
+                                                            fill=mycolor[m], outline="black", activefill='white',
+                                                            tag=str(
+                                                                my_host[m] + "$" + my_tag[m] + "$" + my_name[m] + "$" +
+                                                                my_user[m] + "$" + my_usermx[m]))
+                        self.parent.canvas.tag_bind(str(
+                            my_host[m] + "$" + my_tag[m] + "$" + my_name[m] + "$" + my_user[m] + "$" + my_usermx[m]),
+                                                    "<Button-1>", self.parent.onClick)
+                    else:
+                        pass
+                    m += 1
+            if dmapfilter == "2":  # display favorites only
+                m = 0
+                while m < len(my_tag):
+                    if my_tag[m] in white:
+                        self.parent.canvas.create_rectangle(my_x_zeros[m], my_y_zeros[m], my_x_ones[m], my_y_ones[m],
+                                                            fill=mycolor[m], outline="black", activefill='white',
+                                                            tag=str(
+                                                                my_host[m] + "$" + my_tag[m] + "$" + my_name[m] + "$" +
+                                                                my_user[m] + "$" + my_usermx[m]))
+                        self.parent.canvas.tag_bind(str(
+                            my_host[m] + "$" + my_tag[m] + "$" + my_name[m] + "$" + my_user[m] + "$" + my_usermx[m]),
+                                                    "<Button-1>", self.parent.onClick)
+                    else:
+                        pass
+                    m += 1
+            if dmapfilter == "3":  # display blacklisted only
+                m = 0
+                while m < len(my_tag):
+                    if my_tag[m] in black:
+                        self.parent.canvas.create_rectangle(my_x_zeros[m], my_y_zeros[m], my_x_ones[m], my_y_ones[m],
+                                                            fill=mycolor[m], outline="black", activefill='white',
+                                                            tag=str(
+                                                                my_host[m] + "$" + my_tag[m] + "$" + my_name[m] + "$" +
+                                                                my_user[m] + "$" + my_usermx[m]))
+                        self.parent.canvas.tag_bind(str(
+                            my_host[m] + "$" + my_tag[m] + "$" + my_name[m] + "$" + my_user[m] + "$" + my_usermx[m]),
+                                                    "<Button-1>", self.parent.onClick)
+                    else:
+                        pass
+                    m += 1
+            self.parent.canvas.scan_dragto(-int(dx0.split('.')[0]), -int(dy0.split('.')[0]), gain=1)  # adjust map pos.
+            self.parent.show_image()
 
     def deletePoint(self, n):  # city mappoint deletion process
         self.parent.canvas.delete(self.parent, n.rsplit(' (')[0])
@@ -755,6 +779,9 @@ class MainWindow(Frame):
         Frame.__init__(self, parent)
         # self.parent = parent
         self.member1 = Zoom_Advanced(parent)
+        if os.path.isfile('directTDoA_server_list.db') is not True:
+            tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ", message="oops no database found, Click OK to run an update now")
+            RunUpdate().run()
         ReadKnownPointFile().run()
         global frequency, checkfilesize
         global line, kiwi_update, i, bgc, fgc, dfgc, lpcut, hpcut
