@@ -389,7 +389,7 @@ class Zoom_Advanced(Frame):
         self.canvas.bind('<Configure>', self.show_image)  # canvas is resized
         self.canvas.bind('<ButtonPress-1>', self.move_from)  # map move
         self.canvas.bind('<B1-Motion>', self.move_to)  # map move
-        self.canvas.bind_all('<MouseWheel>', self.wheel)  # Windows Zoom disabled in this version !
+        # self.canvas.bind_all('<MouseWheel>', self.wheel)  # Windows Zoom disabled in this version !
         # self.canvas.bind('<Button-5>', self.wheel)  # Linux Zoom disabled in this version !
         # self.canvas.bind('<Button-4>', self.wheel)  # Linux Zoom disabled in this version !
         self.canvas.bind("<ButtonPress-3>", self.on_button_press)  # red rectangle selection
