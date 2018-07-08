@@ -10,7 +10,7 @@ from shutil import copyfile
 from tkColorChooser import askcolor
 
 
-VERSION = "directTDoA v2.41 by linkz"
+VERSION = "directTDoA v2.42 by linkz"
 
 
 class ReadKnownPointFile:
@@ -52,7 +52,7 @@ class CheckFileSize(threading.Thread):
                     filename = wavfiles.replace("..\\iq\\", "")
                     self.parent.writelog2("~" + str(filename[17:]) + " - " + str(os.path.getsize(wavfiles) / 1024) + "KB")
                 t = 0
-            if platform.system() == "Linux":
+            if platform.system() == "Linux" or platform.system() == "Darwin":
                 for wavfiles in glob.glob("../iq/*wav"):
                     os.path.getsize(wavfiles)
                     filename = wavfiles.replace("../iq/", "")
@@ -246,7 +246,7 @@ class StartKiwiSDR(threading.Thread):
         t = 0
         if platform.system() == "Windows":
             execname = 'python'
-        if platform.system() == "Linux":
+        if platform.system() == "Linux" or platform.system() == "Darwin":
             execname = 'python2'
         proc2 = subprocess.Popen(
             [execname, 'kiwirecorder.py', '-s', str(hostlisting), str(namelisting), '-f', str(frequency), '-p',
@@ -360,7 +360,7 @@ class FillMapWithNodes(threading.Thread):
 class Zoom_Advanced(Frame):
     def __init__(self, parent):
         Frame.__init__(self, parent=None)
-        parent.geometry("1000x700+300+0")
+        parent.geometry("1000x670+300+0")
         global dx0, dy0, dx1, dy1
         global serverlist, portlist, namelist, dmap, host, white, black, dmapfilter, mapboundaries_set
         # host = Variable
@@ -816,12 +816,13 @@ class MainWindow(Frame):
         #  2nd part of buttons
 
         self.Choice = Entry(parent)
-        self.Choice.place(relx=0.01, rely=0.95, height=21, relwidth=0.1)
+        self.Choice.place(relx=0.01, rely=0.95, height=21, relwidth=0.18)
+        self.Choice.insert(0, "TDoA map city/site search here")
         self.ListBox = Listbox(parent)
-        self.ListBox.place(relx=0.12, rely=0.95, height=21, relwidth=0.2)
-        self.label7 = Label(parent)  # KNOWN POINT
-        self.label7.place(relx=0.34, rely=0.95, height=21, relwidth=0.3)
-        self.label7.configure(background=bgc, font="TkFixedFont", foreground=fgc, width=214, text="", anchor="w")
+        self.ListBox.place(relx=0.2, rely=0.95, height=21, relwidth=0.3)
+        self.label3 = Label(parent)  # KNOWN POINT
+        self.label3.place(relx=0.54, rely=0.95, height=21, relwidth=0.3)
+        self.label3.configure(background=bgc, font="TkFixedFont", foreground=fgc, width=214, text="", anchor="w")
 
         self.Button5 = Button(parent)  # Restart GUI button
         self.Button5.place(relx=0.81, rely=0.94, height=24, relwidth=0.08)
@@ -916,9 +917,9 @@ class MainWindow(Frame):
     def on_select(self, event):  # KNOWN POINT SELECTION
         global selectedlat, selectedlon, selectedcity
         if event.widget.get(event.widget.curselection()) == " ":
-            tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ",message="Type something in the left box to search a point")
+            tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ",message="Type something in the left box to search for a point")
         else:
-            self.label7.configure(text="LAT: " + str(
+            self.label3.configure(text="LAT: " + str(
             my_info2[my_info1.index(event.widget.get(event.widget.curselection()))]) + " LON: " + str(
             my_info3[my_info1.index(event.widget.get(event.widget.curselection()))]))
             selectedlat = str(my_info2[my_info1.index(event.widget.get(event.widget.curselection()))])
@@ -929,7 +930,7 @@ class MainWindow(Frame):
     def resetcity(self, my_info1):
         global selectedlat, selectedlon, selectedcity
         self.Choice.delete(0, 'end')
-        self.label7.configure(text="")
+        self.label3.configure(text="")
         if selectedcity is not "":
             self.member1.deletePoint(selectedlat, selectedlon, selectedcity)
             selectedcity = ""
