@@ -29,6 +29,9 @@ This piece of software is JUST a GUI written for Python 2.7 designed to compute 
 * v2.32: adding a restart GUI button
 * v2.33: adding MacOS X compatibility, thx Nicolas M.
 * v2.40: known points (world capitals) listing is now a file, format is 'name,lat,lon' - easier for you to add yours :-)
+* v2.41: update process modified due to missing tags for some nodes in kiwisdr.com/public page
+* v2.42: forgot some conditions for MacOS compatibility  oops  thanks Nicolas M. again  :-)
+* v2.43: auto create the directTDoA_server_list.db file at 1st start, file does not need to be in the repo anymore
 
 ## TODO LIST
 * adding a list of known MIL/GOV/MARITIME/AERO/DIPLO/... TX site locations beside the list of World cities
