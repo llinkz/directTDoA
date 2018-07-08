@@ -10,7 +10,7 @@ from shutil import copyfile
 from tkColorChooser import askcolor
 
 
-VERSION = "directTDoA v2.40 by linkz"
+VERSION = "directTDoA v2.41 by linkz"
 
 
 class ReadKnownPointFile:
@@ -102,128 +102,72 @@ class RunUpdate(threading.Thread):
         self.parent = parent
 
     def run(self):
-        global kiwi_nodenumber, kiwi_errors, kiwi_update, kiwi_names, kiwi_users, kiwi_users_max, kiwi_coords
-        global kiwi_loc, kiwi_sw_version, kiwi_antenna, kiwi_uptime, kiwi_hostname, kiwi_id, kiwi_lat, kiwi_lon
-        global addme
         try:
             webpage = urllib2.urlopen("http://kiwisdr.com/public/")  # get the server infos page
             datatowrite = webpage.read()
             with open("kiwisdr.com_public_TDoA.htm", 'wb') as w:
                 w.write(datatowrite) # dl listing source
-            kiwi_nodenumber = 0; kiwi_errors = 0
-            kiwi_id = []; kiwi_sdr_hw = []; kiwi_lat = []; kiwi_lon = []
-            kiwi_update = []; kiwi_names = []; kiwi_users = []; kiwi_users_max = []; kiwi_loc = []
-            kiwi_sw_version = []; kiwi_antenna = []; kiwi_uptime = []; kiwi_hostname = []
-            addme = 1
-            with open('kiwisdr.com_public_TDoA.htm', "r") as f:
-                for line in f:  # parse the listing source html file, line after line, could be a better process, later
-                    update = re.search(
-                        r'(Monday, |Tuesday, |Wednesday, |Thursday, |Friday, |Saturday, |Sunday, )(.*) <br>', line)
-                    id = re.search(r'<!-- id=(.*) -->', line)
-                    name = re.search(r'<!-- name=(.*) -->', line)
-                    sdrhw = re.search(r'<!-- sdr_hw=(.*) -->', line)
-                    users = re.search(r'<!-- users=(.*) -->', line)
-                    users_max = re.search(r'<!-- users_max=(.*) -->', line)
-                    coords = re.search(r'<!-- gps=\((\s?|\@)(\-?\d+\.?\d+)\D*,\s?(\-?\d+\.?\d+).* -->', line)
-                    coords2 = re.search(r'<!-- gps=\((.*)N\s?(.*)E\) -->', line)
-                    loc = re.search(r'<!-- loc=(.*) -->', line)
-                    sw_version = re.search(r'<!-- sw_version=KiwiSDR_v(.*) -->', line)
-                    antenna = re.search(r'<!-- antenna=(.*) -->', line)
-                    uptime = re.search(r'<!-- uptime=(.*) -->', line)
-                    hostname = re.search(r'<a href=\'http://(.*)\' .*', line)  # (?!:)
-                    # starting to construct the lists
-                    if update:
-                        kiwi_update.append(update.group(2))
-
-                    #  < !-- id = b0d5cc554471 -->
-                    if id:
-                        kiwi_id.append(id.group(1))
-                        addme = 1
-
-                    #    <!-- name=0-30MHz kiwiSDR BCL-LOOP13rev2.0 Hokushin Denshi KOBE JAPAN | -->
-                    if name and addme == 1:
-                        kiwi_names.append(
-                            name.group(1).replace(".", "").replace(",", "").replace('"', '').replace("'", ""))
-                    elif name is False:
-                        kiwi_names.append('none')
-                    #    <!-- sdr_hw=KiwiSDR v1.195 ⁣ 📡 GPS ⁣ -->
-
-                    if sdrhw and addme == 1:
-                        if "GPS" not in line:
-                            kiwi_id.pop()
-                            kiwi_names.pop()
-                            addme = 0
-                        else:
-                            kiwi_sdr_hw.append("GPS")
-                            addme = 1
-
-                    if users and addme == 1:
-                        kiwi_users.append(users.group(1))
-
-                    if users_max and addme == 1:
-                        kiwi_users_max.append(users_max.group(1))
-
-                    if coords and addme == 1:
-                        kiwi_lat.append(coords.group(2))
-                        kiwi_lon.append(coords.group(3))
-
-                    if coords2 and addme == 1:
-                        kiwi_lat.append('34.761722')
-                        kiwi_lon.append('135.171528')
-
-                    if loc and addme == 1:
-                        kiwi_loc.append(loc.group(1).decode('ascii', 'ignore').replace(".", "").replace(",", " "))
-                    elif loc is False and addme == 1:
-                        kiwi_loc.append('none')
-
-                    if sw_version and addme == 1:
-                        kiwi_sw_version.append(sw_version.group(1))
-
-                    if antenna and addme == 1:
-                        kiwi_antenna.append(
-                            antenna.group(1).decode('ascii', 'ignore').replace(".", "").replace(",", " "))
-                    elif antenna is False and addme == 1:
-                        kiwi_antenna.append('none')
-
-                    if uptime and addme == 1:
-                        #a = int(datetime.timedelta(seconds=int(uptime.group(1))))
-                        kiwi_uptime.append(uptime.group(1))
-
-                    if hostname and addme == 1:
-                        kiwi_hostname.append(hostname.group(1))
-                    else:
-                        pass
-            f.close()
-            os.remove('kiwisdr.com_public_TDoA.htm')
+            nbnode = 0
+            idfound = namefound = usersfound = usersmaxfound = latfound = lonfound = hostnamefound = gpsfound = None
             copyfile("directTDoA_server_list.db", "directTDoA_server_list.db.bak")
             os.remove('directTDoA_server_list.db')
-            u = 0
-            node_block = []
             with open('directTDoA_server_list.db', "w") as g:
-                g.write("%s\n" % int(len(kiwi_id) + 1))
-                while u < len(kiwi_id) :
-                    node_block.append(kiwi_id[u])
-                    node_block.append(kiwi_hostname[u])
-                    node_block.append(kiwi_lat[u])
-                    node_block.append(kiwi_lon[u])
-                    node_block.append(
-                        kiwi_names[u].replace("\xe2\x80\xa2 ", "").replace("\xc2\xb3", "").replace("\xf0\x9f\x93\xbb",
-                                                                                                   "").replace(
-                            "\xc2\xb2", ""))
-                    node_block.append(kiwi_users[u])
-                    node_block.append(kiwi_users_max[u])
-                    node_block.append(kiwi_sdr_hw[u])
-                    #node_block.append(kiwi_loc[u])
-                    #node_block.append(kiwi_antenna[u])
-                    #node_block.append(kiwi_sw_version[u])
-                    node_block.append(kiwi_uptime[u])
-
-                    g.write("%s" % node_block)
-                    g.write("\n")
-                    u += 1
-                    node_block = []
-                mynode = "['ffffffffffff', 'linkz.ddns.net:8073', '45.5', '5.5', 'hf_linkz', '0', '4', 'GPS', '1']"
-                g.write("%s" % mynode)
+                g.write("   \n")
+                g.write("['ffffffffffff', 'linkz.ddns.net:8073', '45.5', '5.5', 'hf_linkz', '0', '4']\n")
+                #         kiwi_names[u].replace("\xe2\x80\xa2 ", "").replace("\xc2\xb3", "").replace("\xf0\x9f\x93\xbb",
+                #                                                                                    "").replace(
+                #             "\xc2\xb2", "").replace("&#x1f4fb;", "").replace("&#x1f4e1;", ""))
+                # os.remove('directTDoA_server_list.db')
+                # os.remove('kiwisdr.com_public_TDoA.htm')
+                with open('kiwisdr.com_public_TDoA.htm', "r") as f:
+                    for line in f:  # parse the listing source html file, line after line, could be a better process, later
+                        class_start = re.search(r'(<div class=\'(.*)cl-entry\'>)$', line)
+                        id = re.search(r'<!-- id=([0-9a-f]{12}) -->', line)
+                        hostname = re.search(r'<a href=\'http://(.*)\' .*', line)  # (?!:)
+                        coords = re.search(r'<!-- gps=\((\s*|\@)(\-?\d+\.?\d+)\D*,\s*(\-?\d+\.?\d+).* -->', line)
+                        name = re.search(r'<!-- name=(.*) -->', line)
+                        users = re.search(r'<!-- users=(\d) -->', line)
+                        users_max = re.search(r'<!-- users_max=(\d) -->', line)
+                        sdrhw = re.search(r'<!-- sdr_hw=(.*) -->', line)
+                        class_stop = re.search(r'  <span class=\'cl-users\'>(.*)</span> <br>$', line)
+                        if class_start:
+                            nodefound = True
+                        if id:
+                            idfound = id.group(1)
+                        if name:
+                            namefound = name.group(1).replace(".", "").replace(",", "").replace('"', '').replace("'", "")
+                            namefound = namefound.decode('utf-8')
+                        if sdrhw:
+                            if " GPS " in sdrhw.group(1):
+                                gpsfound = "GPS"
+                        if users:
+                            usersfound = users.group(1)
+                        if users_max:
+                            usersmaxfound = users_max.group(1)
+                        if coords:
+                            latfound = coords.group(2)
+                            lonfound = coords.group(3)
+                        if hostname:
+                            hostnamefound = hostname.group(1)
+                        if class_stop and nodefound is True:
+                            nodefound = False
+                            if idfound is not None and namefound is not None and gpsfound is not None  \
+                                and usersfound is not None and usersmaxfound is not None and latfound is not None \
+                                and lonfound is not None and hostnamefound is not None:
+                                mynodeid = "['" + idfound + "', '" + hostnamefound + "', '" + latfound + "', '" + lonfound + "', '" + namefound + "', '" + usersfound + "', '" + usersmaxfound + "']"
+                                mynodeid = mynodeid.encode('ascii','ignore')
+                                nbnode += 1
+                                g.write("%s\n" % str(mynodeid))
+                                idfound = namefound = usersfound = usersmaxfound = latfound = lonfound = hostnamefound = gpsfound = None
+                            else:
+                                idfound = namefound = usersfound = usersmaxfound = latfound = lonfound = hostnamefound = gpsfound = None
+                                nodefound = False
+                        else:
+                            pass
+                f.close()
+                os.remove('kiwisdr.com_public_TDoA.htm')
+                g.seek(0)
+                g.write("%s\n" % str(nbnode + 1))
             g.close()
             executable = sys.executable
             args = sys.argv[:]
@@ -333,7 +277,7 @@ class FillMapWithNodes(threading.Thread):
             my_usermx = []
             while i < (int(nbgpsnodes) + 1):
                 line = lines[i]
-                id = re.search(r"\['(.*)', '(.*)', '(.*)', '(.*)', '(.*)', '(.*)', '(.*)', '(.*)', '(.*)'\]$", line)
+                id = re.search(r"\['(.*)', '(.*)', '(.*)', '(.*)', '(.*)', '(.*)', '(.*)'\]$", line)
                 my_tag.append(id.group(1))
                 my_host.append(id.group(2))
                 my_lat.append(id.group(3))
@@ -445,7 +389,7 @@ class Zoom_Advanced(Frame):
         self.canvas.bind('<Configure>', self.show_image)  # canvas is resized
         self.canvas.bind('<ButtonPress-1>', self.move_from)  # map move
         self.canvas.bind('<B1-Motion>', self.move_to)  # map move
-        # self.canvas.bind_all('<MouseWheel>', self.wheel)  # Windows Zoom disabled in this version !
+        self.canvas.bind_all('<MouseWheel>', self.wheel)  # Windows Zoom disabled in this version !
         # self.canvas.bind('<Button-5>', self.wheel)  # Linux Zoom disabled in this version !
         # self.canvas.bind('<Button-4>', self.wheel)  # Linux Zoom disabled in this version !
         self.canvas.bind("<ButtonPress-3>", self.on_button_press)  # red rectangle selection
