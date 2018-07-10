@@ -1,10 +1,12 @@
 # directTDoA
 
-This piece of software is JUST a GUI written for Python 2.7 designed to compute TDoA maps with GPS enabled KiwiSDR servers around the world using GNU Octave & the EXCELLENT work of Christoph Mayer @ https://github.com/hcab14/TDoA + his forked "kiwiclient" python stuff (original code by Dmitry Janushkevich)
+This piece of software is JUST a GUI written for Python 2.7 designed to compute TDoA maps with GPS enabled KiwiSDR servers around the world using GNU Octave & the EXCELLENT work of Christoph Mayer @ https://github.com/hcab14/TDoA + his forked "kiwiclient" python stuff, original code by Dmitry Janushkevich @ https://github.com/dev-zzo/kiwiclient
 
 ## INSTALL AND RUN
-* Consider you should ONLY use https://github.com/hcab14/TDoA/tree/66070bd651aea720d9ef8682803b77c677304b23 first
+* Consider ONLY use Christoph Mayer's 66070bd TDoA repo first (latest repos will not due to some format changes)
 
+* git clone --recursive https://github.com/hcab14/TDoA.git
+* git reset --hard 66070bd
 * git clone https://github.com/llinkz/directTDoA.git
 * cp -r directTDoA/* TDoA/kiwiclient
 * cd TDoA/kiwiclient
@@ -34,9 +36,12 @@ This piece of software is JUST a GUI written for Python 2.7 designed to compute 
 * v2.41: update process modified due to missing tags for some nodes in kiwisdr.com/public page
 * v2.42: forgot some conditions for MacOS compatibility  oops  thanks Nicolas M. again  :-)
 * v2.43: auto create the directTDoA_server_list.db file at 1st start, file does not need to be in the repo anymore
+* v2.44: MacOS tested OK, code cleanup +warning about missing GPS timestamps in IQ recordings  -uglymaps +kickass NASA maps
 
 ## TODO LIST
 * adding a list of known MIL/GOV/MARITIME/AERO/DIPLO/... TX site locations beside the list of World cities
 * dealing with nodes that forwards a xx° yy' zz.z'' GEO format (gnss_pos retrieving)
 * work harder on recorded IQ BW change possibility, the center frequency moves but the IQ bandwidth stays at 10kHz apparently
 * adding a pop-up at the end of process to give possibility to display the png, the pdf, the generated .m to be edited and re-processed w/o 1 or 2 nodes and if we want to restart the GUI like it does at this time (v2.20)
+* adding already defined TDoA map boundaries list like Europe, NorthAm, Asia, Russia, Middle-East, Africa etc....
+* adding already defined sets of selected nodes list (the ones you mostly always use for DF'ing stuff)
