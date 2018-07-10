@@ -1,3 +1,6 @@
+## This is the directTDoa 2.4x known point database file, please use the following format 
+## LAT/LON in decimal format with - symbol for West & South, don't forget the _ for spaces in the first field and keep the " , , " entry please
+## Name|Names_with_spaces|Callsign (country|details|whatever),LAT,LON     
  , , 
 FUG (Saissac, FRA),43.3904,2.099861
 FUX (La Reunion FRA),-20.9101,55.5844
@@ -6,10 +9,11 @@ FUM (Papeete PYF),-17.5060,-149.4827
 FUF (Martinique MTQ),14.5322,-60.9790
 6WW (Dakar SEN),14.7604,-17.2740
 FUV (Djibouti DJI),11.535952,43.155575
-FUE (Brest FRA),48.4260,-4.2407
+FUE (Le Cranou FRA),48.3372,-4.0436
+FUO (Toulon FRA),43.1357,6.0600
 FUE_VLF (Kerlouan FRA),48.6342,-4.3506
-HWU (Rosnay FRA),46.7131,1.2452
-FTA (Ste Assise FRA),48.5446,2.5794
+HWU_VLF (Rosnay FRA),46.7131,1.2452
+FTA_VLF (Ste Assise FRA),48.5446,2.5794
 Vernon (FRA),49.0951,1.5084
 DCF77 (Mainflingen GER),50.0154,9.008
 GYN2 (Inskip GBR),53.8300,-2.8342
