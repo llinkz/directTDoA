@@ -1,0 +1,59 @@
+All the NASA maps were downloaded for directTDoA python GUI project at https://neo.sci.gsfc.nasa.gov/
+
+Nasa note:
+"The images available in NEO are freely available for public use without further permission. Please use the credit statement attached to each
+dataset, or at the very least credit NASA Earth Observations as the source."
+
+
+BlueMarble (map from Dec 2014) - directTDoA_map_NASA_bluemarble.jpg 1582949
+NASA's Blue Marble: Next Generation images show Earth in true color. The images show how the surface would look to a human in space if 
+our world had no clouds and no atmosphere. NASA's Terra satellite collected these images. There is one Blue Marble image for each month of the year 2004.
+These images allow us to explore changes on Earth's lands over time. Notice how the patterns of green (trees and plants), brown (exposed land surface)
+and white (snow) change from winter through spring, summer, and fall.
+The Moderate Resolution Imaging Spectroradiometer (MODIS) on NASA's Terra satellite sees Earth's entire surface almost every day. Over time, 
+scientists can combine MODIS' daily views of the globe into single images of the whole Earth, called "global composites." 
+The images you see here (named "Blue Marble: Next Generation") show the Earth's land surface in true color.
+https://earthobservatory.nasa.gov/Features/BlueMarble
+
+
+Albedo (map from February 2017) - directTDoA_map_NASA_albedo.jpg 1162489
+When sunlight reaches the Earth’s surface, some of it is absorbed and some is reflected. The relative amount (ratio) of light that a surface 
+reflects compared to the total sunlight that falls on it is called albedo. Surfaces that reflect a lot of the light falling on them are bright
+and they have a high albedo. Surfaces that don’t reflect much light are dark, and they have a low albedo. Snow has a high a albedo, and forests have a low albedo. 
+These maps show albedo on a scale from 0 (no incoming sunlight being reflected) to 0.9 (nearly all incoming light being reflected). 
+Darker blue colors indicate that the surface is not reflecting much light, while paler blues indicate higher proportions of incoming 
+light are being reflected. Black areas indicate “no data,” either over ocean or because persistent cloudiness prevented enough views 
+of the surface. Our planet’s brightest surfaces (highest albedos) are ice caps, glaciers, and snow-covered ground. Deserts also have 
+high albedos. Forests have low albedos, especially boreal forests during summer months.
+
+
+Topography (map from Year 2000) - directTDoA_map_NASA_topo.jpg 746530  +  directTDoA_map_NASA_topo_grayscale.jpg 873983
+Land topography allows us to make maps of the features of the surface of the Earth. Topographic maps show the location, height, and shape 
+of features like mountains and valleys, rivers, even the craters on volcanoes. Another way to think of topographic maps is that they are 
+a picture of the three-dimensional (3-D) structure of the surface of the Earth. Flat maps can create a 3-D effect by making some parts of 
+the map dark and other parts light. This is called "shading" because it makes features on the surface look like they are casting shadows. 
+This topographic map is made from data collected from three sources: NASA's Space Shuttle, Canada's Radarsat satellite, and topographic maps 
+made by the U.S. Geological Survey.
+This image was derived from the U.S. Geological Survey's GTOPO30 data set. GTOPO30 is a global digital elevation model (DEM) resulting 
+from a collaborative effort led by the staff at the U.S. Geological Survey's EROS Data Center in Sioux Falls, South Dakota. Elevations 
+in GTOPO30 are regularly spaced at 30-arc seconds (approximately 1 kilometer). GTOPO30 was developed to meet the needs of the geospatial 
+data user community for regional and continental scale topographic data.
+https://www2.jpl.nasa.gov/srtm/  http://www.asc-csa.gc.ca/eng/satellites/radarsat1/
+
+
+Vegetation (map from May 2018) - directTDoA_map_NASA_vegetation.jpg 1043700  +  directTDoA_map_NASA_vegetation_grayscale.jpg 1031967 
+Dark green areas show where there was a lot of green leaf growth; light greens show where there was some green leaf growth; and tan areas 
+show little or no growth. Black means "no data."
+The colors on these maps show a measure of the "greenness" of Earth's landscapes. The values on these maps—ranging from -0.1 to 0.9—have no unit.
+Rather, they are index values in which higher values (0.4 to 0.9) show lands covered by green, leafy vegetation and lower values (0 to 0.4) 
+show lands where there is little or no vegetation.
+The maps shown here, called Normalized Difference Vegetation Index (NDVI), were produced using data collected by the Moderate Resolution Imaging 
+Spectroradiometer (MODIS) aboard NASA's Terra satellite. 
+https://terra.nasa.gov/
+
+done. 
+
+:-)
+
+linkz
+july 2018
