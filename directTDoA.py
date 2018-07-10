@@ -10,7 +10,7 @@ from shutil import copyfile
 from tkColorChooser import askcolor
 
 
-VERSION = "directTDoA v2.43 by linkz"
+VERSION = "directTDoA v2.44 by linkz"
 
 
 class ReadKnownPointFile:
@@ -21,7 +21,7 @@ class ReadKnownPointFile:
     def run():
         with open('directTDoA_knownpoints.db') as h:
             global my_info1, my_info2, my_info3
-            i = 0
+            i = 3  # skip the directTDoA_knownpoints.db comment lines at start
             lines = h.readlines()
             my_info1 = []
             my_info2 = []
@@ -80,7 +80,7 @@ class ReadConfigFile:
         pass
 
     def read_cfg(self):
-        global dx0, dy0, dx1, dy1, dmap, dmapfilter, white, black, colorline
+        global dx0, dy0, dx1, dy1, dmap, mapfl, white, black, colorline
         with open('directTDoA.cfg', "r") as c:
             configline = c.readlines()
             dx0 = configline[1].split(',')[0]
@@ -88,7 +88,7 @@ class ReadConfigFile:
             dx1 = configline[1].split(',')[2]
             dy1 = configline[1].split(',')[3]
             dmap = configline[3].split('\n')[0]
-            dmapfilter = configline[5].split('\n')[0]
+            mapfl = configline[5].split('\n')[0]
             white = configline[7].replace("\n", "").split(',')
             black = configline[9].replace("\n", "").split(',')
             colorline = configline[11].replace("\n", "").split(',')
@@ -103,10 +103,10 @@ class RunUpdate(threading.Thread):
 
     def run(self):
         try:
-            webpage = urllib2.urlopen("http://kiwisdr.com/public/")  # get the server infos page
+            webpage = urllib2.urlopen("http://kiwisdr.com/public/")  # get the KiwiSDR servers infos page
             datatowrite = webpage.read()
             with open("kiwisdr.com_public_TDoA.htm", 'wb') as w:
-                w.write(datatowrite) # dl listing source
+                w.write(datatowrite)  # dl listing source
             nbnode = 0
             idfound = namefound = usersfound = usersmaxfound = latfound = lonfound = hostnamefound = gpsfound = None
             if os.path.isfile('directTDoA_server_list.db') is True:
@@ -115,13 +115,10 @@ class RunUpdate(threading.Thread):
             with open('directTDoA_server_list.db', "w") as g:
                 g.write("   \n")
                 g.write("['ffffffffffff', 'linkz.ddns.net:8073', '45.5', '5.5', 'hf_linkz', '0', '4']\n")
-                #         kiwi_names[u].replace("\xe2\x80\xa2 ", "").replace("\xc2\xb3", "").replace("\xf0\x9f\x93\xbb",
-                #                                                                                    "").replace(
-                #             "\xc2\xb2", "").replace("&#x1f4fb;", "").replace("&#x1f4e1;", ""))
-                # os.remove('directTDoA_server_list.db')
-                # os.remove('kiwisdr.com_public_TDoA.htm')
+                #  kiwi_names[u].replace("\xe2\x80\xa2 ", "").replace("\xc2\xb3", "").replace("\xf0\x9f\x93\xbb",
+                #  "").replace("\xc2\xb2", "").replace("&#x1f4fb;", "").replace("&#x1f4e1;", "")) # optional for now
                 with open('kiwisdr.com_public_TDoA.htm', "r") as f:
-                    for line in f:  # parse the listing source html file, line after line, could be a better process, later
+                    for line in f:  # parse the listing source html file, line after line, could be a better process
                         class_start = re.search(r'(<div class=\'(.*)cl-entry\'>)$', line)
                         id = re.search(r'<!-- id=([0-9a-f]{12}) -->', line)
                         hostname = re.search(r'<a href=\'http://(.*)\' .*', line)  # (?!:)
@@ -185,11 +182,12 @@ class OctaveProcessing(threading.Thread):
         self.parent = parent
 
     def run(self):
-        global varfile, tdoa_position
+        global varfile, tdoa_position, bad_node
         tdoa_filename = "proc_tdoa_" + varfile + ".m"
+        bad_node = False
         if platform.system() == "Windows":  # not working
             exec_octave = 'C:\Octave\Octave-4.2.1\octave.vbs --no-gui'
-            # tdoa_filename = 'C:\Users\linkz\Desktop\TDoA-master-win\\' + tdoa_filename
+            # tdoa_filename = 'C:\Users\linkz\Desktop\TDoA-master-win\\' + tdoa_filename  # work in progress for Windows
         if platform.system() == "Linux" or platform.system() == "Darwin":
             exec_octave = 'octave'
         proc = subprocess.Popen([exec_octave, tdoa_filename], cwd=dirname(dirname(abspath(__file__))), stdout=PIPE,
@@ -197,18 +195,23 @@ class OctaveProcessing(threading.Thread):
         while True:
             line = proc.stdout.readline()
             if line != '':
-                pass  # self.parent.writelog("Octave INFO", line.rstrip())
+                pass
             if "iq/" in line:
                 self.parent.writelog("processing " + line.rstrip())
+                if "wav 254" in line:  # adding the parse of number 254 indicating no GPS timestamps found in the IQ rec
+                    bad_node = True
+                    self.parent.writelog("WARNING: \"" + line.rstrip().rsplit('_', 3)[
+                        2] + "\" has no recent GPS timestamps, remove it next time.")
             if "tdoa" in line:
                 self.parent.writelog(line.rstrip())
             if "most likely position:" in line:
                 tdoa_position = line.rstrip()
                 self.parent.writelog(line.rstrip())
             if "finished" in line:
-                #self.parent.writelog("processing finished, killing " + str(proc.pid) + " pid.")
+                if bad_node:
+                    self.parent.writelog(
+                        "WARNING: bad GPS node(s) have been used, consider this TDoA as incomplete.")
                 ProcessFinished().run()
-                #os.kill(proc.pid, signal.SIGKILL)
 
 
 class SnrProcessing(threading.Thread):  # work in progress
@@ -223,7 +226,8 @@ class SnrProcessing(threading.Thread):  # work in progress
         if platform.system() == "Linux" or platform.system() == "Darwin":
             execname = 'python2'
         proc3 = subprocess.Popen(
-            [execname, 'microkiwi_waterfall.py', '--file=wf.bin', '-z', '8', '-o', str(snrfreq), '-s', str(snrhost)], stdout=PIPE, shell=False)
+            [execname, 'microkiwi_waterfall.py', '--file=wf.bin', '-z', '8', '-o', str(snrfreq), '-s', str(snrhost)],
+            stdout=PIPE, shell=False)
         while True:
             line3 = proc3.stdout.readline()
             if "bytes" in line3:
@@ -239,8 +243,8 @@ class StartKiwiSDR(threading.Thread):
         self.parent = parent
 
     def run(self):
-        global parent, line, nbfile, IQfiles, hostlisting, namelisting, frequency, portlisting, lpcut, hpcut, proc2, t
-        global proc2_pid, checkfilesize
+        global hostlisting, namelisting, frequency, portlisting, lpcut, hpcut, proc2_pid
+        global parent, line, nbfile, IQfiles, t
         IQfiles = []
         line = []
         nbfile = 1
@@ -319,7 +323,7 @@ class FillMapWithNodes(threading.Thread):
                     mycolor.append('red')  # if no slots, map point is always created red
                 n += 1
 
-            if dmapfilter == "0":  # display all nodes
+            if mapfl == "0":  # display all nodes
                 m = 0
                 while m < len(my_tag):
                     self.parent.canvas.create_rectangle(my_x_zeros[m], my_y_zeros[m], my_x_ones[m], my_y_ones[m],
@@ -329,7 +333,7 @@ class FillMapWithNodes(threading.Thread):
                         str(my_host[m] + "$" + my_tag[m] + "$" + my_name[m] + "$" + my_user[m] + "$" + my_usermx[m]),
                         "<Button-1>", self.parent.onClick)
                     m += 1
-            if dmapfilter == "1":  # display standard + favorites
+            if mapfl == "1":  # display standard + favorites
                 m = 0
                 while m < len(my_tag):
                     if my_tag[m] not in black:
@@ -344,7 +348,7 @@ class FillMapWithNodes(threading.Thread):
                     else:
                         pass
                     m += 1
-            if dmapfilter == "2":  # display favorites only
+            if mapfl == "2":  # display favorites only
                 m = 0
                 while m < len(my_tag):
                     if my_tag[m] in white:
@@ -359,7 +363,7 @@ class FillMapWithNodes(threading.Thread):
                     else:
                         pass
                     m += 1
-            if dmapfilter == "3":  # display blacklisted only
+            if mapfl == "3":  # display blacklisted only
                 m = 0
                 while m < len(my_tag):
                     if my_tag[m] in black:
@@ -381,12 +385,12 @@ class FillMapWithNodes(threading.Thread):
         self.parent.canvas.delete(self.parent, n.rsplit(' (')[0])
 
 
-class Zoom_Advanced(Frame):
+class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-canvas-zoom-move-pan?noredirect=1&lq=1 :)
     def __init__(self, parent):
         Frame.__init__(self, parent=None)
         parent.geometry("1000x670+300+0")
         global dx0, dy0, dx1, dy1
-        global serverlist, portlist, namelist, dmap, host, white, black, dmapfilter, mapboundaries_set
+        global serverlist, portlist, namelist, dmap, host, white, black, mapfl, mapboundaries_set
         # host = Variable
         serverlist = []
         portlist = []
@@ -431,7 +435,7 @@ class Zoom_Advanced(Frame):
         self.start_y = None
         FillMapWithNodes(self).start()
 
-    def displaySNR(self):  #  work in progress
+    def displaySNR(self):  # work in progress
         print host
 
     def on_button_press(self, event):
@@ -444,32 +448,32 @@ class Zoom_Advanced(Frame):
 
     def on_move_press(self, event):  # draw mapping bordering for the final TDoA map need
         global lat_min_map, lat_max_map, lon_min_map, lon_max_map
-        curX = self.canvas.canvasx(event.x)
-        curY = self.canvas.canvasy(event.y)
+        cur_x = self.canvas.canvasx(event.x)
+        cur_y = self.canvas.canvasy(event.y)
         lonmin = str((((self.start_x - 1910) * 180) / 1910)).rsplit('.')[0]
-        lonmax = str(((curX - 1910) * 180) / 1910).rsplit('.')[0]
-        latmax = str(0 - ((curY - 990) / 11)).rsplit('.')[0]
+        lonmax = str(((cur_x - 1910) * 180) / 1910).rsplit('.')[0]
+        latmax = str(0 - ((cur_y - 990) / 11)).rsplit('.')[0]
         latmin = str(((self.start_y - 990) / 11)).rsplit('.')[0]
 
-        if curX > self.start_x and curY > self.start_y:
+        if cur_x > self.start_x and cur_y > self.start_y:
             lat_max_map = str(0 - int(latmin))
             lat_min_map = latmax
             lon_max_map = str(lonmax)
             lon_min_map = str(lonmin)
 
-        if curX < self.start_x and curY > self.start_y:
+        if cur_x < self.start_x and cur_y > self.start_y:
             lat_max_map = str(0 - int(latmin))
             lat_min_map = latmax
             lon_max_map = str(lonmin)
             lon_min_map = str(lonmax)
 
-        if curX > self.start_x and curY < self.start_y:
+        if cur_x > self.start_x and cur_y < self.start_y:
             lat_max_map = str(latmax)
             lat_min_map = str(0 - int(latmin))
             lon_max_map = str(lonmax)
             lon_min_map = str(lonmin)
 
-        if curX < self.start_x and curY < self.start_y:
+        if cur_x < self.start_x and cur_y < self.start_y:
             lat_max_map = str(latmax)
             lat_min_map = str(0 - int(latmin))
             lon_max_map = str(lonmin)
@@ -485,7 +489,7 @@ class Zoom_Advanced(Frame):
         elif event.y < 0.02*h:
             self.canvas.yview_scroll(-1, 'units')
         # expand rectangle as you drag the mouse
-        self.canvas.coords(self.rect, self.start_x, self.start_y, curX, curY)
+        self.canvas.coords(self.rect, self.start_x, self.start_y, cur_x, cur_y)
         self.show_image()
 
     def on_button_release(self, event):
@@ -494,36 +498,25 @@ class Zoom_Advanced(Frame):
                               message="LONGITUDE RANGE: from " + lon_min_map + "° to " + lon_max_map + "°\nLATITUDE RANGE: from " + lat_min_map + "° to " + lat_max_map + "°")
         mapboundaries_set = 1
 
-    def createPoint(self, y ,x ,n):  # city mappoint creation process, works only when self.imscale = 1.0
+    def create_point(self, y, x, n):  # map known point creation process, works only when self.imscale = 1.0
         global currentcity, selectedcity
         #  city coordinates y & x (degrees) converted to pixels
         xx0 = (1907.5 + ((float(x) * 1910) / 180))
         xx1 = xx0 + 5
-        if float(y) > 0:                                    # city is located in North Hemisphere
+        if float(y) > 0:                                    # point is located in North Hemisphere
             yy0 = (987.5 - (float(y) * 11))
             yy1 = (987.5 - (float(y) * 11) + 5)
-        else:                                               # city is located in South Hemisphere
+        else:                                               # point is located in South Hemisphere
             yy0 = (987.5 + (float(0 - (float(y) * 11))))
             yy1 = (987.5 + (float(0 - float(y)) * 11) + 5)
 
         self.canvas.create_rectangle(xx0, yy0, xx1, yy1, fill=colorline[3], outline="black", activefill=colorline[3],
-                                         tag=selectedcity.rsplit(' (')[0])
+                                     tag=selectedcity.rsplit(' (')[0])
         self.canvas.create_text(xx0, yy0 - 10, text=selectedcity.rsplit(' (')[0], justify='center', fill=colorline[3],
-                                    tag=selectedcity.rsplit(' (')[0])
+                                tag=selectedcity.rsplit(' (')[0])
 
     def deletePoint(self, y, x, n):  # city map point deletion process
         FillMapWithNodes(self).deletePoint(n.rsplit(' (')[0])
-
-    def onFocusIn(self, event):
-        coordonnees = self.canvas.coords(self.canvas.find_withtag(CURRENT))
-        self.canvas.create_text(coordonnees[0], coordonnees[1] - 10,
-                                text=self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0].rsplit(':')[0],
-                                justify='center', fill="white",
-                                tag="tag" + self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0])
-
-    def onFocusOff(self, event):
-        time.sleep(0.005)
-        self.canvas.delete("tag"+self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0])
 
     def onClick(self, event):
         global snrcheck, snrhost, host, white, black, frequency
@@ -568,8 +561,6 @@ class Zoom_Advanced(Frame):
         self.menu.post(event.x_root, event.y_root)
 
     def addfavorite(self):
-        # print str(host).rsplit("$", 4)[2].replace("_", " ")  # Name
-        # print host.rsplit('$', 4)[1]  # ID
         global white, black
         ReadConfigFile().read_cfg()
         if host.rsplit('$', 4)[1] in white:
@@ -579,9 +570,9 @@ class Zoom_Advanced(Frame):
             os.remove('directTDoA.cfg')
             with open('directTDoA.cfg', "w") as u:
                 u.write("# Default map geometry \n%s,%s,%s,%s" % (dx0, dy0, dx1, dy1))
-                u.write("# Default map picture \n%s\n" % (dmap))
+                u.write("# Default map picture \n%s\n" % dmap)
                 u.write(
-                    "# Default map filter (0= All  1= Standard+Favorites  2= Favorites  3= Blacklisted) \n%s\n" % dmapfilter)
+                    "# Default map filter (0= All  1= Standard+Favorites  2= Favorites  3= Blacklisted) \n%s\n" % mapfl)
                 if white[0] == "":
                     u.write("# Whitelist \n%s\n" % host.rsplit('$', 4)[1])
                     u.write("# Blacklist \n%s\n" % ','.join(black))
@@ -600,7 +591,7 @@ class Zoom_Advanced(Frame):
 
     def remfavorite(self):
         global white, black, newwhite
-        newwhite =[]
+        newwhite = []
         ReadConfigFile().read_cfg()
         for f in white:
             if f != host.rsplit('$', 4)[1]:
@@ -609,7 +600,7 @@ class Zoom_Advanced(Frame):
         with open('directTDoA.cfg', "w") as u:
             u.write("# Default map geometry \n%s,%s,%s,%s" % (dx0, dy0, dx1, dy1))
             u.write("# Default map picture \n%s\n" % (dmap))
-            u.write("# Default map filter (0= All  1= Standard+Favorites  2= Favorites  3= Blacklisted) \n%s\n" % dmapfilter)
+            u.write("# Default map filter (0= All  1= Standard+Favorites  2= Favorites  3= Blacklisted) \n%s\n" % mapfl)
             u.write("# Whitelist \n%s\n" % ','.join(newwhite))
             u.write("# Blacklist \n%s\n" % ','.join(black))
             u.write("# Default Colors (standard,favorites,blacklisted,known) \n%s\n" % ','.join(colorline))
@@ -630,9 +621,9 @@ class Zoom_Advanced(Frame):
             os.remove('directTDoA.cfg')
             with open('directTDoA.cfg', "w") as u:
                 u.write("# Default map geometry \n%s,%s,%s,%s" % (dx0, dy0, dx1, dy1))
-                u.write("# Default map picture \n%s\n" % (dmap))
+                u.write("# Default map picture \n%s\n" % dmap)
                 u.write(
-                    "# Default map filter (0= All  1= Standard+Favorites  2= Favorites  3= Blacklisted) \n%s\n" % dmapfilter)
+                    "# Default map filter (0= All  1= Standard+Favorites  2= Favorites  3= Blacklisted) \n%s\n" % mapfl)
                 if black[0] == "":
                     u.write("# Whitelist \n%s\n" % ','.join(white))
                     u.write("# Blacklist \n%s\n" % host.rsplit('$', 4)[1])
@@ -651,7 +642,7 @@ class Zoom_Advanced(Frame):
 
     def remblacklist(self):
         global white, black, newblack
-        newblack =[]
+        newblack = []
         ReadConfigFile().read_cfg()
         for f in black:
             if f != host.rsplit('$', 4)[1]:
@@ -659,9 +650,9 @@ class Zoom_Advanced(Frame):
         os.remove('directTDoA.cfg')
         with open('directTDoA.cfg', "w") as u:
             u.write("# Default map geometry \n%s,%s,%s,%s" % (dx0, dy0, dx1, dy1))
-            u.write("# Default map picture \n%s\n" % (dmap))
+            u.write("# Default map picture \n%s\n" % dmap)
             u.write(
-                "# Default map filter (0= All  1= Standard+Favorites  2= Favorites  3= Blacklisted) \n%s\n" % dmapfilter)
+                "# Default map filter (0= All  1= Standard+Favorites  2= Favorites  3= Blacklisted) \n%s\n" % mapfl)
             u.write("# Whitelist \n%s\n" % ','.join(white))
             u.write("# Blacklist \n%s\n" % ','.join(newblack))
             u.write("# Default Colors (standard,favorites,blacklisted,known) \n%s\n" % ','.join(colorline))
@@ -684,8 +675,6 @@ class Zoom_Advanced(Frame):
 
     def populate(self):
         global full_list, serverlist, portlist, namelist
-        # host.rsplit(':')[0]   # host/ip
-        # host.rsplit('$', 4)[0].rsplit(':')[1] # port
         if len(serverlist) < 6:
             if host.rsplit(':')[0] not in serverlist:
                 serverlist.append(host.rsplit(':')[0])  # host
@@ -729,12 +718,14 @@ class Zoom_Advanced(Frame):
         # Respond to Linux (event.num) or Windows (event.delta) wheel event
         if event.num == 5 or event.delta == -120:  # scroll down
             i = min(self.width, self.height)
-            if int(i * self.imscale) < 600: return  # block zoom if image is less than 600 pixels
+            if int(i * self.imscale) < 600:
+                return  # block zoom if image is less than 600 pixels
             self.imscale /= self.delta
             scale /= self.delta
         if event.num == 4 or event.delta == 120:  # scroll up
             i = min(self.canvas.winfo_width(), self.canvas.winfo_height())
-            if i < self.imscale: return  # 1 pixel is bigger than the visible area
+            if i < self.imscale:
+                return  # 1 pixel is bigger than the visible area
             self.imscale *= self.delta
             scale *= self.delta
         self.canvas.scale('all', x, y, scale, scale)  # rescale all canvas objects
@@ -778,13 +769,13 @@ class MainWindow(Frame):
     def __init__(self, parent):
         Frame.__init__(self, parent)
         # self.parent = parent
-        self.member1 = Zoom_Advanced(parent)
+        self.member1 = ZoomAdvanced(parent)
         if os.path.isfile('directTDoA_server_list.db') is not True:
             tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ", message="oops no database found, Click OK to run an update now")
             RunUpdate().run()
         ReadKnownPointFile().run()
         global frequency, checkfilesize
-        global line, kiwi_update, i, bgc, fgc, dfgc, lpcut, hpcut
+        global line, i, bgc, fgc, dfgc, lpcut, hpcut
         global latmin, latmax, lonmin, lonmax, bbox1, lat_min_map, lat_max_map, lon_min_map, lon_max_map
         global selectedlat, selectedlon, selectedcity
         frequency = DoubleVar()
@@ -869,7 +860,7 @@ class MainWindow(Frame):
                              highlightcolor=fgc, insertbackground=fgc, selectbackground="#c4c4c4",
                              selectforeground=fgc, undo="1", width=970, wrap="word")
         self.writelog("This is " + VERSION + " (ounaid@gmail.com), a GUI written for python 2.7 / Tk")
-        self.writelog("All credits to Christoph Mayer for his excellent TDoA work (https://github.com/hcab14/TDoA)")
+        self.writelog("All credits to Christoph Mayer for his excellent TDoA work : http://hcab14.blogspot.com")
         vsb2 = Scrollbar(parent, orient="vertical", command=self.Text2.yview)  # adding scrollbar to console
         vsb2.place(relx=0.6, rely=0.7, relheight=0.18, relwidth=0.02)
         self.Text2.configure(yscrollcommand=vsb2.set)
@@ -895,16 +886,20 @@ class MainWindow(Frame):
                              command=lambda *args: self.saveconfig('maps/directTDoA_map_grayscale.jpg'))
         submenu1.add_command(label="Sat",
                              command=lambda *args: self.saveconfig('maps/directTDoA_map_sat.jpg'))
-        submenu1.add_command(label="Black Marble (gamma=1)",
-                             command=lambda *args: self.saveconfig('maps/directTDoA_map_blackmarble-1.jpg'))
-        submenu1.add_command(label="Black Marble (gamma=1.5)",
-                             command=lambda *args: self.saveconfig('maps/directTDoA_map_blackmarble-1.5.jpg'))
-        submenu1.add_command(label="DNB (night)",
-                             command=lambda *args: self.saveconfig('maps/directTDoA_map_dnb.jpg'))
-        submenu1.add_command(label="Snow cover",
-                             command=lambda *args: self.saveconfig('maps/directTDoA_map_snow.jpg'))
-        submenu1.add_command(label="Snow cover 2",
-                             command=lambda *args: self.saveconfig('maps/directTDoA_map_snow2.jpg'))
+        submenu1.add_command(label="Snow Cover",
+                             command=lambda *args: self.saveconfig('maps/directTDoA_map_snowcover.jpg'))
+        submenu1.add_command(label="NASA Albedo",
+                             command=lambda *args: self.saveconfig('maps/directTDoA_map_NASA_albedo.jpg'))
+        submenu1.add_command(label="NASA BlueMarble",
+                             command=lambda *args: self.saveconfig('maps/directTDoA_map_NASA_bluemarble.jpg'))
+        submenu1.add_command(label="NASA Topography",
+                             command=lambda *args: self.saveconfig('maps/directTDoA_map_NASA_topo.jpg'))
+        submenu1.add_command(label="NASA Topography (grayscale)",
+                             command=lambda *args: self.saveconfig('maps/directTDoA_map_NASA_topo_grayscale.jpg'))
+        submenu1.add_command(label="NASA Vegetation",
+                             command=lambda *args: self.saveconfig('maps/directTDoA_map_NASA_vegetation.jpg'))
+        submenu1.add_command(label="NASA Vegetation (grayscale)",
+                             command=lambda *args: self.saveconfig('maps/directTDoA_map_NASA_vegetation_grayscale.jpg'))
         filemenu.add_cascade(label='Map Filter', menu=submenu2, underline=0)
         submenu2.add_command(label="Display All nodes", command=lambda *args: self.setmapfilter('0'))
         submenu2.add_command(label="Display Standard + Favorites", command=lambda *args: self.setmapfilter('1'))
@@ -944,15 +939,15 @@ class MainWindow(Frame):
     def on_select(self, event):  # KNOWN POINT SELECTION
         global selectedlat, selectedlon, selectedcity
         if event.widget.get(event.widget.curselection()) == " ":
-            tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ",message="Type something in the left box to search for a point")
+            tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ", message="Type something in the left box to search for a point")
         else:
             self.label3.configure(text="LAT: " + str(
-            my_info2[my_info1.index(event.widget.get(event.widget.curselection()))]) + " LON: " + str(
-            my_info3[my_info1.index(event.widget.get(event.widget.curselection()))]))
+                my_info2[my_info1.index(event.widget.get(event.widget.curselection()))]) + " LON: " + str(
+                my_info3[my_info1.index(event.widget.get(event.widget.curselection()))]))
             selectedlat = str(my_info2[my_info1.index(event.widget.get(event.widget.curselection()))])
             selectedlon = str(my_info3[my_info1.index(event.widget.get(event.widget.curselection()))])
             selectedcity = event.widget.get(event.widget.curselection())
-            self.member1.createPoint(selectedlat, selectedlon, selectedcity)
+            self.member1.create_point(selectedlat, selectedlon, selectedcity)
 
     def resetcity(self, my_info1):
         global selectedlat, selectedlon, selectedcity
@@ -990,63 +985,45 @@ class MainWindow(Frame):
     def about():  # about menu
         tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ",
                               message="""
-    [HOW TO USE THE GUI]
-
-    1/ Choose nodes by clicking on them (min=3 max=6)
-        (Red squares are busy nodes and can't be used to record atm)
+1/ Choose nodes by clicking on them (min=3 max=6)
     
-    2/ Enter a frequency and choose IQ recording bandwidth (if needed)
-    (Note: recorded center frequency will be +5kHz by default)
-    ex: if you enter 12540.2 it will record 12545.2 cf (-5kHz/+5kHz)
+2/ Enter a frequency (in kHz)
     
-    3/ Hold Left-mouse button to move the World Map to your desired
-    location
+3/ Hold Left-mouse button to move the World Map to your desired location
     
-    4/ Hold Right-mouse button to drag a rec rectangle to setup
-        TDoA computed map geographical boundaries (if needed)
-    (defaults: LAT from 30° to 60° & LON from -10 to 20° =~ Europe)
+4/ Hold Right-mouse button to drag a rec rectangle to set the TDoA computed map geographical boundaries
     
-    5/ Choose a city from the list to display on map (if needed)
+5/ Type some text in the bottom left box to choose a city or TX site to display on final TDoA map (if needed)
     
-    6/ Click Start Recording button and wait for some seconds
-        (Recorded IQ files size are displayed in the white window)
+6/ Click Start Recording button and wait for some seconds (Recorded IQ files size are displayed in the white window)
     
-    7/ Click Start TDoA button and WAIT until the TDoA process stops! 
-        (it may take some CPU process time!)
+7/ Click Start TDoA button and WAIT until the TDoA process stops! (it may take some CPU process time!)
         
-    8/ Calculated TDoA map automatically displayed as picture pop-up
+8/ Calculated TDoA map is automatically displayed as Figure1 pop-up window
     
-    9/ There is a .pdf created in TDoA/pdf directory, this file
-        creation process takes more time !!!
-    
-        PLEASE WAIT UNTIL THE GUI RESTARTS BY ITSELF.
+9/ There is a .pdf created in TDoA/pdf directory but this file creation process takes more time !!!
+Wait for the final popup window that tells you the most likely location found by the TDoA process
 """)
 
     @staticmethod
     def general():  # about menu
         tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ",
                               message="""
-    A backup copy of .wavs, .m and gnss_pos files is automatically
-    made in a new "iq/<timeofprocess>_F<frequency>/" directory to 
-    post-compute again the recs, 
-    ex: for map boundaries modifications (check the saved .m file)
-    or to re-compute w/o a specific node
- 
-    The World map is not real-time, click UPDATE button to refresh,
-    of course, only GPS enabled nodes are displayed...
-    
-    Some errors are possible in the map node placement:
-    The coordinates can be manually set by users, even if their GPS
-    is activated...""")
+A backup copy of ".wavs" ".m" and "gnss_pos" files is automatically made in a new "iq/<timeofprocess>_F<frequency>/"
+directory to post-compute again the recs if needed
+
+The World map is not real-time, click UPDATE button to refresh, of course, only GPS enabled nodes are displayed...
+""")
 
     @staticmethod
-    def setmapfilter(dmapfilter):
+    def setmapfilter(mapfl):
         ReadConfigFile().read_cfg()
         os.remove('directTDoA.cfg')
         with open('directTDoA.cfg', "w") as u:
             u.write("# Default map geometry \n%s,%s,%s,%s\n" % (bbox2[0], bbox2[1], bbox2[2], bbox2[3]))
-            u.write("# Default map picture \n%s\n" % (dmap))
-            u.write("# Default map filter (0= All  1= Standard+Favorites  2= Favorites  3= Blacklisted) \n%s\n" % dmapfilter)
+            u.write("# Default map picture \n%s\n" % dmap)
+            u.write(
+                "# Default map filter (0= All  1= Standard+Favorites  2= Favorites  3= Blacklisted) \n%s\n" % mapfl)
             u.write("# Whitelist \n%s\n" % ','.join(white))
             u.write("# Blacklist \n%s\n" % ','.join(black))
             u.write("# Default Colors (standard,favorites,blacklisted,known) \n%s\n" % ','.join(colorline))
@@ -1074,9 +1051,9 @@ class MainWindow(Frame):
             os.remove('directTDoA.cfg')
             with open('directTDoA.cfg', "w") as u:
                 u.write("# Default map geometry \n%s,%s,%s,%s\n" % (bbox2[0], bbox2[1], bbox2[2], bbox2[3]))
-                u.write("# Default map picture \n%s\n" % (dmap))
+                u.write("# Default map picture \n%s\n" % dmap)
                 u.write(
-                    "# Default map filter (0= All  1= Standard+Favorites  2= Favorites  3= Blacklisted) \n%s\n" % dmapfilter)
+                    "# Default map filter (0= All  1= Standard+Favorites  2= Favorites  3= Blacklisted) \n%s\n" % mapfl)
                 u.write("# Whitelist \n%s\n" % ','.join(white))
                 u.write("# Blacklist \n%s\n" % ','.join(black))
                 u.write("# Default Colors (standard,favorites,blacklisted,known) \n%s\n" % colorline)
@@ -1093,9 +1070,9 @@ class MainWindow(Frame):
         os.remove('directTDoA.cfg')
         with open('directTDoA.cfg', "w") as u:
             u.write("# Default map geometry \n%s,%s,%s,%s\n" % (bbox2[0], bbox2[1], bbox2[2], bbox2[3]))
-            u.write("# Default map picture \n%s\n" % (dmap))
+            u.write("# Default map picture \n%s\n" % dmap)
             u.write(
-                "# Default map filter (0= All  1= Standard+Favorites  2= Favorites  3= Blacklisted) \n%s\n" % dmapfilter)
+                "# Default map filter (0= All  1= Standard+Favorites  2= Favorites  3= Blacklisted) \n%s\n" % mapfl)
             u.write("# Whitelist \n%s\n" % ','.join(white))
             u.write("# Blacklist \n%s\n" % ','.join(black))
             u.write("# Default Colors (standard,favorites,blacklisted,known) \n%s\n" % ','.join(colorline))
@@ -1120,21 +1097,21 @@ class MainWindow(Frame):
         global frequency
         frequency = self.Entry1.get()
 
-    def bwchoice(self, m):  # affects only the main window apparance, real-time
-        global bw, lpcut, hpcut
-        bw = self.TCombobox1.get()
-        self.writelog("|<----" + str(int(bw)/2) + "Hz ----[tune frequency]---- " + str(int(bw)/2) + "Hz ---->|")
-        lpcut = hpcut = int(bw) / 2
+    # def bwchoice(self, m):  # affects only the main window apparance, real-time   work in progress
+    #     global bw, lpcut, hpcut
+    #     bw = self.TCombobox1.get()
+    #     self.writelog("|<----" + str(int(bw)/2) + "Hz ----[tune frequency]---- " + str(int(bw)/2) + "Hz ---->|")
+    #     lpcut = hpcut = int(bw) / 2
 
-    def checksnr(self):
-        global snrcheck, snrfreq
-        snrcheck = True
-        snrfreq = float(self.Entry1.get())
-        snrfreq = snrfreq + 202.94
-        snrfreq = str(snrfreq)
+    # def checksnr(self):  #work in progress
+    #     global snrcheck, snrfreq
+    #     snrcheck = True
+    #     snrfreq = float(self.Entry1.get())
+    #     snrfreq = snrfreq + 202.94
+    #     snrfreq = str(snrfreq)
 
     def clickstart(self):
-        global namelist, hostlist, namelisting, frequency, hostlisting, latmin, latmax, lonmin, lonmax, lpcut, hpcut
+        global namelist, namelisting, frequency, hostlisting, latmin, latmax, lonmin, lonmax, lpcut, hpcut
         global serverlist, portlist, portlisting, starttime, x1, x2, y1, y2, mapboundaries_set
         if mapboundaries_set is None:
             tkMessageBox.showinfo("WARNING",
@@ -1189,7 +1166,7 @@ class MainWindow(Frame):
                 CheckFileSize(self).start()
 
     def clickstop(self):
-        global IQfiles, frequency, varfile, proc2, selectedlat, selectedlon
+        global IQfiles, frequency, varfile, selectedlat, selectedlon
         global selectedcity, starttime, latmin, latmax, lonmin, lonmax, nbfile, proc2_pid
         global lat_min_map, lat_max_map, lon_min_map, lon_max_map, checkfilesize
         checkfilesize = 0
@@ -1230,6 +1207,7 @@ class MainWindow(Frame):
         #  creating the .m file
         with open(dirname(dirname(abspath(__file__))) + '/proc_tdoa_' + varfile + ".m", "w") as g:
             g.write("## -*- octave -*-\n")
+            g.write("## This file has been generated by " + VERSION + "\n")
             g.write("\n")
             g.write("function [tdoa,input]=proc_tdoa_" + varfile + "\n")
             g.write("\n")
@@ -1274,7 +1252,7 @@ class MainWindow(Frame):
                 g.write(",\n                     'known_location', struct('coord', [" + str(selectedlat) + " " + str(
                     selectedlon) + "],\n")
                 g.write("                                              \'name\',  \'" + str(
-                    selectedcity.rsplit(' (')[0]) + "\')\n")
+                    selectedcity.rsplit(' (')[0]).replace('_', ' ') + "\')\n")
                 g.write("""                    );\n
 
   tdoa = tdoa_plot_map(input, tdoa, plot_info);
@@ -1299,10 +1277,9 @@ endfunction """)
 class MainW(Tk, object):
 
     def __init__(self):
-        global test_list
         Tk.__init__(self)
         Tk.option_add(self, '*Dialog.msg.font', 'TkFixedFont 7')
-        self.window = Zoom_Advanced(self)
+        self.window = ZoomAdvanced(self)
         self.window2 = MainWindow(self)
 
 
