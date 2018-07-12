@@ -1,3 +1,4 @@
 [submodule "TDoA"]
 	path = TDoA
 	url = https://github.com/hcab14/TDoA
+	ignore = dirty
