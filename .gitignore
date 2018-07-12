@@ -1,0 +1,7 @@
+# Python 2.7
+__pycache__/
+*.py[cod]
+*$py.class
+
+# directTDoA
+directTDoA_server_list.db*
