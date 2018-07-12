@@ -47,15 +47,15 @@ class CheckFileSize(threading.Thread):
         while t == 0:
             time.sleep(0.5)
             if platform.system() == "Windows":
-                for wavfiles in glob.glob("..\\iq\\*wav"):
+                for wavfiles in glob.glob("TDoA\\iq\\*wav"):
                     os.path.getsize(wavfiles)
-                    filename = wavfiles.replace("..\\iq\\", "")
+                    filename = wavfiles.replace("TDoA\\iq\\", "")
                     self.parent.writelog2("~" + str(filename[17:]) + " - " + str(os.path.getsize(wavfiles) / 1024) + "KB")
                 t = 0
             if platform.system() == "Linux" or platform.system() == "Darwin":
-                for wavfiles in glob.glob("../iq/*wav"):
+                for wavfiles in glob.glob("./TDoA/iq/*wav"):
                     os.path.getsize(wavfiles)
-                    filename = wavfiles.replace("../iq/", "")
+                    filename = wavfiles.replace("./TDoA/iq/", "")
                     self.parent.writelog2("~" + str(filename[17:]) + " - " + str(os.path.getsize(wavfiles) / 1024) + "KB")
                 t = 0
 
@@ -190,7 +190,7 @@ class OctaveProcessing(threading.Thread):
             # tdoa_filename = 'C:\Users\linkz\Desktop\TDoA-master-win\\' + tdoa_filename  # work in progress for Windows
         if platform.system() == "Linux" or platform.system() == "Darwin":
             exec_octave = 'octave'
-        proc = subprocess.Popen([exec_octave, tdoa_filename], cwd=dirname(dirname(abspath(__file__))), stdout=PIPE,
+        proc = subprocess.Popen([exec_octave, tdoa_filename], cwd='./TDoA/', stdout=PIPE,
                                 shell=False)
         while True:
             line = proc.stdout.readline()
@@ -986,21 +986,21 @@ class MainWindow(Frame):
         tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ",
                               message="""
 1/ Choose nodes by clicking on them (min=3 max=6)
-    
+
 2/ Enter a frequency (in kHz)
-    
+
 3/ Hold Left-mouse button to move the World Map to your desired location
-    
+
 4/ Hold Right-mouse button to drag a rec rectangle to set the TDoA computed map geographical boundaries
-    
+
 5/ Type some text in the bottom left box to choose a city or TX site to display on final TDoA map (if needed)
-    
+
 6/ Click Start Recording button and wait for some seconds (Recorded IQ files size are displayed in the white window)
-    
+
 7/ Click Start TDoA button and WAIT until the TDoA process stops! (it may take some CPU process time!)
-        
+
 8/ Calculated TDoA map is automatically displayed as Figure1 pop-up window
-    
+
 9/ There is a .pdf created in TDoA/pdf directory but this file creation process takes more time !!!
 Wait for the final popup window that tells you the most likely location found by the TDoA process
 """)
@@ -1152,14 +1152,14 @@ The World map is not real-time, click UPDATE button to refresh, of course, only 
                 self.Button2.configure(state="normal")
                 self.Button3.configure(state='disabled')
                 if platform.system() == "Windows":
-                    for wavfiles in glob.glob("..\\iq\\*wav"):
+                    for wavfiles in glob.glob("TDoA\\iq\\*wav"):
                         os.remove(wavfiles)
-                    for gnssfiles in glob.glob("..\\gnss_pos\\*txt"):
+                    for gnssfiles in glob.glob("TDoA\\gnss_pos\\*txt"):
                         os.remove(gnssfiles)
                 if platform.system() == "Linux" or platform.system() == "Darwin":
-                    for wavfiles in glob.glob("../iq/*wav"):
+                    for wavfiles in glob.glob("./TDoA/iq/*wav"):
                         os.remove(wavfiles)
-                    for gnssfiles in glob.glob("../gnss_pos/*txt"):
+                    for gnssfiles in glob.glob("./TDoA/gnss_pos/*txt"):
                         os.remove(gnssfiles)
                 time.sleep(1)
                 StartKiwiSDR(self).start()
@@ -1172,11 +1172,11 @@ The World map is not real-time, click UPDATE button to refresh, of course, only 
         checkfilesize = 0
         os.kill(proc2_pid, signal.SIGINT)
         if platform.system() == "Windows":
-            for file in os.listdir("..\iq\\"):
+            for file in os.listdir("TDoA\iq\\"):
                 if file.endswith(".wav"):
                     IQfiles.append(os.path.split(file)[1])
         if platform.system() == "Linux" or platform.system() == "Darwin":
-            for file in os.listdir("../iq//"):
+            for file in os.listdir("./TDoA/iq/"):
                 if file.endswith(".wav"):
                     IQfiles.append(os.path.split(file)[1])
         firstfile = IQfiles[0]
@@ -1188,24 +1188,24 @@ The World map is not real-time, click UPDATE button to refresh, of course, only 
         # make a backup of IQ and gnss_pos files in a new directory named by the datetime process start and frequency
         time.sleep(1)
         if platform.system() == "Windows":
-            os.makedirs("..\iq\\" + starttime + "_F" + str(frequency))
-            for file in os.listdir("..\iq\\"):
+            os.makedirs("TDoA\iq\\" + starttime + "_F" + str(frequency))
+            for file in os.listdir("TDoA\iq\\"):
                 if file.endswith(".wav"):
-                    copyfile("..\iq\\" + file, "..\iq\\" + starttime + "_F" + str(frequency) + "\\" + file)
-            for file in os.listdir("..\gnss_pos\\"):
+                    copyfile("TDoA\iq\\" + file, "TDoA\iq\\" + starttime + "_F" + str(frequency) + "\\" + file)
+            for file in os.listdir("TDoA\gnss_pos\\"):
                 if file.endswith(".txt"):
-                    copyfile("..\gnss_pos\\" + file, "..\iq\\" + starttime + "_F" + str(frequency) + "\\" + file)
+                    copyfile("TDoA\gnss_pos\\" + file, "TDoA\iq\\" + starttime + "_F" + str(frequency) + "\\" + file)
         if platform.system() == "Linux" or platform.system() == "Darwin":
-            os.makedirs("../iq/" + starttime + "_F" + str(frequency))
-            for file in os.listdir("../iq//"):
+            os.makedirs("./TDoA/iq/" + starttime + "_F" + str(frequency))
+            for file in os.listdir("./TDoA/iq//"):
                 if file.endswith(".wav"):
-                    copyfile("../iq/" + file, "../iq/" + starttime + "_F" + str(frequency) + "/" + file)
-            for file in os.listdir("../gnss_pos//"):
+                    copyfile("./TDoA/iq/" + file, "./TDoA/iq/" + starttime + "_F" + str(frequency) + "/" + file)
+            for file in os.listdir("./TDoA/gnss_pos//"):
                 if file.endswith(".txt"):
-                    copyfile("../gnss_pos/" + file, "../iq/" + starttime + "_F" + str(frequency) + "/" + file)
+                    copyfile("./TDoA/gnss_pos/" + file, "./TDoA/iq/" + starttime + "_F" + str(frequency) + "/" + file)
 
         #  creating the .m file
-        with open(dirname(dirname(abspath(__file__))) + '/proc_tdoa_' + varfile + ".m", "w") as g:
+        with open('./TDoA/proc_tdoa_' + varfile + ".m", "w") as g:
             g.write("## -*- octave -*-\n")
             g.write("## This file has been generated by " + VERSION + "\n")
             g.write("\n")
@@ -1233,7 +1233,7 @@ The World map is not real-time, click UPDATE button to refresh, of course, only 
     for j=i+1:n
       tdoa(i,j).lags_filter = ones(size(tdoa(i,j).gpssec))==1;
     end
-  end 
+  end
 
   plot_info = struct('lat', [ """)
             g.write(str(lat_min_map) + ":0.05:" + str(lat_max_map) + "],\n")
@@ -1256,19 +1256,19 @@ The World map is not real-time, click UPDATE button to refresh, of course, only 
                 g.write("""                    );\n
 
   tdoa = tdoa_plot_map(input, tdoa, plot_info);
-  
+
 disp("finished");
 endfunction """)
 
         g.close()
-        self.writelog("../proc_tdoa_" + varfile + ".m file created")
+        self.writelog("./TDoA/proc_tdoa_" + varfile + ".m file created")
         #  backup the .m file in previously /iq/... created dir
         if platform.system() == "Windows":
-            copyfile("..\\proc_tdoa_" + varfile + ".m",
-                     "..\\iq\\" + starttime + "_F" + str(frequency) + "\\proc_tdoa_" + varfile + ".m")
+            copyfile("TDoA\\proc_tdoa_" + varfile + ".m",
+                     "TDoA\\iq\\" + starttime + "_F" + str(frequency) + "\\proc_tdoa_" + varfile + ".m")
         if platform.system() == "Linux" or platform.system() == "Darwin":
-            copyfile("../proc_tdoa_" + varfile + ".m",
-                     "../iq/" + starttime + "_F" + str(frequency) + "/proc_tdoa_" + varfile + ".m")
+            copyfile("./TDoA/proc_tdoa_" + varfile + ".m",
+                     "./TDoA/iq/" + starttime + "_F" + str(frequency) + "/proc_tdoa_" + varfile + ".m")
         self.writelog("running Octave process now... please wait")
         time.sleep(1)
         OctaveProcessing(self).start()
