@@ -2,14 +2,16 @@
 
 This piece of software is JUST a GUI written for Python 2.7 designed to compute TDoA maps with GPS enabled KiwiSDR servers around the world using GNU Octave & the EXCELLENT work of Christoph Mayer @ https://github.com/hcab14/TDoA + his forked "kiwiclient" python stuff, original code by Dmitry Janushkevich @ https://github.com/dev-zzo/kiwiclient
 
-## INSTALL AND RUN
-* Consider ONLY use Christoph Mayer's 66070bd TDoA repo first (latest repos will not due to some format changes)
 
-* git clone --recursive https://github.com/hcab14/TDoA.git
-* git reset --hard 66070bd
-* git clone https://github.com/llinkz/directTDoA.git
-* cp -r directTDoA/* TDoA/kiwiclient
-* cd TDoA/kiwiclient
+## INSTALL AND RUN
+
+* install python 2.x
+* install pip
+* install GNU octave
+
+* git clone --recursive https://github.com/llinkz/directTDoA
+* cd directTDoA
+* ./setup.sh  (will install python modules & compile the necessary .oct file)
 * python2 directTDoA.py
 
 
@@ -19,8 +21,9 @@ This piece of software is JUST a GUI written for Python 2.7 designed to compute 
 
 ## WARNING
 * This code may contain some silly procedures and dumb algorithms as I'm not a python guru, but it almost works so...
-* This GUI may freeze sometimes, just restart it..
+* This GUI may freeze sometimes, just watch for the console output and restart it..
 * If UPDATE process fails, a copy of the server DB is available under the name "directTDoA_server_list.db.bak"
+
 
 ## CHANGE LOG
 * v1.00-1.50 : first working version, basic, static map, manual host adding, hardcoded coordinates, manual octave code run etc...
@@ -37,6 +40,7 @@ This piece of software is JUST a GUI written for Python 2.7 designed to compute 
 * v2.42: forgot some conditions for MacOS compatibility  oops  thanks Nicolas M. again  :-)
 * v2.43: auto create the directTDoA_server_list.db file at 1st start, file does not need to be in the repo anymore
 * v2.44: MacOS tested OK, code cleanup +warning about missing GPS timestamps in IQ recordings  -uglymaps +kickass NASA maps
+
 
 ## TODO LIST
 * adding a list of known MIL/GOV/MARITIME/AERO/DIPLO/... TX site locations beside the list of World cities
