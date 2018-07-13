@@ -45,3 +45,9 @@ This piece of software is JUST a GUI written for Python 2.7 designed to compute 
 * adding a pop-up at the end of process to give possibility to display the png, the pdf, the generated .m to be edited and re-processed w/o 1 or 2 nodes and if we want to restart the GUI like it does at this time (v2.20)
 * adding already defined TDoA map boundaries list like Europe, NorthAm, Asia, Russia, Middle-East, Africa etc....
 * adding already defined sets of selected nodes list (the ones you mostly always use for DF'ing stuff)
+* invert LON & LAT in all the 'most likely point' coordinates references
+* adding some buttons in the final popup so we can display that 'most likely point' in wikimapia, google maps, bing maps, geohack ..
+* saving the 'most likely point' coordinates references as text in TDoA dir then into IQ/... backup/archive directory
+* saving the png & pdf in IQ/... backup/archive directory
+* try to set the user map boundaries to respect equirectangular World view for better map view
+* modifying the update process to use John's new json serverlist format + adding the GPS fixes/minute info in each node point
