@@ -14,267 +14,1887 @@ FUO (Toulon FRA),43.1357,6.0600
 FUE_VLF (Kerlouan FRA),48.6342,-4.3506
 HWU_VLF (Rosnay FRA),46.7131,1.2452
 FTA_VLF (Ste Assise FRA),48.5446,2.5794
-Vernon (FRA),49.0951,1.5084
-DCF77 (Mainflingen GER),50.0154,9.008
-GYN2 (Inskip GBR),53.8300,-2.8342
-MSF (Anthorn, GBR),54.9111,-3.2793
-CFH (Halifax CAN),44.9672,-63.9821
+HWN (Rosnay FRA),46.7131,1.2453
+Vernon (Main FAF TX site FRA),49.0951,1.5084
+DCF77_VLF (Mainflingen GER),50.0154,9.008
+GYN2_VLF (Inskip GBR),53.8300,-2.8342
+MSF_VLF (Anthorn GBR),54.9111,-3.2793
+CFH_VLF (Halifax CAN),44.9672,-63.9821
 CHU (Ottawa CAN),45.2948,-75.7578
-BPC (Shangqiu CHN),34.4565,115.8369
-NSY (Niscemi ITA),37.1256,14.4364
-TBB (Bafa TUR),37.4127,27.3233
-NAU (Ahuada PR),18.3987,-67.1775
+CTA (Palhais POR),38.6035,-9.0315
+BPC_VLF (Shangqiu CHN),34.4565,115.8369
+NSY_VLF (Niscemi ITA),37.1256,14.4364
+TBB_VLF (Bafa TUR),37.4127,27.3233
+NAU_VLF (Ahuada PR),18.3987,-67.1775
+NSY (NRTF Niscemi ITA),37.1172,14.4400
+NAU (NRTF Isabela PR),18.4630,-67.0658
+NPG (NRTF Dixon USA),38.3713,-121.7756
+NDT (NRTF Totsuka JAP),35.3980,139.5017
+NPN (NRTF Guam USA),13.5871,144.8425
+NSS (NRTF Davidsonville USA),38.9667,-76.6830
+NPM (NRTF Lualualei USA),21.4276,-158.1563
 SAQ (Grimeton SWE),57.1131,12.3972
 EBA (Madrid SPA),40.4770,-3.1970
+PBB (Den Helder NLD),52.9192,4.7436
+PBC (Goeree Isl NLD),51.8073,3.8931
+OSN (Ruiselede BEL),51.0788,3.3355
+JWT (Stavanger NOR),58.9956,5.7144
+JWT (Helgelandsmoen-Oslo NOR),60.1116,10.2119
+Frederikshavn (Danish navy DNK),57.4085,10.5159
+Aarhus (Danish navy DNK),56.1228,10.2068
+SVO (Olympia Radio Volakas GRC),37.6042,21.4885
+SXA (Athens GRC),37.9751,23.9182
+DHM91 (Albersloh GER),51.8864,7.7221
+IAR (Roma Radio ITA),41.7818,12.4630
+IDR (Roma ITA),41.9800,12.3619
+DDHxx (Pinneberg GER),53.6733,9.8097
+DHO38_VLF (Saterland-Ramsloh GER),53.0805,7.6124
+DHJ58 (Hurup GER),54.7606,9.5499
+DHJ59 (Wilhelmshaven GER),53.6770,7.6120
+MHFCS_North_West_Cape (Exmouth AUS),-21.9089,114.1319
+MHFCS_Humpty_Doo (Darwin AUS),-12.5344,131.0636
+MHFCS_Townsville (Boyle AUS),-19.2380,146.7222
+MHFCS_Riverina (Lyndoch AUS),-35.1255,146.9794
 WWV (Fort Collins USA),40.6797,-105.0425
 DHFCS_ASC (Ascension Island),-7.9173,-14.3895
 DHFCS_AKR (Akrotiri CYP),34.6140,32.9369
 DHFCS_FLK (Falklands Isl),-51.8464,-58.4521
-DHFCS_XSS (Forest Moor GBR),54,0060,-1,7249
+DHFCS_XSS (Forest Moor GBR),54.0060,-1.7249
+EIP (Shannon Volmet IRL),52.7817,-8.9330
 Inskip (GBR),53.8255,-2.8345
 Croughton (GBR),51.9882,-1.1801
 St_Eval (GBR),50.4786,-5.0004
 Crimond (GBR),57.6111,-1.8835
-Abu_Dhabi (United Arab Emirates),24.466,54.3667
-Abuja (Nigeria),9.0833,7.5333
-Accra (Ghana),5.55,-0.2167
-Adamstown (Pitcairn Islands),-25.0667,-130.0833
-Addis_Ababa (Ethiopia),9.0333,38.7
-Algiers (Algeria),36.75,3.05
-Alofi (Niue),-19.0167,-169.9167
-Amman (Jordan),31.95,35.9333
-Amsterdam (Netherlands),52.35,4.9167
-Andorra_la_Vella (Andorra),42.5,1.5167
-Ankara (Turkey),39.9333,32.8667
-Antananarivo (Madagascar),-18.9167,47.5167
-Apia (Samoa),-13.8167,-171.7667
-Ashgabat (Turkmenistan),37.95,58.3833
-Asmara (Eritrea),15.3333,38.9333
-Astana (Kazakhstan),51.1667,71.4167
-Asuncion (Paraguay),-25.2667,-57.6667
-Atafu (Tokelau),-9.1667,-171.8333
-Athens (Greece),37.9833,23.7333
-Avarua (Cook Islands),-21.2,-159.7667
-Baghdad (Iraq),33.3333,44.4
-Baku (Azerbaijan),40.3833,49.8667
-Bamako (Mali),12.65,-8
-Bandar_Seri_Begawan (Brunei Darussalam),4.8833,114.9333
-Bangkok (Thailand),13.75,100.5167
-Bangui (Central African Republic),4.3667,18.5833
-Banjul (The Gambia),13.45,-16.5667
-Basseterre (Saint Kitts and Nevis),17.3,-62.7167
-Beijing (China),39.9167,116.3833
-Beirut (Lebanon),33.8667,35.5
-Belgrade (Serbia),44.8333,20.5
-Belmopan (Belize),17.25,-88.7667
-Berlin (Germany),52.5167,13.4
-Bern (Switzerland),46.9167,7.4667
-Bishkek (Kyrgyzstan),42.8667,74.6
-Bissau (Guinea-Bissau),11.85,-15.5833
-Bogota (Colombia),4.6,-74.0833
-Brasilia (Brazil),-15.7833,-47.9167
-Bratislava (Slovakia),48.15,17.1167
-Brazzaville (Republic of Congo),-4.25,15.2833
-Bridgetown (Barbados),13.1,-59.6167
-Brussels (Belgium),50.8333,4.3333
-Bucharest (Romania),44.4333,26.1
-Budapest (Hungary),47.5,19.0833
-Buenos_Aires (Argentina),-34.5833,-58.6667
-Bujumbura (Burundi),-3.3667,29.35
-Cairo (Egypt),30.05,31.25
-Canberra (Australia),-35.2667,149.1333
-Caracas (Venezuela),10.4833,-66.8667
-Castries (Saint Lucia),14,-61
-Charlotte_Amalie (US Virgin Islands),18.35,-64.9333
-Chisinau (Moldova),47,28.85
-Colombo (Sri Lanka),6.9167,79.8333
-Conakry (Guinea),9.5,-13.7
-Copenhagen (Denmark),55.6667,12.5833
-Dakar (Senegal),14.7333,-17.6333
-Damascus (Syria),33.5,36.3
-Dar_es_Salaam (Tanzania),-6.8,39.2833
-Dhaka (Bangladesh),23.7167,90.4
-Diego_Garcia (British Indian Ocean Territory),-7.3,72.4
-Dili (Timor-Leste),-8.5833,125.6
-Djibouti (Djibouti),11.5833,43.15
-Doha (Qatar),25.2833,51.5333
-Douglas (Isle of Man),54.15,-4.4833
-Dublin (Ireland),53.3167,-6.2333
-Dushanbe (Tajikistan),38.55,68.7667
-El_Ayoun (Western Sahara),27.1536,-13.2033
-Freetown (Sierra Leone),8.4833,-13.2333
-Funafuti (Tuvalu),-8.5167,179.2167
-Gaborone (Botswana),-24.6333,25.9
-George_Town (Cayman Islands),19.3,-81.3833
-Georgetown (Guyana),6.8,-58.15
-Gibraltar (Gibraltar),36.1333,-5.35
-Grand_Turk (Turks and Caicos Islands),21.4667,-71.1333
-Guatemala_City (Guatemala),14.6167,-90.5167
-Gustavia (Saint Barthelemy),17.8833,-62.85
-Hagatna (Guam),13.4667,144.7333
-Hamilton (Bermuda),32.2833,-64.7833
-Hanoi (Vietnam),21.0333,105.85
-Harare (Zimbabwe),-17.8167,31.0333
-Hargeisa (Somaliland),9.55,44.05
-Havana (Cuba),23.1167,-82.35
-Helsinki (Finland),60.1667,24.9333
-Honiara (Solomon Islands),-9.4333,159.95
-Islamabad (Pakistan),33.6833,73.05
-Jakarta (Indonesia),-6.1667,106.8167
-Jamestown (Saint Helena),-15.9333,-5.7167
-Jerusalem (Israel),31.7667,35.2333
-Jerusalem (Palestine),31.7667,35.2333
-Juba (South Sudan),4.85,31.6167
+Amici_di_ITALCABLE (Viareggio ITA),43.9141,10.2956
+Lashkar_Gah (Afghanistan),31.583,64.36
+Kondoz (Afghanistan),36.728,68.8725
+Jalalabad (Afghanistan),34.4415,70.4361
+Herat (Afghanistan),34.33,62.17
+Mazar-e_Sharif (Afghanistan),36.7,67.1
+Kandahar (Afghanistan),31.61,65.6949
 Kabul (Afghanistan),34.5167,69.1833
-Kampala (Uganda),0.3167,32.55
-Kathmandu (Nepal),27.7167,85.3167
-Khartoum (Sudan),15.6,32.5333
-Kigali (Rwanda),-1.95,30.05
-King_Edward_Point (South Georgia and South Sandwich Islands),-54.2833,-36.5
-Kingston (Jamaica),18,-76.8
-Kingston (Norfolk Island),-29.05,167.9667
-Kingstown (Saint Vincent and the Grenadines),13.1333,-61.2167
-Kinshasa (Democratic Republic of the Congo),-4.3167,15.3
-Kuala_Lumpur (Malaysia),3.1667,101.7
-Kuwait_City (Kuwait),29.3667,47.9667
-Kyiv (Ukraine),50.4333,30.5167
-La_Paz (Bolivia),-16.5,-68.15
-Libreville (Gabon),0.3833,9.45
-Lilongwe (Malawi),-13.9667,33.7833
-Lima (Peru),-12.05,-77.05
-Lisbon (Portugal),38.7167,-9.1333
-Ljubljana (Slovenia),46.05,14.5167
-Lome (Togo),6.1167,1.2167
-London (United Kingdom),51.5,-0.0833
-Longyearbyen (Svalbard),78.2167,15.6333
-Luanda (Angola),-8.8333,13.2167
-Lusaka (Zambia),-15.4167,28.2833
-Luxembourg (Luxembourg),49.6,6.1167
-Madrid (Spain),40.4,-3.6833
-Majuro (Marshall Islands),7.1,171.3833
-Malabo (Equatorial Guinea),3.75,8.7833
-Male (Maldives),4.1667,73.5
-Managua (Nicaragua),12.1333,-86.25
-Manama (Bahrain),26.2333,50.5667
-Manila (Philippines),14.6,120.9667
-Maputo (Mozambique),-25.95,32.5833
-Mariehamn (Aland Islands),60.1167,19.9
-Marigot (Saint Martin),18.0731,-63.0822
-Maseru (Lesotho),-29.3167,27.4833
-Mata_Utu (Wallis and Futuna),-13.95,-171.9333
-Mbabane (Swaziland),-26.3167,31.1333
-Melekeok (Palau),7.4833,134.6333
-Mexico_City (Mexico),19.4333,-99.1333
-Minsk (Belarus),53.9,27.5667
-Mogadishu (Somalia),2.0667,45.3333
-Monaco (Monaco),43.7333,7.4167
-Monrovia (Liberia),6.3,-10.8
-Montevideo (Uruguay),-34.85,-56.1667
-Moroni (Comoros),-11.7,43.2333
-Moscow (Russia),55.75,37.6
-Muscat (Oman),23.6167,58.5833
-Heard_Island_and_McDonald_Islands,-53.1418,73.5178
-Hong_Kong,22.2052,114.1589
-Macau,22.0933,113.5492
-Nairobi (Kenya),-1.2833,36.8167
-Nassau (Bahamas),25.0833,-77.35
-N_Djamena (Chad),12.1,15.0333
-New_Delhi (India),28.6,77.2
-Niamey (Niger),13.5167,2.1167
-Nicosia (Cyprus),35.1667,33.3667
-North_Nicosia (Northern Cyprus),35.1833,33.3667
-Nouakchott (Mauritania),18.0667,-15.9667
-Noumea (New Caledonia),-22.2667,166.45
-Nuku_alofa (Tonga),-21.1333,-175.2
-Nuuk (Greenland),64.1833,-51.75
-Oranjestad (Aruba),12.5167,-70.0333
-Oslo (Norway),59.9167,10.75
-Ottawa (Canada),45.4167,-75.7
-Ouagadougou (Burkina Faso),12.3667,-1.5167
-Pago_Pago (American Samoa),-14.2667,-170.7
-Palikir (Federated States of Micronesia),6.9167,158.15
-Panama_City (Panama),8.9667,-79.5333
-Papeete (French Polynesia),-17.5333,-149.5667
-Paramaribo (Suriname),5.8333,-55.1667
-Paris (France),48.8667,2.3333
-Philipsburg (Sint Maarten),18.0167,-63.0333
-Phnom_Penh (Cambodia),11.55,104.9167
-Plymouth (Montserrat),16.7,-62.2167
-Podgorica (Montenegro),42.4333,19.2667
-Port_Louis (Mauritius),-20.15,57.4833
-Port_Moresby (Papua New Guinea),-9.45,147.1833
-Port_of_Spain (Trinidad and Tobago),10.65,-61.5167
-Port_au_Prince (Haiti),18.5333,-72.3333
-Port_aux_Francais (French Southern and Antarctic Lands),-49.35,70.2167
-Porto_Novo (Benin),6.4833,2.6167
-Port_Vila (Vanuatu),-17.7333,168.3167
-Prague (Czech Republic),50.0833,14.4667
-Praia (Cape Verde),14.9167,-23.5167
-Pretoria (South Africa),-25.7,28.2167
-Pristina (Kosovo),42.6667,21.1667
-Pyongyang (North Korea),39.0167,125.75
-Quito (Ecuador),-0.2167,-78.5
-Rabat (Morocco),34.0167,-6.8167
-Rangoon (Myanmar),16.8,96.15
-Reykjavik (Iceland),64.15,-21.95
-Riga (Latvia),56.95,24.1
-Riyadh (Saudi Arabia),24.65,46.7
-Road_Town (British Virgin Islands),18.4167,-64.6167
-Rome (Italy),41.9,12.4833
-Roseau (Dominica),15.3,-61.4
-Saint_Georges (Grenada),12.05,-61.75
-Saint_Helier (Jersey),49.1833,-2.1
-Saint_Johns (Antigua and Barbuda),17.1167,-61.85
-Saint_Peter_Port (Guernsey),49.45,-2.5333
-Saint_Pierre (Saint Pierre and Miquelon),46.7667,-56.1833
-Saipan (Northern Mariana Islands),15.2,145.75
-San_Jose (Costa Rica),9.9333,-84.0833
-San_Juan (Puerto Rico),18.4667,-66.1167
-San_Marino (San Marino),43.9333,12.4167
-San_Salvador (El Salvador),13.7,-89.2
-Sanaa (Yemen),15.35,44.2
-Santiago (Chile),-33.45,-70.6667
-Santo_Domingo (Dominican Republic),18.4667,-69.9
-Sao_Tome (Sao Tome and Principe),0.3333,6.7333
-Sarajevo (Bosnia and Herzegovina),43.8667,18.4167
-Seoul (South Korea),37.55,126.9833
-Singapore (Singapore),1.2833,103.85
-Skopje (Macedonia),42,21.4333
+Tirana (Albania),41.3275,19.8189
+Sidi_bel_Abbes (Algeria),35.1903,-0.64
+Chlef (Algeria),36.1704,1.32
+Bejaia (Algeria),36.7604,5.07
+Blida (Algeria),36.4203,2.83
+Arak (Algeria),25.28,3.75
+Biskra (Algeria),34.86,5.73
+Setif (Algeria),36.18,5.4
+Batna (Algeria),35.57,6.17
+Annaba (Algeria),36.92,7.76
+Constantine (Algeria),36.36,6.5999
+Oran (Algeria),35.71,-0.62
+Algiers (Algeria),36.7631,3.0506
+Huambo (Angola),-12.75,15.76
+Luanda (Angola),-8.8383,13.2344
+Corrientes (Argentina),-27.49,-58.81
+Parana (Argentina),-31.7333,-60.5333
+La_Plata (Argentina),-34.9096,-57.96
+San_Luis (Argentina),-33.3,-66.35
+San_Salvador_de_Jujuy (Argentina),-24.1833,-65.3
+Santiago_del_Estero (Argentina),-27.7833,-64.2667
+Resistencia (Argentina),-27.46,-58.99
+San_Juan (Argentina),-31.55,-68.52
+Neuquen (Argentina),-38.95,-68.06
+Salta (Argentina),-24.7834,-65.4166
+Tucumán (Argentina),-26.816,-65.2166
+Formosa (Argentina),-26.1728,-58.1828
+Santa_Fe (Argentina),-31.6239,-60.69
+Rosario (Argentina),-32.9511,-60.6663
+Mendoza (Argentina),-32.8833,-68.8166
+Bahia_Blanca (Argentina),-38.74,-62.265
+Mar_del_Plata (Argentina),-38,-57.58
+Córdoba (Argentina),-31.4,-64.1823
+Posadas (Argentina),-27.3578,-55.8851
+Buenos_Aires (Argentina),-34.6025,-58.3975
+Yerevan (Armenia),40.1812,44.5136
+Cranbourne (Australia),-38.0996,145.2834
+Wollongong (Australia),-34.4154,150.89
+Gold_Coast (Australia),-28.0815,153.4482
+Canberra (Australia),-35.283,149.129
+Newcastle (Australia),-32.8453,151.815
+Adelaide (Australia),-34.935,138.6
+Brisbane (Australia),-27.455,153.0351
+Perth (Australia),-31.955,115.84
+Melbourne (Australia),-37.82,144.975
+Sydney (Australia),-33.92,151.1852
+Graz (Austria),47.0778,15.41
+Linz (Austria),48.3192,14.2888
+Vienna (Austria),48.2,16.3666
+Ganca (Azerbaijan),40.685,46.35
+Sumqayt (Azerbaijan),40.58,49.63
+Baku (Azerbaijan),40.3953,49.8622
+Manama (Bahrain),26.2361,50.5831
+Sylhet (Bangladesh),24.9036,91.8736
+Mymensingh (Bangladesh),24.7504,90.38
+Narayanganj (Bangladesh),23.6204,90.5
+Jessore (Bangladesh),23.1704,89.2
+Barisal (Bangladesh),22.7004,90.375
+Comilla (Bangladesh),23.4704,91.17
+Saidpur (Bangladesh),25.8004,89
+Rangpur (Bangladesh),25.75,89.28
+Khulna (Bangladesh),22.84,89.56
+Rajshahi (Bangladesh),24.375,88.605
+Dhaka (Bangladesh),23.7231,90.4086
+Chittagong (Bangladesh),22.33,91.8
+Mahilyow (Belarus),53.8985,30.3247
+Babruysk (Belarus),53.1266,29.1928
+Hrodna (Belarus),53.6779,23.8341
+Homyel (Belarus),52.43,31
+Vitsyebsk (Belarus),55.1887,30.1853
+Brest (Belarus),52.1,23.7
+Minsk (Belarus),53.9,27.5666
+Gent (Belgium),51.03,3.7
+Liege (Belgium),50.63,5.58
+Charleroi (Belgium),50.4204,4.45
+Antwerpen (Belgium),51.2204,4.415
+Brussels (Belgium),50.8333,4.3333
+Porto-Novo (Benin),6.4833,2.6166
+Cotonou (Benin),6.4,2.52
+Quillacollo (Bolivia),-17.4,-66.28
+Santa_Ana (Bolivia),-13.76,-65.58
+Cochabamba (Bolivia),-17.41,-66.17
+Oruro (Bolivia),-17.98,-67.13
+Sucre (Bolivia),-19.041,-65.2595
+La_Paz (Bolivia),-16.498,-68.15
+Santa_Cruz (Bolivia),-17.7539,-63.226
+Banja_Luka (Bosnia and Herzegovina),44.7804,17.18
+Sarajevo (Bosnia and Herzegovina),43.85,18.383
+Timon (Brazil),-5.115,-42.845
+Varzea_Grande (Brazil),-15.65,-56.14
+Canoas (Brazil),-29.92,-51.18
+Sao_Jose_dos_Pinhais (Brazil),-25.57,-49.18
+Blumenau (Brazil),-26.92,-49.09
+Nova_Iguacu (Brazil),-22.74,-43.47
+Duque_de_Caxias (Brazil),-22.77,-43.31
+Niteroi (Brazil),-22.9,-43.1
+Santo_Andre (Brazil),-23.6528,-46.5278
+Jundiai (Brazil),-23.2,-46.88
+Sao_Jose_dos_Campos (Brazil),-23.2,-45.8799
+Americana (Brazil),-22.7499,-47.33
+Piracicaba (Brazil),-22.71,-47.64
+Itu (Brazil),-23.26,-47.3
+Jaboatao (Brazil),-8.11,-35.02
+Olinda (Brazil),-8,-34.85
+Ipatinga (Brazil),-19.4796,-42.52
+Novo_Hamburgo (Brazil),-29.7096,-51.14
+Maringa (Brazil),-23.4095,-51.93
+Cascavel (Brazil),-24.9596,-53.46
+Foz_do_Iguacu (Brazil),-25.5235,-54.53
+Itajai (Brazil),-26.8996,-48.68
+Itabuna (Brazil),-14.7896,-39.28
+Volta_Redonda (Brazil),-22.5196,-44.095
+Petropolis (Brazil),-22.5095,-43.2
+Anapolis (Brazil),-16.3196,-48.96
+Sao_Jose_do_Rio_Preto (Brazil),-20.7996,-49.39
+Limeira (Brazil),-22.5495,-47.4
+Taubate (Brazil),-23.0195,-45.56
+Governador_Valadares (Brazil),-18.87,-41.97
+Juiz_de_Fora (Brazil),-21.77,-43.375
+Santa_Maria (Brazil),-29.6833,-53.8
+Joinville (Brazil),-26.32,-48.8399
+Juazeiro_do_Norte (Brazil),-7.21,-39.32
+Vitória (Brazil),-20.324,-40.366
+Joao_Pessoa (Brazil),-7.1011,-34.8761
+Campina_Grande (Brazil),-7.23,-35.88
+Natal (Brazil),-6.9838,-60.2699
+Imperatriz (Brazil),-5.52,-47.49
+Palmas (Brazil),-10.2377,-48.2878
+Uberaba (Brazil),-19.78,-47.95
+Londrina (Brazil),-23.3,-51.18
+Campos (Brazil),-21.75,-41.32
+Mossoro (Brazil),-5.19,-37.34
+Aracaju (Brazil),-10.9,-37.12
+Vila_Velha (Brazil),3.2167,-51.2167
+Santos (Brazil),-23.9537,-46.3329
+Bauru (Brazil),-22.33,-49.08
+Franca (Brazil),-20.53,-47.39
+Caruaru (Brazil),-8.28,-35.98
+Rio_Branco (Brazil),-9.9666,-67.8
+São_Luís (Brazil),-2.516,-44.266
+Porto_Velho (Brazil),-8.75,-63.9
+Belo_Horizonte (Brazil),-19.915,-43.915
+Montes_Claros (Brazil),-16.72,-43.86
+Uberlandia (Brazil),-18.9,-48.28
+Cuiaba (Brazil),-15.5696,-56.085
+Pelotas (Brazil),-31.75,-52.33
+Caxias_do_Sul (Brazil),-29.18,-51.17
+Ponta_Grossa (Brazil),-25.09,-50.16
+Teresina (Brazil),-5.095,-42.78
+Maceio (Brazil),-9.62,-35.73
+Vitoria_da_Conquista (Brazil),-14.85,-40.84
+Vila_Velha (Brazil),-20.3676,-40.318
+Natal (Brazil),-5.78,-35.24
+Campinas (Brazil),-22.9,-47.1
+Sorocaba (Brazil),-23.49,-47.47
+Ribeirao_Preto (Brazil),-21.17,-47.83
+Petrolina (Brazil),-9.38,-40.51
+Manaus (Brazil),-3.1,-60
+Santarem (Brazil),-2.4333,-54.7
+Campo_Grande (Brazil),-20.45,-54.6166
+Florianopolis (Brazil),-27.58,-48.52
+Feira_de_Santana (Brazil),-12.25,-38.97
+Boa_Vista (Brazil),2.8161,-60.666
+Macapá (Brazil),0.033,-51.05
+Belem (Brazil),-1.45,-48.48
+Brasilia (Brazil),-15.7833,-47.9161
+Porto_Alegre (Brazil),-30.05,-51.2
+Curitiba (Brazil),-25.42,-49.32
+Fortaleza (Brazil),-3.75,-38.58
+Salvador (Brazil),-12.97,-38.48
+Goiania (Brazil),-16.72,-49.3
+Recife (Brazil),-8.0756,-34.9156
+Rio_de_Janeiro (Brazil),-22.925,-43.225
+Sao_Paulo (Brazil),-23.5587,-46.625
+Bandar_Seri_Begawan (Brunei),4.8833,114.9333
+Plovdiv (Bulgaria),42.154,24.754
+Varna (Bulgaria),43.2156,27.8953
 Sofia (Bulgaria),42.6833,23.3167
-Stanley (Falkland Islands),-51.7,-57.85
-Stockholm (Sweden),59.3333,18.05
-Suva (Fiji),-18.1333,178.4167
-Taipei (Taiwan),25.0333,121.5167
-Tallinn (Estonia),59.4333,24.7167
-Tarawa (Kiribati),-0.8833,169.5333
-Tashkent (Uzbekistan),41.3167,69.25
-Tbilisi (Georgia),41.6833,44.8333
-Tegucigalpa (Honduras),14.1,-87.2167
-Tehran (Iran),35.7,51.4167
-The_Settlement (Christmas Island),-10.4167,105.7167
-The_Valley (Anguilla),18.2167,-63.05
-Thimphu (Bhutan),27.4667,89.6333
-Tirana (Albania),41.3167,19.8167
-Tokyo (Japan),35.6833,139.75
-Torshavn (Faroe Islands),62,-6.7667
-Tripoli (Libya),32.8833,13.1667
-Tunis (Tunisia),36.8,10.1833
-Ulaanbaatar (Mongolia),47.9167,106.9167
-Vaduz (Liechtenstein),47.1333,9.5167
-Valletta (Malta),35.8833,14.5
-Vatican_City (Vatican City),41.9,12.45
-Victoria (Seychelles),-4.6167,55.45
-Vienna (Austria),48.2,16.3667
-Vientiane (Laos),17.9667,102.6
-Vilnius (Lithuania),54.6833,25.3167
-Warsaw (Poland),52.25,21
-Washington (United States),38.8833,-77
-Wellington (New Zealand),-41.3,174.7833
-West_Island (Cocos Islands),-12.1667,96.8333
-Willemstad (Curacao),12.1,-68.9167
-Windhoek (Namibia),-22.5667,17.0833
-Yamoussoukro (Cote d Ivoire),6.8167,-5.2667
+Bobo_Dioulasso (Burkina Faso),11.18,-4.29
+Ouagadougou (Burkina Faso),12.3703,-1.5247
+Bujumbura (Burundi),-3.3761,29.36
+Phnom_Penh (Cambodia),11.55,104.9166
+Bafoussam (Cameroon),5.4904,10.4099
+Douala (Cameroon),4.0604,9.71
+Bamenda (Cameroon),5.96,10.15
+Garoua (Cameroon),9.3,13.39
+Maroua (Cameroon),10.5956,14.3247
 Yaounde (Cameroon),3.8667,11.5167
-Yaren (Nauru),-0.5477,166.9209
-Yerevan (Armenia),40.1667,44.5
+Oshawa (Canada),43.88,-78.85
+London (Canada),42.97,-81.25
+Kitchener (Canada),43.45,-80.5
+Hamilton (Canada),43.25,-79.83
+Windsor (Canada),42.3333,-83.0333
+Winnipeg (Canada),49.883,-97.166
+Calgary (Canada),51.083,-114.08
+Victoria (Canada),48.4333,-123.35
+Ottawa (Canada),45.4167,-75.7
+Québec (Canada),46.84,-71.2456
+Halifax (Canada),44.65,-63.6
+Edmonton (Canada),53.55,-113.5
+Montréal (Canada),45.5,-73.5833
+Vancouver (Canada),49.2734,-123.1216
+Toronto (Canada),43.7,-79.42
+Bangui (Central African Republic),4.3666,18.5583
+Ndjamena (Chad),12.1131,15.0491
+San_Bernardo (Chile),-33.6,-70.7
+Vina_del_Mar (Chile),-33.03,-71.54
+Talcahuano (Chile),-36.7167,-73.1167
+Temuco (Chile),-38.73,-72.58
+Rancagua (Chile),-34.17,-70.74
+Iquique (Chile),-20.25,-70.13
+Antofagasta (Chile),-23.65,-70.4
+Valparaiso (Chile),-33.0478,-71.621
+Concepcion (Chile),-36.83,-73.05
+Santiago (Chile),-33.45,-70.667
+Yumen (China),39.83,97.73
+Linxia (China),35.6,103.2
+Zhuozhou (China),39.5401,115.79
+Huizhou (China),23.08,114.4
+Chaozhou (China),23.68,116.63
+Yangquan (China),37.87,113.57
+Shiyan (China),32.57,110.78
+Shashi (China),30.32,112.23
+Mengzi (China),23.3619,103.4061
+Chuxiong (China),25.0364,101.5456
+Hengshui (China),37.72,115.7
+Xuanhua (China),40.5944,115.0243
+Luohe (China),33.57,114.03
+Wafangdian (China),39.6259,121.996
+Zhucheng (China),35.99,119.3801
+Hangu (China),39.232,117.777
+Xinyi (China),34.38,118.35
+Yangzhou (China),32.4,119.43
+Linhai (China),28.85,121.12
+Baishan (China),41.9,126.43
+Yanji (China),42.8823,129.5128
+Hulan_Ergi (China),47.21,123.61
+Longxi (China),35.0476,104.6394
+Beihai (China),21.4804,109.1
+Hechi (China),23.0965,109.6091
+Changping (China),40.2248,116.1944
+Longyan (China),25.1804,117.03
+Zhangzhou (China),24.5204,117.67
+Putian (China),25.4303,119.02
+Tongling (China),30.9504,117.78
+Maanshan (China),31.7304,118.48
+Yangjiang (China),21.8504,111.97
+Meizhou (China),24.3005,116.12
+Heyuan (China),23.7304,114.68
+Qingyuan (China),23.7004,113.0301
+Zhaoqing (China),23.0504,112.45
+Jiangmen (China),22.5804,113.08
+Maoming (China),21.9204,110.87
+Shuozhou (China),39.3004,112.42
+Xinzhou (China),38.4104,112.72
+Jincheng (China),35.5004,112.83
+Changzhi (China),36.1839,113.1053
+Jingmen (China),31.0304,112.1
+Chenzhou (China),25.8004,113.0301
+Xiangtan (China),27.8504,112.9
+Zigong (China),29.4,104.78
+Yaan (China),29.9804,103.08
+Zhanyi (China),25.6005,103.8166
+Chengde (China),40.9604,117.93
+Cangzhou (China),38.3204,116.87
+Baoding (China),38.8704,115.48
+Xiangtai (China),37.05,114.5
+Puyang (China),35.7004,114.98
+Hebi (China),35.9504,114.22
+Xuchang (China),34.0204,113.82
+Zhoukou (China),33.6304,114.63
+Tieling (China),42.3004,123.82
+Chaoyang (China),41.5504,120.42
+Liaocheng (China),36.4304,115.97
+Rizhao (China),35.4304,119.45
+Dezhou (China),37.4504,116.3
+Linchuan (China),27.9703,116.36
+Jian (China),27.1304,115
+Shangrao (China),28.4704,117.97
+Jingdezhen (China),29.2704,117.18
+Taizhou (China),32.4904,119.9
+Shuyang (China),34.1299,118.7734
+Lianyungang (China),34.6004,119.17
+Jiaojing (China),28.6804,121.45
+Quzhou (China),28.9704,118.87
+Fuyu (China),45.1804,124.82
+Suihua (China),46.6304,126.98
+Shuangyashan (China),46.6704,131.35
+Liuzhou (China),24.28,109.25
+Xingyi (China),25.0904,104.89
+Anshun (China),26.2504,105.93
+Zunyi (China),27.7,106.92
+Wanzhou (China),30.82,108.4
+Huaibei (China),33.9504,116.75
+Wuhu (China),31.3504,118.37
+Luan (China),31.7503,116.48
+Bengbu (China),32.95,117.33
+Anqing (China),30.5,117.05
+Foshan (China),23.0301,113.12
+Shihezi (China),44.3,86.0299
+Aksu (China),41.15,80.25
+Sanya (China),18.2591,109.504
+Haikou (China),20.05,110.32
+Baoji (China),34.38,107.15
+Tongchuan (China),35.08,109.03
+Linfen (China),36.0803,111.52
+Yuci (China),37.6804,112.73
+Datong (China),40.08,113.3
+Jianmen (China),30.6501,113.16
+Yichang (China),30.7,111.28
+Xiantao (China),30.3704,113.44
+Huangshi (China),30.22,115.1
+Zhuzhou (China),27.83,113.15
+Yongzhou (China),26.2304,111.62
+Yiyang (China),28.6004,112.33
+Changde (China),29.03,111.68
+Leshan (China),29.5671,103.7333
+Panzhihua (China),26.55,101.73
+Guangyuan (China),32.43,105.87
+Luzhou (China),28.88,105.38
+Yibin (China),28.77,104.57
+Zhaotang (China),27.3204,103.72
+Yuxi (China),24.38,102.57
+Qinhuangdao (China),39.9304,119.62
+Langfang (China),39.5204,116.68
+Zhangjiakou (China),40.83,114.93
+Tangshan (China),39.6243,118.1944
+Anyang (China),36.08,114.35
+Jiaozuo (China),35.25,113.22
+Kaifeng (China),34.85,114.35
+Shangqiu (China),34.4504,115.65
+Pingdingshan (China),33.7304,113.3
+Xinyang (China),32.1304,114.07
+Xinxiang (China),35.3204,113.87
+Luoyang (China),34.68,112.4701
+Liaoyang (China),41.28,123.18
+Dandong (China),40.1436,124.3936
+Yingkow (China),40.6703,122.28
+Jinzhou (China),41.1204,121.1
+Fuxin (China),42.0105,121.66
+Benxi (China),41.3304,123.75
+Fushun (China),41.8654,123.87
+Jining (China),35.4004,116.55
+Weifang (China),36.7204,119.1001
+Taian (China),36.2,117.1201
+Heze (China),35.23,115.45
+Laiyang (China),36.9684,120.7084
+Xinyu (China),27.8,114.93
+Ganzhou (China),25.92,114.95
+Jiujiang (China),29.73,115.98
+Changzhou (China),31.78,119.97
+Zhenjiang (China),32.22,119.43
+Nantong (China),32.0304,120.825
+Jiaxing (China),30.7704,120.75
+Huzhou (China),30.8704,120.1
+Shaoxing (China),30.0004,120.57
+Jinhua (China),29.12,119.65
+Liaoyuan (China),42.9,125.13
+Siping (China),43.17,124.33
+Baicheng (China),45.62,122.82
+Wuhai (China),39.6647,106.8122
+Jining (China),41.03,113.08
+Qitaihe (China),45.8,130.85
+Yichun (China),47.6999,128.9
+Hegang (China),47.4,130.37
+Mudangiang (China),44.575,129.59
+Xuanzhou (China),30.9525,118.7553
+Zhuhai (China),22.2769,113.5678
+Xianyang (China),34.3456,108.7147
+Xiangfan (China),32.02,112.13
+Suining (China),30.5333,105.5333
+Lingyuan (China),41.24,119.4011
+Weihai (China),37.5,122.1
+Yichun (China),27.8333,114.4
+Yancheng (China),33.3856,120.1253
+Fuyang (China),30.0533,119.9519
+Xiamen (China),24.45,118.08
+Nanchong (China),30.7804,106.13
+Neijiang (China),29.5804,105.05
+Nanyang (China),33.0004,112.53
+Jinxi (China),40.7503,120.83
+Yantai (China),37.5304,121.4
+Zaozhuang (China),34.88,117.57
+Suzhou (China),31.3005,120.62
+Xuzhou (China),34.28,117.18
+Wuxi (China),31.58,120.3
+Jilin (China),43.85,126.55
+Wuwei (China),37.928,102.641
+Tianshui (China),34.6,105.92
+Yulin (China),22.63,110.15
+Wuzhou (China),23.48,111.32
+Lupanshui (China),26.5944,104.8333
+Quanzhou (China),24.9,118.58
+Hefei (China),31.85,117.28
+Suzhou (China),33.6361,116.9789
+Zhanjiang (China),21.2,110.38
+Shaoguan (China),24.8,113.58
+Shache (China),38.4261,77.25
+Yining (China),43.9,81.35
+Ankang (China),32.68,109.02
+Yueyang (China),29.3801,113.1
+Hengyang (China),26.88,112.59
+Mianyang (China),31.47,104.77
+Xichang (China),27.88,102.3
+Baoshan (China),25.12,99.15
+Shijianzhuang (China),38.05,114.48
+Handan (China),36.58,114.48
+Anshan (China),41.115,122.94
+Dalian (China),38.9228,121.6298
+Qingdao (China),36.09,120.33
+Linyi (China),35.08,118.33
+Huaiyin (China),33.58,119.03
+Wenzhou (China),28.02,120.6501
+Ningbo (China),29.88,121.55
+Tongliao (China),43.62,122.27
+Hohhot (China),40.82,111.66
+Chifeng (China),42.27,118.95
+Ulanhot (China),46.08,122.08
+Hailar (China),49.2,119.7
+Jiamusi (China),46.83,130.35
+Daqing (China),46.58,125
+Jixi (China),45.3,130.97
+Xining (China),36.62,101.77
+Guilin (China),25.28,110.28
+Huainan (China),32.63,116.98
+Shantou (China),23.37,116.67
+Hami (China),42.827,93.515
+Kashgar (China),39.4763,75.9699
+Yinchuan (China),38.468,106.273
+Pingxiang (China),27.62,113.85
+Qiqihar (China),47.345,123.99
+Shenzhen (China),22.5524,114.1221
+Zibo (China),36.8,118.05
+Lanzhou (China),36.056,103.792
+Nanning (China),22.82,108.32
+Guiyang (China),26.58,106.72
+Chongqing (China),29.565,106.595
+Fuzhou (China),26.08,119.3
+Guangzhou (China),23.145,113.325
+Dongguan (China),23.0489,113.7447
+Xian (China),34.275,108.895
+Taiyuan (China),37.875,112.5451
+Wuhan (China),30.58,114.27
+Changsha (China),28.2,112.97
+Kunming (China),25.07,102.68
+Zhengzhou (China),34.755,113.6651
+Shenyeng (China),41.805,123.45
+Jinan (China),36.675,116.995
+Tianjin (China),39.13,117.2
+Nanchang (China),28.68,115.88
+Nanjing (China),32.05,118.78
+Hangzhou (China),30.25,120.17
+Changchun (China),43.865,125.34
+Baotou (China),40.6522,109.822
+Harbin (China),45.75,126.65
+Urumqi (China),43.805,87.575
+Chengdu (China),30.67,104.07
+Beijing (China),39.9289,116.3883
+Shanghai (China),31.2165,121.4365
+Soledad (Colombia),10.92,-74.77
+Valledupar (Colombia),10.48,-73.25
+Armenia (Colombia),4.5343,-75.6811
+Pereira (Colombia),4.8104,-75.68
+Neiva (Colombia),2.931,-75.3302
+Buenaventura (Colombia),3.8724,-77.0505
+Sincelejo (Colombia),9.2904,-75.38
+Bello (Colombia),6.33,-75.57
+Monteria (Colombia),8.7575,-75.89
+Bucaramanga (Colombia),7.1301,-73.1259
+Ibague (Colombia),4.4389,-75.2322
+Popayan (Colombia),2.42,-76.61
+Santa_Marta (Colombia),11.2472,-74.2017
+Cucuta (Colombia),7.92,-72.52
+Villavicencio (Colombia),4.1533,-73.635
+Manizales (Colombia),5.06,-75.52
+Pasto (Colombia),1.2136,-77.2811
+Barranquilla (Colombia),10.96,-74.8
+Cartagena (Colombia),10.3997,-75.5144
+Medellin (Colombia),6.275,-75.575
+Cali (Colombia),3.4,-76.5
+Bogota (Colombia),4.5964,-74.0833
+Pointe-Noire (Congo (Brazzaville)),-4.77,11.88
+Brazzaville (Congo (Brazzaville)),-4.2592,15.2847
+Beni (Congo (Kinshasa)),0.4904,29.45
+Tshikapa (Congo (Kinshasa)),-6.41,20.77
+Bukavu (Congo (Kinshasa)),-2.51,28.84
+Likasi (Congo (Kinshasa)),-10.97,26.78
+Mbandaka (Congo (Kinshasa)),0.04,18.26
+Kisangani (Congo (Kinshasa)),0.52,25.22
+Kananga (Congo (Kinshasa)),-5.89,22.4
+Mbuji-Mayi (Congo (Kinshasa)),-6.15,23.6
+Butembo (Congo (Kinshasa)),0.13,29.28
+Kikwit (Congo (Kinshasa)),-5.03,18.85
+Matadi (Congo (Kinshasa)),-5.8166,13.45
+Kolwezi (Congo (Kinshasa)),-10.7167,25.4724
+Lubumbashi (Congo (Kinshasa)),-11.68,27.48
+Kinshasa (Congo (Kinshasa)),-4.3297,15.315
+Alajuela (Costa Rica),10.02,-84.23
+San_Jose (Costa Rica),9.935,-84.0841
 Zagreb (Croatia),45.8,16
+Camaguey (Cuba),21.3808,-77.9169
+Guantanamo (Cuba),20.1453,-75.2061
+Holguin (Cuba),20.8872,-76.2631
+Santa_Clara (Cuba),22.4,-79.9667
+Santiago_de_Cuba (Cuba),20.025,-75.8213
+Havana (Cuba),23.132,-82.3642
+Nicosia (Cyprus),35.1667,33.3666
+Brno (Czech Republic),49.2004,16.61
+Ostrava (Czech Republic),49.8304,18.25
+Prague (Czech Republic),50.0833,14.466
+Århus (Denmark),56.1572,10.2107
+København (Denmark),55.6786,12.5635
+Djibouti (Djibouti),11.595,43.148
+San_Pedro_de_Macoris (Dominican Republic),18.4504,-69.3
+La_Romana (Dominican Republic),18.417,-68.9666
+Santiago (Dominican Republic),19.5,-70.67
+Santo_Domingo (Dominican Republic),18.4701,-69.9001
+Dili (East Timor),-8.5594,125.5795
+Ambato (Ecuador),-1.2696,-78.62
+Machala (Ecuador),-3.26,-79.96
+Cuenca (Ecuador),-2.9,-79
+Quito (Ecuador),-0.215,-78.5001
+Guayaquil (Ecuador),-2.22,-79.92
+Zagazig (Egypt),30.5833,31.5167
+Tanta (Egypt),30.7904,31
+Ismailia (Egypt),30.5903,32.26
+El_Mansura (Egypt),31.0504,31.38
+Damanhûr (Egypt),31.0504,30.47
+Beni_Suef (Egypt),29.0804,31.09
+Qena (Egypt),26.1505,32.72
+Sohag (Egypt),26.5504,31.7
+El_Giza (Egypt),30.01,31.19
+El_Minya (Egypt),28.09,30.75
+Suez (Egypt),30.005,32.5499
+Bur_Said (Egypt),31.26,32.29
+El_Faiyum (Egypt),29.31,30.84
+Aswan (Egypt),24.0875,32.8989
+Asyut (Egypt),27.19,31.1799
+Luxor (Egypt),25.7,32.65
+Alexandria (Egypt),31.2,29.95
+Cairo (Egypt),30.05,31.25
+Santa_Ana (El Salvador),13.9946,-89.5598
+San_Salvador (El Salvador),13.71,-89.203
+Asmara (Eritrea),15.3333,38.9333
+Tallinn (Estonia),59.4339,24.728
+Nazret (Ethiopia),8.55,39.27
+Dire_Dawa (Ethiopia),9.59,41.86
+Addis_Ababa (Ethiopia),9.0333,38.7
+Tampere (Finland),61.5,23.75
+Helsinki (Finland),60.1756,24.9341
+Saint-Etienne (France),45.4304,4.38
+Grenoble (France),45.1804,5.72
+Nantes (France),47.2104,-1.59
+Toulon (France),43.1342,5.9188
+Montpellier (France),43.6104,3.87
+Rouen (France),49.4304,1.08
+Metz (France),49.1203,6.18
+Rennes (France),48.1,-1.67
+Nice (France),43.715,7.265
+Toulouse (France),43.62,1.4499
+Lille (France),50.65,3.08
+Strasbourg (France),48.58,7.75
+Bordeaux (France),44.85,-0.595
+Marseille (France),43.29,5.375
+Le_Havre (France),49.505,0.105
+Lyon (France),45.77,4.83
+Paris (France),48.8667,2.3333
+Libreville (Gabon),0.3854,9.458
+Tbilisi (Georgia),41.725,44.7908
+Bielefeld (Germany),52.03,8.53
+Dortmund (Germany),51.53,7.45
+Duisburg (Germany),51.43,6.75
+Wuppertal (Germany),51.25,7.17
+Essen (Germany),51.45,7.0166
+Karlsruhe (Germany),49,8.4
+Heidelberg (Germany),49.42,8.7
+Kassel (Germany),51.3,9.5
+Braunschweig (Germany),52.25,10.5
+Augsburg (Germany),48.35,10.9
+Chemnitz (Germany),50.83,12.92
+Bonn (Germany),50.7205,7.08
+Münster (Germany),51.9704,7.62
+Düsseldorf (Germany),51.2204,6.78
+Mannheim (Germany),49.5004,8.47
+Freiburg (Germany),48.0004,7.8699
+Wiesbaden (Germany),50.0804,8.25
+Hannover (Germany),52.367,9.7167
+Lubeck (Germany),53.8704,10.67
+Kiel (Germany),54.3304,10.13
+Koblenz (Germany),50.3505,7.6
+Saarbrucken (Germany),49.2504,6.97
+Magdeburg (Germany),52.1304,11.62
+Leipzig (Germany),51.3354,12.41
+Rostock (Germany),54.0704,12.15
+Stuttgart (Germany),48.78,9.2
+Bremen (Germany),53.08,8.8
+Nürnberg (Germany),49.45,11.08
+Cologne (Germany),50.93,6.95
+Dresden (Germany),51.05,13.75
+Frankfurt (Germany),50.1,8.675
+Hamburg (Germany),53.55,10
+Munich (Germany),48.1299,11.575
+Berlin (Germany),52.5218,13.4015
+Tamale (Ghana),9.4004,-0.84
+Kumasi (Ghana),6.69,-1.63
+Sekondi (Ghana),4.9433,-1.704
+Accra (Ghana),5.55,-0.2167
+Piraiévs (Greece),37.95,23.7
+Thessaloniki (Greece),40.6961,22.885
+Athens (Greece),37.9833,23.7333
+Quetzaltenango (Guatemala),14.83,-91.52
+Guatemala (Guatemala),14.6211,-90.527
+Gueckedou (Guinea),8.554,-10.151
+Conakry (Guinea),9.5315,-13.6802
+Bissau (Guinea Bissau),11.865,-15.5984
+Georgetown (Guyana),6.802,-58.167
+Cap-Haitien (Haiti),19.7592,-72.2125
+Port-au-Prince (Haiti),18.541,-72.336
+San_Pedro_Sula (Honduras),15.5,-88.03
+Tegucigalpa (Honduras),14.102,-87.2175
+Hong_Kong (Hong Kong S.A.R.),22.305,114.185
+Miskolc (Hungary),48.1004,20.78
+Debrecen (Hungary),47.5305,21.63
+Budapest (Hungary),47.5,19.0833
+Sonipat (India),29,77.02
+Rohtak (India),28.9,76.58
+Hisar (India),29.17,75.725
+Kalyan (India),19.2502,73.1602
+Ajmer (India),26.45,74.64
+Firozabad (India),27.15,78.3949
+Mathura (India),27.5,77.67
+Hapur (India),28.7437,77.7628
+Muzaffarnagar (India),29.485,77.695
+Pathankot (India),32.2703,75.72
+Panipat (India),29.4004,76.97
+Karnal (India),29.6804,76.97
+Tirupati (India),13.6504,79.42
+Rajahmundry (India),17.0303,81.79
+Khammam (India),17.2804,80.1601
+Karimnagar (India),18.4604,79.11
+Nizamabad (India),18.6704,78.1
+Kollam (India),8.9004,76.57
+Puri (India),19.8204,85.9
+Sambalpur (India),21.4704,83.9701
+Raurkela (India),22.2304,84.83
+Mandya (India),12.5704,76.92
+Shimoga (India),13.9304,75.56
+Raichur (India),16.2104,77.355
+Hospet (India),15.2804,76.375
+Bidar (India),17.9229,77.5175
+Sangli (India),16.8604,74.575
+Parbhani (India),19.2704,76.76
+Malegaon (India),20.5604,74.525
+Shillong (India),25.5705,91.88
+Patiala (India),30.3204,76.385
+Bhilwara (India),25.3504,74.635
+Pali (India),25.7904,73.3299
+Sikar (India),27.6104,75.14
+Bikaner (India),28.0304,73.3299
+Bharatpur (India),27.2504,77.5
+Alwar (India),27.5454,76.6049
+Mirzapur (India),25.1454,82.57
+Jhansi (India),25.453,78.5575
+Shahjahanpur (India),27.8804,79.905
+Rampur (India),28.8154,79.025
+Bareilly (India),28.3454,79.42
+Etawah (India),26.7855,79.015
+Dehra_Dun (India),30.3204,78.05
+Haora (India),22.5804,88.3299
+Haldia (India),22.0257,88.0583
+Bhatpara (India),22.8504,88.52
+Siliguri (India),26.7204,88.455
+Muzaffarpur (India),26.1204,85.3799
+Bilaspur (India),22.0904,82.16
+Ujjain (India),23.1904,75.79
+Ratlam (India),23.3504,75.03
+Sagar (India),23.8504,78.75
+Rajapalaiyam (India),9.4204,77.58
+Tirunelveli (India),8.7304,77.69
+Nagercoil (India),8.1804,77.43
+Thanjavur (India),10.7704,79.15
+Tiruppur (India),11.0804,77.33
+Bhuj (India),23.2504,69.81
+Bhavnagar (India),21.7784,72.13
+Aizawl (India),23.7104,92.72
+Agartala (India),23.8354,91.28
+Kakinada (India),16.9675,82.2375
+Warangal (India),18.01,79.58
+Brahmapur (India),19.32,84.8
+Bijapur (India),16.8354,75.71
+Bhiwandi (India),19.35,73.13
+Latur (India),18.4004,76.57
+Ahmednagar (India),19.1104,74.75
+Chandrapur (India),19.97,79.3
+Amravati (India),20.95,77.77
+Dhule (India),20.9,74.77
+Imphal (India),24.8,93.95
+Udaipur (India),24.6,73.73
+Gorakhpur (India),26.7504,83.38
+Barddhaman (India),23.2504,87.865
+Gaya (India),24.8,85
+Nellore (India),14.44,79.9899
+Kurnool (India),15.83,78.03
+Guntur (India),16.33,80.45
+Tumkur (India),13.33,77.1
+Davangere (India),14.47,75.92
+Bellary (India),15.15,76.915
+Belgaum (India),15.865,74.505
+Tuticorin (India),8.82,78.13
+Dindigul (India),10.38,78
+Chandigarh (India),30.72,76.78
+Jammu (India),32.7118,74.8467
+Sholapur (India),17.6704,75.9
+Aurangabad (India),19.8957,75.3203
+Nasik (India),20.0004,73.78
+Jullundur (India),31.3349,75.569
+Allahabad (India),25.455,81.84
+Moradabad (India),28.8418,78.7568
+Ghaziabad (India),28.6604,77.4084
+Agra (India),27.1704,78.015
+Aligarh (India),27.8922,78.0618
+Meerut (India),29.0004,77.7
+Dhanbad (India),23.8004,86.42
+Gwalior (India),26.23,78.1801
+Vadodara (India),22.31,73.18
+Rajkot (India),22.31,70.8
+Faridabad (India),28.4333,77.3167
+Srinagar (India),34.1,74.815
+Vijayawada (India),16.52,80.63
+Thiruvananthapuram (India),8.5,76.95
+Kochi (India),10.015,76.2239
+Cuttack (India),20.47,85.8899
+Hubli (India),15.36,75.125
+Mangalore (India),12.9,74.85
+Mysore (India),12.31,76.66
+Gulbarga (India),17.35,76.82
+Kolhapur (India),16.7,74.22
+Nanded (India),19.17,77.3
+Akola (India),20.71,77.01
+Guwahati (India),26.16,91.77
+Ludhiana (India),30.9278,75.8723
+Kota (India),25.18,75.835
+Jodhpur (India),26.2918,73.0168
+Lucknow (India),26.855,80.915
+Saharanpur (India),29.97,77.55
+Ranchi (India),23.37,85.33
+Bhagalpur (India),25.23,86.98
+Raipur (India),21.235,81.635
+Jabalpur (India),23.1751,79.9551
+Indore (India),22.7151,75.865
+Pondicherry (India),11.935,79.83
+Salem (India),11.67,78.1801
+Tiruchirappalli (India),10.81,78.69
+Kozhikode (India),11.2504,75.77
+Bhubaneshwar (India),20.2704,85.8274
+Jamshedpur (India),22.7875,86.1975
+Vishakhapatnam (India),17.73,83.305
+Amritsar (India),31.64,74.87
+Varanasi (India),25.33,83
+Asansol (India),23.6833,86.9833
+Bhilai (India),21.2167,81.4333
+Bhopal (India),23.25,77.41
+Madurai (India),9.92,78.12
+Coimbatore (India),11,76.95
+Delhi (India),28.67,77.23
+Hyderabad (India),17.4,78.48
+Pune (India),18.53,73.85
+Nagpur (India),21.17,79.09
+Jaipur (India),26.9211,75.81
+Kanpur (India),26.46,80.32
+Patna (India),25.625,85.13
+Chennai (India),13.09,80.28
+Ahmedabad (India),23.0301,72.58
+Surat (India),21.2,72.84
+New_Delhi (India),28.6,77.2
+Bangalore (India),12.97,77.56
+Mumbai (India),19.017,72.857
+Kolkata (India),22.495,88.3247
+Binjai (Indonesia),3.6204,98.5001
+Bukittinggi (Indonesia),-0.3031,100.3615
+Mataram (Indonesia),-8.5795,116.135
+Sukabumi (Indonesia),-6.9096,106.9
+Cilacap (Indonesia),-7.7188,109.0154
+Pakalongan (Indonesia),-6.8796,109.67
+Tegal (Indonesia),-6.8696,109.12
+Bekasi (Indonesia),-6.2173,106.9723
+Bandar_Lampung (Indonesia),-5.4496,105.3
+Pasuruan (Indonesia),-7.6296,112.9
+Kediri (Indonesia),-7.7896,112
+Denpasar (Indonesia),-8.65,115.22
+Pematangsiantar (Indonesia),2.9614,99.0615
+Pekanbaru (Indonesia),0.565,101.425
+Manado (Indonesia),1.48,124.85
+Yogyakarta (Indonesia),-7.78,110.375
+Palu (Indonesia),-0.907,119.833
+Samarinda (Indonesia),-0.5,117.15
+Cirebon (Indonesia),-6.7333,108.5666
+Tasikmalaya (Indonesia),-7.3254,108.2147
+Bogor (Indonesia),-6.57,106.75
+Bengkulu (Indonesia),-3.8,102.27
+Pontianak (Indonesia),-0.03,109.32
+Jember (Indonesia),-8.1727,113.6873
+Jambi (Indonesia),-1.59,103.61
+Ambon (Indonesia),-3.7167,128.2
+Banda_Aceh (Indonesia),5.55,95.32
+Balikpapan (Indonesia),-1.25,116.83
+Surakarta (Indonesia),-7.565,110.825
+Bandar_Lampung (Indonesia),-5.43,105.27
+Malang (Indonesia),-7.98,112.61
+Kupang (Indonesia),-10.1787,123.583
+Gorontalo (Indonesia),0.55,123.07
+Padang (Indonesia),-0.96,100.36
+Semarang (Indonesia),-6.9666,110.42
+Palembang (Indonesia),-2.98,104.75
+Bandjarmasin (Indonesia),-3.33,114.5801
+Ujungpandang (Indonesia),-5.14,119.432
+Medan (Indonesia),3.58,98.65
+Bandung (Indonesia),-6.95,107.57
+Surabaya (Indonesia),-7.2492,112.7508
+Jakarta (Indonesia),-6.1744,106.8294
+Borujerd (Iran),33.92,48.8
+Zanjan (Iran),36.67,48.5
+Urmia (Iran),37.53,45
+Sanandaj (Iran),35.3,47.02
+Neyshabur (Iran),36.22,58.82
+Bojnurd (Iran),37.47,57.32
+Kashan (Iran),33.9804,51.58
+Khomeini_Shahr (Iran),32.7004,51.47
+Gorgan (Iran),36.8303,54.48
+Amol (Iran),36.4713,52.3633
+Sari (Iran),36.5504,53.1
+Karaj (Iran),35.8004,50.97
+Dezful (Iran),32.3804,48.47
+Khorramabad (Iran),33.4804,48.35
+Arak (Iran),34.0804,49.7
+Kerman (Iran),30.3,57.08
+Abadan (Iran),30.3307,48.2797
+Ardabil (Iran),38.25,48.3
+Qom (Iran),34.65,50.95
+Qazvin (Iran),36.27,50
+Kermanshah (Iran),34.38,47.06
+Rasht (Iran),37.3,49.63
+Birjand (Iran),32.88,59.2199
+Sabzewar (Iran),36.22,57.63
+Zahedan (Iran),29.5,60.83
+Yazd (Iran),31.9201,54.37
+Ahvaz (Iran),31.28,48.72
+Bandar-e-Abbas (Iran),27.2041,56.2721
+Hamadan (Iran),34.796,48.515
+Tabriz (Iran),38.0863,46.3012
+Isfahan (Iran),32.7,51.7
+Shiraz (Iran),29.63,52.57
+Mashhad (Iran),36.27,59.57
+Tehran (Iran),35.6719,51.4243
+Dahuk (Iraq),36.8667,43
+Ad_Diwaniyah (Iraq),31.9889,44.924
+Ar_Ramadi (Iraq),33.42,43.3
+Karbala (Iraq),32.6149,44.0245
+An_Nasiriyah (Iraq),31.0429,46.2676
+Al_Amarah (Iraq),31.8416,47.1512
+Al_Kut (Iraq),32.4907,45.8304
+As_Sulaymaniyah (Iraq),35.5613,45.4309
+Baqubah (Iraq),33.7476,44.6573
+Al_Fallujah (Iraq),33.3477,43.7773
+Al_Hillah (Iraq),32.4721,44.4217
+Irbil (Iraq),36.179,44.0086
+Kirkuk (Iraq),35.4722,44.3923
+Mosul (Iraq),36.345,43.145
+An_Najaf (Iraq),32.0003,44.3354
+Basra (Iraq),30.5135,47.8136
+Baghdad (Iraq),33.3386,44.3939
+Dublin (Ireland),53.3331,-6.2489
+Haifa (Israel),32.8204,34.98
+Jerusalem (Israel),31.7784,35.2066
+Tel_Aviv-Yafo (Israel),32.08,34.77
+Bologna (Italy),44.5004,11.34
+Cagliari (Italy),39.2224,9.104
+Salerno (Italy),40.6804,14.7699
+Bari (Italy),41.1142,16.8728
+Messina (Italy),38.2005,15.55
+Pescara (Italy),42.4554,14.2187
+Trieste (Italy),45.6504,13.8
+Verona (Italy),45.4404,10.99
+Turin (Italy),45.0704,7.67
+Genoa (Italy),44.41,8.93
+Florence (Italy),43.78,11.25
+Catania (Italy),37.5,15.08
+Venice (Italy),45.4387,12.335
+Palermo (Italy),38.125,13.35
+Naples (Italy),40.84,14.245
+Milan (Italy),45.47,9.205
+Rome (Italy),41.896,12.4833
+San-Pedro (Ivory Coast),4.7704,-6.64
+Daloa (Ivory Coast),6.89,-6.45
+Bouake (Ivory Coast),7.69,-5.03
+Yamoussoukro (Ivory Coast),6.8184,-5.2755
+Abidjan (Ivory Coast),5.32,-4.04
+Spanish_Town (Jamaica),17.9833,-76.95
+Kingston (Jamaica),17.9771,-76.7674
+Okayama (Japan),34.672,133.9171
+Shimonoseki (Japan),33.9654,130.9454
+Takamatsu (Japan),34.3447,134.0448
+Tokushima (Japan),34.0674,134.5525
+Toyama (Japan),36.7,137.23
+Otsu (Japan),35.0064,135.8674
+Maebashi (Japan),36.3927,139.0727
+Kawasaki (Japan),35.53,139.705
+Kawagoe (Japan),35.9177,139.4911
+Utsunomiya (Japan),36.55,139.87
+Hachioji (Japan),35.6577,139.3261
+Koriyama (Japan),37.41,140.38
+Sasebo (Japan),33.1631,129.7177
+Kitakyushu (Japan),33.8704,130.82
+Kumamoto (Japan),32.8009,130.7006
+Oita (Japan),33.2432,131.5979
+Gifu (Japan),35.4231,136.7628
+Tsu (Japan),34.7171,136.5167
+Matsumoto (Japan),36.2404,137.97
+Shizuoka (Japan),34.9858,138.3854
+Hamamatsu (Japan),34.7181,137.7327
+Fukui (Japan),36.0704,136.22
+Wakayama (Japan),34.2231,135.1677
+Mito (Japan),36.3704,140.48
+Iwaki (Japan),37.0553,140.89
+Yamagata (Japan),38.2705,140.32
+Kagoshima (Japan),31.586,130.5611
+Matsuyama (Japan),33.8455,132.7658
+Kanazawa (Japan),36.56,136.64
+Asahikawa (Japan),43.755,142.38
+Kobe (Japan),34.68,135.17
+Yokohama (Japan),35.32,139.58
+Akita (Japan),39.71,140.09
+Aomori (Japan),40.825,140.71
+Hachinohe (Japan),40.51,141.54
+Fukushima (Japan),37.74,140.47
+Morioka (Japan),39.72,141.13
+Niigata (Japan),37.92,139.04
+Fukuoka (Japan),33.595,130.41
+Miyazaki (Japan),31.9182,131.4184
+Naha (Japan),26.2072,127.673
+Kochi (Japan),33.5624,133.5375
+Nagoya (Japan),35.155,136.915
+Nagano (Japan),36.65,138.17
+Hakodate (Japan),41.795,140.74
+Kyoto (Japan),35.03,135.75
+Sendai (Japan),38.2871,141.0217
+Nagasaki (Japan),32.765,129.885
+Hiroshima (Japan),34.3878,132.4429
+Sapporo (Japan),43.075,141.34
+Osaka (Japan),34.75,135.4601
+Tokyo (Japan),35.685,139.7514
+Irbid (Jordan),32.55,35.85
+Az_Zarqa (Jordan),32.07,36.1
+Amman (Jordan),31.95,35.9333
+Oostanay (Kazakhstan),53.2209,63.6283
+Petropavlovsk (Kazakhstan),54.88,69.22
+Oral (Kazakhstan),51.2711,51.335
+Aqtobe (Kazakhstan),50.28,57.17
+Qyzylorda (Kazakhstan),44.8,65.465
+Pavlodar (Kazakhstan),52.3,76.95
+Semey (Kazakhstan),50.435,80.275
+Oskemen (Kazakhstan),49.99,82.6149
+Shymkent (Kazakhstan),42.32,69.595
+Taraz (Kazakhstan),42.9,71.365
+Astana (Kazakhstan),51.1811,71.4278
+Qaraghandy (Kazakhstan),49.885,73.115
+Almaty (Kazakhstan),43.325,76.915
+Nakuru (Kenya),-0.28,36.07
+Kisumu (Kenya),-0.09,34.75
+Eldoret (Kenya),0.52,35.27
+Mombasa (Kenya),-4.04,39.6899
+Nairobi (Kenya),-1.2833,36.8167
+Pristina (Kosovo),42.6667,21.166
+Kuwait (Kuwait),29.3697,47.9783
+Osh (Kyrgyzstan),40.5404,72.79
+Bishkek (Kyrgyzstan),42.8731,74.5852
+Vientiane (Laos),17.9667,102.6
+Riga (Latvia),56.95,24.1
+Trablous (Lebanon),34.42,35.87
+Beirut (Lebanon),33.872,35.5097
+Maseru (Lesotho),-29.3167,27.4833
+Monrovia (Liberia),6.3106,-10.8048
+Misratah (Libya),32.38,15.1
+Banghazi (Libya),32.1167,20.0667
+Tripoli (Libya),32.8925,13.18
+Kaunas (Lithuania),54.9504,23.88
+Vilnius (Lithuania),54.6834,25.3166
+Macau (Macau S.A.R),22.203,113.545
+Skopje (Macedonia),42,21.4335
+Antsirabe (Madagascar),-19.85,47.0333
+Toamasina (Madagascar),-18.1818,49.405
+Antananarivo (Madagascar),-18.9166,47.5166
+Blantyre (Malawi),-15.79,34.9899
+Lilongwe (Malawi),-13.9833,33.7833
+Shah_Alam (Malaysia),3.0667,101.55
+Butterworth (Malaysia),5.4171,100.4
+Sungai_Petani (Malaysia),5.6497,100.4793
+Alor_Setar (Malaysia),6.1133,100.3729
+Seremban (Malaysia),2.7105,101.94
+Kuala_Terengganu (Malaysia),5.3304,103.12
+Miri (Malaysia),4.3999,113.9845
+Johor_Bahru (Malaysia),1.48,103.73
+Kelang (Malaysia),3.0204,101.55
+Taiping (Malaysia),4.865,100.72
+Ipoh (Malaysia),4.6,101.065
+Kota_Baharu (Malaysia),6.12,102.23
+Malacca (Malaysia),2.2064,102.2465
+Kuantan (Malaysia),3.83,103.32
+Tawau (Malaysia),4.271,117.896
+Sandakan (Malaysia),5.843,118.108
+Kota_Kinabalu (Malaysia),5.98,116.11
+Sibu (Malaysia),2.303,111.843
+George_Town (Malaysia),5.4136,100.3294
+Kuching (Malaysia),1.53,110.33
+Kuala_Lumpur (Malaysia),3.1667,101.7
+Bamako (Mali),12.65,-8
+Nouakchott (Mauritania),18.0864,-15.9753
+Port_Louis (Mauritius),-20.1666,57.5
+Gomez_Palacio (Mexico),25.5701,-103.5
+Reynosa (Mexico),26.08,-98.3
+Tlaxcala (Mexico),19.32,-98.23
+Irapuato (Mexico),20.67,-101.5
+Celaya (Mexico),20.53,-100.8
+Nezahualcoyotl (Mexico),19.41,-99.03
+Orizaba (Mexico),18.85,-97.13
+Xalapa (Mexico),19.53,-96.92
+Ciudad_Obregon (Mexico),27.4666,-109.925
+Mazatlán (Mexico),29.0171,-110.1333
+Morelia (Mexico),19.7334,-101.1895
+Uruapan (Mexico),19.4204,-102.07
+Tepic (Mexico),21.5054,-104.88
+Tehuacan (Mexico),18.4504,-97.38
+Pachuca (Mexico),20.1704,-98.73
+Toluca (Mexico),19.3304,-99.67
+Coatzacoalcos (Mexico),18.1204,-94.42
+Poza_Rica_de_Hidalgo (Mexico),20.5504,-97.47
+Ensenada (Mexico),31.87,-116.62
+Saltillo (Mexico),25.42,-101.005
+Ciudad_Juárez (Mexico),31.6904,-106.49
+Durango (Mexico),24.0311,-104.67
+Los_Mochis (Mexico),25.79,-109
+Ciudad_Victoria (Mexico),23.72,-99.13
+Aguascalientes (Mexico),21.8795,-102.2904
+Villahermosa (Mexico),18,-92.9
+Cuernavaca (Mexico),18.9211,-99.24
+Queretaro (Mexico),20.63,-100.38
+Tapachula (Mexico),14.9,-92.27
+Monclova (Mexico),26.9,-101.42
+Mexicali (Mexico),32.65,-115.48
+Torreon (Mexico),25.5701,-103.42
+Culiacan (Mexico),24.83,-107.38
+Hermosillo (Mexico),29.0989,-110.9541
+San_Luis_Potosi (Mexico),22.17,-101
+Matamoros (Mexico),25.88,-97.5
+Nuevo_Laredo (Mexico),27.5,-99.55
+Campeche (Mexico),19.83,-90.5
+Oaxaca (Mexico),17.0827,-96.6699
+Leon (Mexico),21.15,-101.7
+Tijuana (Mexico),32.5,-117.08
+Chihuahua (Mexico),28.645,-106.085
+Mazatlan (Mexico),23.2211,-106.42
+Tampico (Mexico),22.3,-97.87
+Acapulco (Mexico),16.85,-99.916
+Veracruz (Mexico),19.1773,-96.16
+Tuxtla_Gutierrez (Mexico),16.75,-93.15
+Cancun (Mexico),21.17,-86.83
+Merida (Mexico),20.9666,-89.6166
+Guadalajara (Mexico),20.67,-103.33
+Puebla (Mexico),19.05,-98.2
+Monterrey (Mexico),25.67,-100.33
+Mexico_City (Mexico),19.4424,-99.131
+Chisinau (Moldova),47.005,28.8577
+Ulaanbaatar (Mongolia),47.9167,106.9166
+Ksar_El_Kebir (Morocco),35.0204,-5.91
+Kenitra (Morocco),34.2704,-6.58
+Er_Rachidia (Morocco),31.9404,-4.45
+Meknes (Morocco),33.9004,-5.56
+Tangier (Morocco),35.7473,-5.8327
+Agadir (Morocco),30.44,-9.62
+Oujda (Morocco),34.69,-1.91
+Safi (Morocco),32.32,-9.24
+Fez (Morocco),34.0546,-5.0004
+Rabat (Morocco),34.0253,-6.8361
+Marrakesh (Morocco),31.63,-8
+Casablanca (Morocco),33.6,-7.6164
+Matola (Mozambique),-25.9696,32.46
+Chimoio (Mozambique),-19.12,33.47
+Nampula (Mozambique),-15.136,39.293
+Nacala (Mozambique),-14.5186,40.715
+Beira (Mozambique),-19.82,34.87
+Maputo (Mozambique),-25.9553,32.5892
+Mawlamyine (Myanmar),16.5004,97.67
+Pathein (Myanmar),16.7704,94.75
+Bago (Myanmar),17.32,96.515
+Monywa (Myanmar),22.105,95.15
+Myeik (Myanmar),12.4541,98.6115
+Mandalay (Myanmar),21.97,96.085
+Naypyidaw (Myanmar),19.7666,96.1186
+Rangoon (Myanmar),16.7834,96.1667
+Windhoek (Namibia),-22.57,17.0835
+Kathmandu (Nepal),27.7167,85.3166
+Eindhoven (Netherlands),51.43,5.5
+Utrecht (Netherlands),52.1003,5.12
+Haarlem (Netherlands),52.3804,4.63
+Rotterdam (Netherlands),51.92,4.48
+The_Hague (Netherlands),52.08,4.27
+Amsterdam (Netherlands),52.35,4.9166
+Manukau (New Zealand),-37,174.885
+Wellington (New Zealand),-41.3,174.7833
+Christchurch (New Zealand),-43.535,172.63
+Auckland (New Zealand),-36.85,174.765
+Managua (Nicaragua),12.153,-86.2685
+Zinder (Niger),13.8,8.9833
+Niamey (Niger),13.5167,2.1167
+Umuahia (Nigeria),5.532,7.486
+Uyo (Nigeria),5.008,7.85
+Owerri (Nigeria),5.493,7.026
+Damaturu (Nigeria),11.749,11.966
+Iwo (Nigeria),7.63,4.18
+Aba (Nigeria),5.1004,7.35
+Calabar (Nigeria),4.9604,8.33
+Abeokuta (Nigeria),7.1604,3.35
+Ijebu_Ode (Nigeria),6.8204,3.92
+Akure (Nigeria),7.2504,5.2
+Ikare (Nigeria),7.5304,5.76
+Owo (Nigeria),7.2004,5.59
+Ondo (Nigeria),7.0904,4.84
+Ado_Ekiti (Nigeria),7.6304,5.22
+Ife (Nigeria),7.4804,4.56
+Oshogbo (Nigeria),7.7704,4.56
+Oyo (Nigeria),7.8504,3.93
+Awka (Nigeria),6.2104,7.07
+Bauchi (Nigeria),10.3104,9.84
+Gombe (Nigeria),10.2904,11.17
+Sapele (Nigeria),5.8904,5.68
+Katsina (Nigeria),12.9904,7.6
+Mubi (Nigeria),10.2703,13.27
+Ilorin (Nigeria),8.49,4.55
+Minna (Nigeria),9.62,6.55
+Zaria (Nigeria),11.08,7.71
+Jos (Nigeria),9.93,8.89
+Benin_City (Nigeria),6.3405,5.62
+Maiduguri (Nigeria),11.85,13.16
+Port_Harcourt (Nigeria),4.81,7.01
+Makurdi (Nigeria),7.73,8.53
+Ibadan (Nigeria),7.38,3.93
+Ogbomosho (Nigeria),8.13,4.24
+Warri (Nigeria),5.52,5.76
+Kaduna (Nigeria),10.52,7.44
+Enugu (Nigeria),6.45,7.5
+Sokoto (Nigeria),13.06,5.24
+Abuja (Nigeria),9.0833,7.5333
+Kano (Nigeria),12,8.52
+Lagos (Nigeria),6.4433,3.3915
+Kaesong (North Korea),37.964,126.5644
+Sunchon (North Korea),39.4236,125.939
+Haeju (North Korea),38.0394,125.7144
+Kanggye (North Korea),40.9732,126.6032
+Hungnam (North Korea),39.8231,127.6232
+Hyeson (North Korea),41.3927,128.1927
+Nampo (North Korea),38.7669,125.4524
+Chongjin (North Korea),41.7846,129.79
+Hamhung (North Korea),39.9101,127.5454
+Wonsan (North Korea),39.1605,127.4308
+Pyongyang (North Korea),39.0194,125.7547
+Bergen (Norway),60.391,5.3245
+Oslo (Norway),59.9167,10.75
+As_Sib (Oman),23.6802,58.1825
+Muscat (Oman),23.6133,58.5933
+Sialkote (Pakistan),32.52,74.56
+Sheikhu_Pura (Pakistan),31.72,73.99
+Gujrat (Pakistan),32.58,74.08
+Sahiwal (Pakistan),30.6717,73.1118
+Chiniot (Pakistan),31.72,72.98
+Rahim_Yar_Khan (Pakistan),28.4202,70.2952
+Kohat (Pakistan),33.6027,71.4327
+Abbottabad (Pakistan),34.1495,73.1995
+Mardan (Pakistan),34.2,72.04
+Kasur (Pakistan),31.1254,74.455
+Okara (Pakistan),30.8104,73.45
+Jhang (Pakistan),31.2804,72.325
+Sargodha (Pakistan),32.0854,72.675
+Dera_Ghazi_Khan (Pakistan),30.0604,70.6351
+Nawabshah (Pakistan),26.2454,68.4
+Bannu (Pakistan),32.989,70.5986
+Faisalabad (Pakistan),31.41,73.11
+Rawalpindi (Pakistan),33.6,73.04
+Bahawalpur (Pakistan),29.39,71.675
+Mirput_Khas (Pakistan),25.5318,69.0118
+Sukkur (Pakistan),27.7136,68.8486
+Saidu (Pakistan),34.75,72.35
+Gujranwala (Pakistan),32.1604,74.185
+Quetta (Pakistan),30.22,67.025
+Larkana (Pakistan),27.5618,68.2068
+Islamabad (Pakistan),33.7,73.1666
+Multan (Pakistan),30.2,71.455
+Hyderabad (Pakistan),25.38,68.375
+Peshawar (Pakistan),34.005,71.535
+Lahore (Pakistan),31.56,74.35
+Karachi (Pakistan),24.87,66.99
+Al_Khalil (Palestine),31.5406,35.0956
+Gaza (Palestine),31.53,34.445
+Panama_City (Panama),8.968,-79.533
+Port_Moresby (Papua New Guinea),-9.4647,147.1925
+San_Lorenzo (Paraguay),-25.34,-57.52
+Encarnacion (Paraguay),-27.3472,-55.8739
+Ciudad_del_Este (Paraguay),-25.5167,-54.6161
+Asuncion (Paraguay),-25.2964,-57.6415
+Chiclayo (Peru),-6.7629,-79.8366
+Juliaca (Peru),-15.5,-70.14
+Callao (Peru),-12.07,-77.135
+Piura (Peru),-5.21,-80.63
+Arequipa (Peru),-16.42,-71.53
+Chimbote (Peru),-9.07,-78.57
+Pucallpa (Peru),-8.3689,-74.535
+Iquitos (Peru),-3.75,-73.25
+Huancayo (Peru),-12.08,-75.2
+Cusco (Peru),-13.525,-71.9722
+Tacna (Peru),-18,-70.25
+Trujillo (Peru),-8.12,-79.02
+Ica (Peru),-14.068,-75.7255
+Lima (Peru),-12.048,-77.0501
+Cadiz (Philippines),10.9587,123.3086
+Cabanatuan (Philippines),15.5021,120.9617
+Olongapo (Philippines),14.8296,120.2828
+San_Pablo (Philippines),14.0696,121.3226
+Quezon_City (Philippines),14.6504,121.03
+Pasay_City (Philippines),14.5504,121
+Iligan (Philippines),8.1712,124.2154
+Tacloban (Philippines),11.2504,125
+Legazpi (Philippines),13.17,123.75
+Bacolod (Philippines),10.6317,122.9817
+Naga (Philippines),13.6192,123.1814
+Angeles (Philippines),15.1451,120.5451
+Batangas (Philippines),13.7817,121.0217
+Cotabato (Philippines),7.2169,124.2484
+Cagayan_de_Oro (Philippines),8.4508,124.6853
+Zamboanga (Philippines),6.92,122.08
+Baguio_City (Philippines),16.43,120.5699
+General_Santos (Philippines),6.1108,125.1747
+Cebu (Philippines),10.32,123.9001
+Iloilo (Philippines),10.705,122.545
+Davao (Philippines),7.11,125.63
+Manila (Philippines),14.6042,120.9822
+Bytom (Poland),50.35,18.91
+Gdynia (Poland),54.5204,18.53
+Wroclaw (Poland),51.1104,17.03
+Szczecin (Poland),53.4204,14.53
+Poznan (Poland),52.4058,16.8999
+Bydgoszcz (Poland),53.1204,18.01
+Katowice (Poland),50.2604,19.02
+Gliwice (Poland),50.3304,18.67
+Kielce (Poland),50.8904,20.66
+Bialystok (Poland),53.1504,23.17
+Lublin (Poland),51.2504,22.5727
+Rzeszow (Poland),50.0705,22
+Lódz (Poland),51.775,19.4514
+Gdansk (Poland),54.36,18.64
+Kraków (Poland),50.06,19.96
+Warsaw (Poland),52.25,21
+Braga (Portugal),41.555,-8.4213
+Porto (Portugal),41.15,-8.62
+Lisbon (Portugal),38.7227,-9.1449
+San_Juan (Puerto Rico),18.44,-66.13
+Doha (Qatar),25.2866,51.533
+Braila (Romania),45.292,27.969
+Oradea (Romania),47.05,21.92
+Galati (Romania),45.4559,28.0459
+Craiova (Romania),44.3263,23.8259
+Timisoara (Romania),45.7588,21.2234
+Brasov (Romania),45.6475,25.6072
+Ploiesti (Romania),44.9469,26.0365
+Cluj-Napoca (Romania),46.7884,23.5984
+Constanta (Romania),44.2027,28.61
+Iasi (Romania),47.1683,27.5749
+Bucharest (Romania),44.4334,26.0999
+Taganrog (Russia),47.23,38.92
+Naberezhnyye_Chelny (Russia),55.7,52.3199
+Vladikavkaz (Russia),43.0504,44.67
+Dzerzhinsk (Russia),56.2504,43.46
+Cherepovets (Russia),59.1404,37.91
+Rybinsk (Russia),58.0503,38.82
+Kaluga (Russia),54.5204,36.27
+Podolsk (Russia),55.3804,37.5299
+Shakhty (Russia),47.7204,40.27
+Volzhskiy (Russia),48.7948,44.7744
+Starsy_Oskol (Russia),51.3004,37.84
+Saransk (Russia),54.1704,45.18
+Yoshkar_Ola (Russia),56.6354,47.8749
+Tolyatti (Russia),53.4804,49.53
+Nizhnekamsk (Russia),55.6404,51.82
+Biysk (Russia),52.5341,85.18
+Velikiy_Novgorod (Russia),58.5,31.33
+Kursk (Russia),51.74,36.19
+Tula (Russia),54.2,37.6299
+Tambov (Russia),52.73,41.43
+Sterlitamak (Russia),53.63,55.96
+Kurgan (Russia),55.46,65.345
+Syktyvkar (Russia),61.66,50.82
+Cheboksary (Russia),56.13,47.25
+Prokopyevsk (Russia),53.9,86.71
+Makhachkala (Russia),42.98,47.5
+Noginsk (Russia),64.4833,91.2333
+Komsomolsk_na_Amure (Russia),50.555,137.02
+Ivanovo (Russia),57.01,41.01
+Kostroma (Russia),57.77,40.94
+Lipetsk (Russia),52.62,39.64
+Orel (Russia),52.97,36.07
+Belgorod (Russia),50.63,36.5999
+Novorossiysk (Russia),44.73,37.7699
+Vladimir (Russia),56.13,40.4099
+Izhevsk (Russia),56.85,53.23
+Naltchik (Russia),43.4981,43.6179
+Stavropol (Russia),45.05,41.98
+Kaliningrad (Russia),54.7,20.4973
+Bryansk (Russia),53.26,34.43
+Smolensk (Russia),54.7827,32.0473
+Petrozavodsk (Russia),61.85,34.28
+Tver (Russia),56.86,35.89
+Vologda (Russia),59.21,39.92
+Yaroslavl (Russia),57.62,39.87
+Rostov (Russia),47.2346,39.7127
+Sochi (Russia),43.59,39.73
+Krasnodar (Russia),45.02,39
+Penza (Russia),53.18,45
+Ryazan (Russia),54.62,39.72
+Voronezh (Russia),51.73,39.27
+Magnitogorsk (Russia),53.4227,58.98
+Chelyabinsk (Russia),55.155,61.4387
+Kirov (Russia),58.5901,49.67
+Nizhny_Tagil (Russia),57.92,59.975
+Astrakhan (Russia),46.3487,48.055
+Orenburg (Russia),51.78,55.11
+Saratov (Russia),51.58,46.03
+Ulyanovsk (Russia),54.33,48.41
+Omsk (Russia),54.99,73.4
+Tyumen (Russia),57.14,65.53
+Novokuznetsk (Russia),53.75,87.115
+Kemerovo (Russia),55.34,86.09
+Groznyy (Russia),43.3187,45.6987
+Angarsk (Russia),52.56,103.92
+Ulan_Ude (Russia),51.825,107.625
+Blagoveshchensk (Russia),50.2666,127.5333
+Khabarovsk (Russia),48.455,135.12
+Tomsk (Russia),56.495,84.975
+Murmansk (Russia),68.97,33.1
+Archangel (Russia),64.575,40.545
+Nizhny_Novgorod (Russia),56.333,44.0001
+Volgograd (Russia),48.71,44.5
+Ufa (Russia),54.79,56.04
+Yekaterinburg (Russia),56.85,60.6
+Samara (Russia),53.195,50.1513
+Kazan (Russia),55.7499,49.1263
+Surgut (Russia),61.2599,73.425
+Barnaul (Russia),53.355,83.745
+Novosibirsk (Russia),55.03,82.96
+Irkutsk (Russia),52.32,104.245
+Krasnoyarsk (Russia),56.014,92.866
+Chita (Russia),52.055,113.465
+Vladivostok (Russia),43.13,131.91
+Yakutsk (Russia),62.035,129.735
+Perm (Russia),58,56.25
+St._Petersburg (Russia),59.939,30.316
+Moscow (Russia),55.7522,37.6155
+Nyanza (Rwanda),-2.3496,29.74
+Kigali (Rwanda),-1.9536,30.0605
+Yanbu_al_Bahr (Saudi Arabia),24.0943,38.0493
+At_Taif (Saudi Arabia),21.2622,40.3823
+Najran (Saudi Arabia),17.5065,44.1316
+Al_Hillah (Saudi Arabia),23.4895,46.7564
+Al_Mubarraz (Saudi Arabia),25.4291,49.5659
+Al-Qatif (Saudi Arabia),26.5196,50.0115
+Buraydah (Saudi Arabia),26.3664,43.9628
+Hail (Saudi Arabia),27.5236,41.7001
+Al_Kharj (Saudi Arabia),24.1556,47.312
+Ad_Damman (Saudi Arabia),26.4282,50.0997
+Hafar_al_Batin (Saudi Arabia),28.4337,45.9601
+Al_Jubayl (Saudi Arabia),27.0046,49.646
+Al_Hufuf (Saudi Arabia),25.3487,49.5856
+Abha (Saudi Arabia),18.2301,42.5001
+Medina (Saudi Arabia),24.5,39.58
+Tabuk (Saudi Arabia),28.3838,36.555
+Jeddah (Saudi Arabia),21.5169,39.2192
+Makkah (Saudi Arabia),21.43,39.82
+Riyadh (Saudi Arabia),24.6408,46.7727
+Thies (Senegal),14.8104,-16.93
+Kaolack (Senegal),14.15,-16.1
+Dakar (Senegal),14.7158,-17.4731
+Nis (Serbia),43.3304,21.9
+Novi_Sad (Serbia),45.2504,19.8499
+Belgrade (Serbia),44.8186,20.468
+Freetown (Sierra Leone),8.47,-13.2342
+Singapore (Singapore),1.293,103.8558
+Kosice (Slovakia),48.7304,21.25
+Bratislava (Slovakia),48.15,17.117
+Ljubljana (Slovenia),46.0553,14.515
+Mogadishu (Somalia),2.0667,45.3667
+Hargeysa (Somaliland),9.56,44.0653
+Springs (South Africa),-26.2696,28.43
+Uitenhage (South Africa),-33.7596,25.39
+Benoni (South Africa),-26.1496,28.3299
+Vereeniging (South Africa),-26.6496,27.96
+Pietermaritzburg (South Africa),-29.61,30.39
+Welkom (South Africa),-27.97,26.73
+East_London (South Africa),-32.97,27.87
+Bloemfontein (South Africa),-29.12,26.2299
+Pretoria (South Africa),-25.7069,28.2294
+Port_Elizabeth (South Africa),-33.97,25.6
+Durban (South Africa),-29.865,30.98
+Johannesburg (South Africa),-26.17,28.03
+Cape_Town (South Africa),-33.92,18.435
+Cheongju (South Korea),36.6439,127.5012
+Wonju (South Korea),37.3551,127.9396
+Chuncheon (South Korea),37.8747,127.7342
+Ansan (South Korea),37.3481,126.8595
+Iksan (South Korea),35.941,126.9454
+Changwon (South Korea),35.2191,128.5836
+Yeosu (South Korea),34.7368,127.7458
+Jeju (South Korea),33.5101,126.5219
+Jeonju (South Korea),35.8314,127.1404
+Gunsan (South Korea),35.9818,126.716
+Mokpo (South Korea),34.8068,126.3958
+Puch'on (South Korea),37.4989,126.7831
+Songnam (South Korea),37.4386,127.1378
+Goyang (South Korea),37.6527,126.8372
+Suwon (South Korea),37.2578,127.0109
+Pohang (South Korea),36.0209,129.3715
+Ulsan (South Korea),35.5467,129.317
+Daegu (South Korea),35.8668,128.607
+Incheon (South Korea),37.4761,126.6422
+Daejeon (South Korea),36.3355,127.425
+Gwangju (South Korea),35.171,126.9104
+Busan (South Korea),35.0951,129.01
+Seoul (South Korea),37.5663,126.9997
+Gijon (Spain),43.53,-5.67
+Malaga (Spain),36.7204,-4.42
+Oviedo (Spain),43.3505,-5.83
+San_Sebastián (Spain),43.3204,-1.98
+Alicante (Spain),38.3512,-0.4836
+Granada (Spain),37.165,-3.585
+Murcia (Spain),37.98,-1.13
+La_Coruña (Spain),43.33,-8.42
+Pamplona (Spain),42.82,-1.65
+Valladolid (Spain),41.65,-4.75
+Palma (Spain),39.5743,2.6542
+Zaragoza (Spain),41.65,-0.89
+Santa_Cruz_de_Tenerife (Spain),28.47,-16.25
+Cordoba (Spain),37.88,-4.77
+Vigo (Spain),42.22,-8.73
+Bilbao (Spain),43.25,-2.93
+Las_Palmas (Spain),28.1,-15.43
+Seville (Spain),37.405,-5.98
+Valencia (Spain),39.485,-0.4
+Barcelona (Spain),41.3833,2.1834
+Madrid (Spain),40.4,-3.6834
+Colombo (Sri Lanka),6.932,79.8578
+Medani (Sudan),14.4,33.52
+Gedaref (Sudan),14.04,35.38
+Kosti (Sudan),13.17,32.66
+El_Fasher (Sudan),13.63,25.35
+Omdurman (Sudan),15.6167,32.48
+El_Obeid (Sudan),13.1833,30.2167
+Port_Sudan (Sudan),19.6158,37.2164
+Niyala (Sudan),12.06,24.89
+Kassala (Sudan),15.46,36.39
+Khartoum (Sudan),15.5881,32.5342
+Paramaribo (Suriname),5.835,-55.167
+Göteborg (Sweden),57.75,12
+Malmö (Sweden),55.5833,13.0333
+Stockholm (Sweden),59.3508,18.0973
+Basel (Switzerland),47.5804,7.59
+Zürich (Switzerland),47.38,8.55
+Geneva (Switzerland),46.21,6.14
+Al_Ladhiqiyah (Syria),35.54,35.78
+Douma (Syria),33.5833,36.4
+Hamah (Syria),35.1503,36.73
+Dayr_az_Zawr (Syria),35.3304,40.13
+Hims (Syria),34.73,36.72
+Aleppo (Syria),36.23,37.17
+Damascus (Syria),33.5,36.3
+Pingzhen (Taiwan),24.9439,121.2161
+Taoyuan (Taiwan),24.9889,121.3111
+Zhongli (Taiwan),24.965,121.2168
+Keelung (Taiwan),25.1333,121.7333
+Changhua (Taiwan),24.0734,120.5134
+Chiayi (Taiwan),23.4755,120.4351
+Hsinchu (Taiwan),24.8168,120.9767
+Pingtung (Taiwan),22.6817,120.4817
+Hualien (Taiwan),23.9837,121.6
+New_Taipei (Taiwan),25.0128,121.465
+Tainan (Taiwan),23,120.2
+Taichung (Taiwan),24.1521,120.6817
+Kaohsiung (Taiwan),22.6333,120.2666
+Taipei (Taiwan),25.0358,121.5683
+Khujand (Tajikistan),40.29,69.6199
+Dushanbe (Tajikistan),38.56,68.7739
+Moshi (Tanzania),-3.3396,37.34
+Tanga (Tanzania),-5.07,39.09
+Mwanza (Tanzania),-2.52,32.93
+Morogoro (Tanzania),-6.82,37.66
+Arusha (Tanzania),-3.36,36.67
+Mbeya (Tanzania),-8.89,33.43
+Zanzibar (Tanzania),-6.16,39.2
+Dar_es_Salaam (Tanzania),-6.8,39.2683
+Nonthaburi (Thailand),13.8337,100.4833
+Samut_Prakan (Thailand),13.6069,100.6115
+Chon_Buri (Thailand),13.4004,101
+Udon_Thani (Thailand),17.4048,102.7893
+Hat_Yai (Thailand),6.9964,100.4714
+Chiang_Mai (Thailand),18.8,98.98
+Nakhon_Ratchasima (Thailand),15,102.1
+Bangkok (Thailand),13.75,100.5166
+Lome (Togo),6.1319,1.2228
+Sfax (Tunisia),34.75,10.72
+Sousse (Tunisia),35.83,10.625
+Tunis (Tunisia),36.8028,10.1797
+Sakarya (Turkey),40.7667,30.4
+Elazig (Turkey),38.68,39.23
+Kahramanmaras (Turkey),37.61,36.945
+Icel (Turkey),36.8,34.62
+Balikesir (Turkey),39.6504,27.89
+Izmit (Turkey),40.776,29.9306
+Denizli (Turkey),37.7704,29.08
+Manisa (Turkey),38.6304,27.44
+Malatya (Turkey),38.3704,38.3
+Tarsus (Turkey),36.9204,34.88
+Hatay (Turkey),36.2304,36.12
+Iskenderun (Turkey),36.5804,36.17
+Sivas (Turkey),39.7454,37.035
+Erzurum (Turkey),39.9204,41.29
+Diyarbakir (Turkey),37.9204,40.23
+Kirikkale (Turkey),39.8504,33.53
+Batman (Turkey),37.8904,41.14
+Van (Turkey),38.4954,43.4
+Adapazari (Turkey),40.8,30.415
+Trabzon (Turkey),40.98,39.72
+Sanliurfa (Turkey),37.17,38.795
+Eskisehir (Turkey),39.795,30.53
+Antalya (Turkey),36.89,30.7
+Kayseri (Turkey),38.735,35.49
+Gaziantep (Turkey),37.075,37.385
+Izmir (Turkey),38.4361,27.1518
+Bursa (Turkey),40.2,29.07
+Samsun (Turkey),41.28,36.3437
+Konya (Turkey),37.875,32.475
+Adana (Turkey),36.995,35.32
+Ankara (Turkey),39.9272,32.8644
+Istanbul (Turkey),41.105,29.01
+Turkmenabat (Turkmenistan),39.11,63.58
+Ashgabat (Turkmenistan),37.95,58.3833
+Mbale (Uganda),1.0904,34.17
+Kampala (Uganda),0.3167,32.5833
+Mykolayiv (Ukraine),46.9677,31.9843
+Chernihiv (Ukraine),51.5049,31.3015
+Khmelnytskyy (Ukraine),49.4249,27.0015
+Kryvyy_Rih (Ukraine),47.9283,33.345
+Makiyivka (Ukraine),48.0297,37.9746
+Horlivka (Ukraine),48.2996,38.0547
+Simferopol (Ukraine),44.9492,34.0987
+Kherson (Ukraine),46.6325,32.6007
+Rivne (Ukraine),50.6166,26.2528
+Chernivtsi (Ukraine),48.3053,25.9216
+Ivano-Frankivsk (Ukraine),48.9348,24.7094
+Ternopil (Ukraine),49.536,25.5821
+Lutsk (Ukraine),50.7472,25.3334
+Cherkasy (Ukraine),49.4347,32.0709
+Kirovohrad (Ukraine),48.5041,32.2603
+Vinnytsya (Ukraine),49.2254,28.4816
+Luhansk (Ukraine),48.5698,39.3344
+Poltava (Ukraine),49.574,34.5703
+Kremenchuk (Ukraine),49.0835,33.4296
+Zaporizhzhya (Ukraine),47.8573,35.1768
+Sumy (Ukraine),50.9243,34.7809
+Mariupol (Ukraine),47.0962,37.5562
+Lvov (Ukraine),49.835,24.03
+Odessa (Ukraine),46.49,30.71
+Zhytomyr (Ukraine),50.2456,28.6622
+Dnipropetrovsk (Ukraine),48.48,35
+Donetsk (Ukraine),48,37.83
+Kharkiv (Ukraine),50,36.25
+Sevastapol (Ukraine),44.6,33.465
+Kiev (Ukraine),50.4334,30.5166
+Sharjah (United Arab Emirates),25.3714,55.4065
+Al_Ayn (United Arab Emirates),24.2305,55.74
+Abu_Dhabi (United Arab Emirates),24.4667,54.3666
+Dubai (United Arab Emirates),25.23,55.28
+Sunderland (United Kingdom),54.92,-1.38
+Southampton (United Kingdom),50.9,-1.4
+Bristol (United Kingdom),51.45,-2.5833
+Bournemouth (United Kingdom),50.73,-1.9
+Swansea (United Kingdom),51.63,-3.95
+Southend-on-Sea (United Kingdom),51.55,0.72
+Reading (United Kingdom),51.47,-0.98
+Leicester (United Kingdom),52.63,-1.1332
+Bradford (United Kingdom),53.8,-1.75
+Sheffield (United Kingdom),53.3667,-1.5
+Middlesbrough (United Kingdom),54.5804,-1.23
+Coventry (United Kingdom),52.4204,-1.5
+Kingston_upon_Hull (United Kingdom),53.7504,-0.33
+Blackpool (United Kingdom),53.8304,-3.05
+Plymouth (United Kingdom),50.3854,-4.16
+Brighton (United Kingdom),50.8303,-0.17
+Luton (United Kingdom),51.8804,-0.42
+Portsmouth (United Kingdom),50.8003,-1.08
+Nottingham (United Kingdom),52.9703,-1.17
+Stoke (United Kingdom),53.0004,-2.18
+Edinburgh (United Kingdom),55.9483,-3.2191
+Newcastle (United Kingdom),55.0004,-1.6
+Liverpool (United Kingdom),53.416,-2.918
+Cardiff (United Kingdom),51.5,-3.225
+Leeds (United Kingdom),53.83,-1.58
+Manchester (United Kingdom),53.5004,-2.248
+Birmingham (United Kingdom),52.475,-1.92
+Belfast (United Kingdom),54.6,-5.96
+Glasgow (United Kingdom),55.8744,-4.2507
+London (United Kingdom),51.5,-0.1167
+Glendale (United States of America),33.5819,-112.1958
+Mesa (United States of America),33.4239,-111.7361
+Berkeley (United States of America),37.8739,-122.2712
+Riverside (United States of America),33.9419,-117.398
+San_Mateo (United States of America),37.5569,-122.3131
+Aurora (United States of America),39.6959,-104.8085
+Kansas_City (United States of America),39.1136,-94.6301
+Metairie (United States of America),29.9839,-90.1528
+McAllen (United States of America),26.203,-98.2297
+Pasadena (United States of America),29.6609,-95.1477
+Arlington (United States of America),32.6848,-97.0202
+Stamford (United States of America),41.0533,-73.5392
+Springfield (United States of America),42.12,-72.58
+Miami_Beach (United States of America),25.8099,-80.1318
+Joliet (United States of America),41.53,-88.1067
+Rockford (United States of America),42.2697,-89.0697
+Evanston (United States of America),42.0483,-87.7
+Elgin (United States of America),42.0395,-88.2899
+Durham (United States of America),36,-78.92
+Hampton (United States of America),37.03,-76.3499
+Lancaster (United States of America),40.0378,-76.3058
+Allentown (United States of America),40.6,-75.5
+Everett (United States of America),47.9604,-122.2
+Stockton (United States of America),37.9581,-121.2897
+Oceanside (United States of America),33.2205,-117.335
+Modesto (United States of America),37.6554,-120.99
+Irvine (United States of America),33.6804,-117.83
+Palm_Springs (United States of America),33.7774,-116.5331
+Ogden (United States of America),41.2324,-111.968
+St._Charles (United States of America),38.7843,-90.5062
+Columbia (United States of America),38.9521,-92.3339
+New_Haven (United States of America),41.3304,-72.9
+Lowell (United States of America),42.6337,-71.3167
+Worcester (United States of America),42.2704,-71.8
+Fort_Lauderdale (United States of America),26.1361,-80.1418
+Columbus (United States of America),32.4704,-84.98
+Greenville (United States of America),34.8529,-82.3942
+Aurora (United States of America),41.7654,-88.3
+Gary (United States of America),41.5804,-87.33
+Fort_Wayne (United States of America),41.0804,-85.13
+Covington (United States of America),39.084,-84.5086
+Winston-Salem (United States of America),36.1054,-80.26
+Akron (United States of America),41.0704,-81.52
+Newark (United States of America),40.7004,-74.17
+Flint (United States of America),43.0129,-83.6875
+Grand_Rapids (United States of America),42.9637,-85.6699
+Tacoma (United States of America),47.2113,-122.515
+Long_Beach (United States of America),33.787,-118.158
+Provo (United States of America),40.2489,-111.6378
+Little_Rock (United States of America),34.7361,-92.3311
+Wichita (United States of America),37.72,-97.33
+Lubbock (United States of America),33.58,-101.88
+Hartford (United States of America),41.77,-72.68
+Providence (United States of America),41.8211,-71.415
+Birmingham (United States of America),33.53,-86.825
+Mobile (United States of America),30.68,-88.05
+St._Petersburg (United States of America),27.7705,-82.6794
+Greensboro (United States of America),36.07,-79.8
+Dayton (United States of America),39.7504,-84.2
+Virginia_Beach (United States of America),36.8532,-75.9783
+Madison (United States of America),43.073,-89.4011
+Trenton (United States of America),40.217,-74.7434
+Bakersfield (United States of America),35.37,-119.02
+Oakland (United States of America),37.7689,-122.2211
+Lancaster (United States of America),34.698,-118.1358
+Lincoln (United States of America),40.82,-96.68
+West_Palm_Beach (United States of America),26.745,-80.1236
+Sarasota (United States of America),27.3361,-82.5308
+Charleston (United States of America),32.7924,-79.9921
+Louisville (United States of America),38.225,-85.7487
+Lexington (United States of America),38.05,-84.5
+Charlotte (United States of America),35.205,-80.83
+Toledo (United States of America),41.67,-83.58
+Columbus (United States of America),39.98,-82.99
+Chattanooga (United States of America),35.07,-85.25
+Albany (United States of America),42.67,-73.8199
+Harrisburg (United States of America),40.2736,-76.8847
+San_Bernardino (United States of America),34.1204,-117.3
+Bridgeport (United States of America),41.18,-73.2
+Rochester (United States of America),43.1704,-77.6199
+St._Paul (United States of America),44.944,-93.085
+Spokane (United States of America),47.67,-117.4199
+Vancouver (United States of America),45.6303,-122.64
+Tucson (United States of America),32.205,-110.89
+Fresno (United States of America),36.7477,-119.773
+Colorado_Springs (United States of America),38.863,-104.792
+Reno (United States of America),39.53,-119.82
+Albuquerque (United States of America),35.105,-106.6413
+Kansas_City (United States of America),39.1071,-94.6041
+Tulsa (United States of America),36.12,-95.93
+Shreveport (United States of America),32.5,-93.77
+Baton_Rouge (United States of America),30.4579,-91.1402
+Ft._Worth (United States of America),32.74,-97.34
+Corpus_Christi (United States of America),27.7428,-97.4019
+Austin (United States of America),30.2669,-97.7428
+El_Paso (United States of America),31.78,-106.51
+Laredo (United States of America),27.5061,-99.5072
+Orlando (United States of America),28.51,-81.38
+Jacksonville (United States of America),30.33,-81.67
+Columbia (United States of America),34.04,-80.9
+Indianapolis (United States of America),39.75,-86.17
+Knoxville (United States of America),35.97,-83.92
+Richmond (United States of America),37.55,-77.45
+Baltimore (United States of America),39.3,-76.62
+Syracuse (United States of America),43.05,-76.15
+Boise (United States of America),43.6086,-116.2275
+San_Jose (United States of America),37.3,-121.85
+Sacramento (United States of America),38.575,-121.47
+Las_Vegas (United States of America),36.21,-115.22
+Portland (United States of America),45.52,-122.68
+Salt_Lake_City (United States of America),40.775,-111.9301
+Des_Moines (United States of America),41.58,-93.62
+Omaha (United States of America),41.24,-96.01
+Oklahoma_City (United States of America),35.47,-97.5187
+San_Antonio (United States of America),29.4873,-98.5073
+Jackson (United States of America),32.2988,-90.185
+Raleigh (United States of America),35.8188,-78.6447
+Cleveland (United States of America),41.47,-81.695
+Cincinnati (United States of America),39.1619,-84.4569
+Nashville (United States of America),36.17,-86.78
+Memphis (United States of America),35.12,-90
+Norfolk (United States of America),36.85,-76.28
+Milwaukee (United States of America),43.0527,-87.92
+Buffalo (United States of America),42.88,-78.88
+Pittsburgh (United States of America),40.43,-80
+Minneapolis (United States of America),44.98,-93.2518
+Honolulu (United States of America),21.3069,-157.858
+Seattle (United States of America),47.57,-122.34
+Phoenix (United States of America),33.54,-112.07
+San_Diego (United States of America),32.82,-117.18
+St._Louis (United States of America),38.635,-90.24
+New_Orleans (United States of America),29.995,-90.04
+Dallas (United States of America),32.82,-96.84
+Boston (United States of America),42.33,-71.07
+Tampa (United States of America),27.947,-82.4586
+Philadelphia (United States of America),40,-75.17
+Detroit (United States of America),42.33,-83.0801
+Anchorage (United States of America),61.22,-149.9002
+San_Francisco (United States of America),37.74,-122.46
+Denver (United States of America),39.7392,-104.984
+Houston (United States of America),29.82,-95.34
+Miami (United States of America),25.7876,-80.2241
+Atlanta (United States of America),33.83,-84.3999
+Chicago (United States of America),41.83,-87.7501
+Los_Angeles (United States of America),33.99,-118.18
+Washington,_D.C. (United States of America),38.8995,-77.0094
+New_York (United States of America),40.75,-73.98
+Montevideo (Uruguay),-34.858,-56.1711
+Shahrisabz (Uzbekistan),39.0618,66.8315
+Qarshi (Uzbekistan),38.8704,65.8
+Qoqon (Uzbekistan),40.5404,70.94
+Fargona (Uzbekistan),40.39,71.78
+Namangan (Uzbekistan),41,71.67
+Bukhara (Uzbekistan),39.78,64.43
+Nukus (Uzbekistan),42.47,59.615
+Andijon (Uzbekistan),40.79,72.34
+Samarqand (Uzbekistan),39.67,66.945
+Tashkent (Uzbekistan),41.3117,69.2949
+Barinas (Venezuela),8.6,-70.25
+Cabimas (Venezuela),10.43,-71.45
+Puerto_la_Cruz (Venezuela),10.17,-64.68
+Los_Teques (Venezuela),10.42,-67.02
+Acarigua (Venezuela),9.5804,-69.2
+Barcelona (Venezuela),10.1304,-64.72
+Barquisimeto (Venezuela),10.05,-69.3
+Maturin (Venezuela),9.75,-63.17
+Cumana (Venezuela),10.45,-64.18
+Ciudad_Bolivar (Venezuela),8.1,-63.6
+Maracay (Venezuela),10.2469,-67.5958
+Merida (Venezuela),8.4,-71.13
+San_Cristobal (Venezuela),7.77,-72.25
+Valencia (Venezuela),10.23,-67.98
+Ciudad_Guayana (Venezuela),8.37,-62.62
+Maracaibo (Venezuela),10.73,-71.66
+Caracas (Venezuela),10.501,-66.917
+Thai_Binh (Vietnam),20.4503,106.333
+Thu_Dau_Mot (Vietnam),10.9691,106.6527
+Viet_Tri (Vietnam),21.3304,105.43
+Buon_Me_Thuot (Vietnam),12.667,108.05
+Vung_Tau (Vietnam),10.3554,107.085
+Phan_Thiet (Vietnam),10.9337,108.1001
+Long_Xuyen (Vietnam),10.3804,105.42
+Rach_Gia (Vietnam),10.0154,105.0914
+Ca_Mau (Vietnam),9.1774,105.15
+Soc_Trang (Vietnam),9.6037,105.98
+Thai_Nguyen (Vietnam),21.6,105.83
+Nam_Dinh (Vietnam),20.42,106.2
+Vinh (Vietnam),18.7,105.68
+Nha_Trang (Vietnam),12.25,109.17
+Qui_Nhon (Vietnam),13.78,109.18
+Hue (Vietnam),16.47,107.58
+Bien_Hoa (Vietnam),10.97,106.8301
+Can_Tho (Vietnam),10.05,105.77
+Haiphong (Vietnam),20.83,106.6801
+Da_Nang (Vietnam),16.06,108.25
+Hanoi (Vietnam),21.0333,105.85
+Ho_Chi_Minh_City (Vietnam),10.78,106.695
+Ibb (Yemen),13.9759,44.1709
+Al_Hudaydah (Yemen),14.7979,42.953
+Taizz (Yemen),13.6045,44.0394
+Aden (Yemen),12.7797,45.0095
+Sanaa (Yemen),15.3547,44.2066
+Ndola (Zambia),-12.9999,28.65
+Kitwe (Zambia),-12.81,28.22
+Lusaka (Zambia),-15.4166,28.2833
+Mutare (Zimbabwe),-18.97,32.65
+Chitungwiza (Zimbabwe),-18,31.1
+Harare (Zimbabwe),-17.8178,31.0447
+Bulawayo (Zimbabwe),-20.17,28.58
