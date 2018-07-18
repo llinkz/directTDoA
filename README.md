@@ -3,12 +3,25 @@
 This piece of software is JUST a GUI written for Python 2.7 designed to compute TDoA maps with GPS enabled KiwiSDR servers around the world using GNU Octave & the EXCELLENT work of Christoph Mayer @ https://github.com/hcab14/TDoA + his forked "kiwiclient" python stuff, original code by Dmitry Janushkevich @ https://github.com/dev-zzo/kiwiclient
 
 
-## INSTALL AND RUN
+## INSTALL AND RUN (on LINUX)
 
 * install python 2.x
 * install pip
 * install GNU octave
 
+* git clone --recursive https://github.com/llinkz/directTDoA
+* cd directTDoA
+* ./setup.sh  (will install python modules & compile the necessary .oct file)
+* python2 directTDoA.py
+
+
+## INSTALL AND RUN (on MAC OS) Thanks to Nicolas M. for the procedure
+
+* REQUIREMENT 	Xcode + Homebrew (https://brew.sh/index_fr)
+* install Homebrew, in terminal : /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+* install Python 2.7, in terminal : brew install python@2
+* install python modules, in terminal  : pip2 install pillow numpy
+* install GNU Octave 4.4.0, in Terminal : brew install octave
 * git clone --recursive https://github.com/llinkz/directTDoA
 * cd directTDoA
 * ./setup.sh  (will install python modules & compile the necessary .oct file)
@@ -22,7 +35,6 @@ This piece of software is JUST a GUI written for Python 2.7 designed to compute 
 ## WARNING
 * This code may contain some silly procedures and dumb algorithms as I'm not a python guru, but it almost works so...
 * This GUI may freeze sometimes, just watch for the console output and restart it..
-* If UPDATE process fails, a copy of the server DB is available under the name "directTDoA_server_list.db.bak"
 
 
 ## CHANGE LOG
@@ -40,18 +52,9 @@ This piece of software is JUST a GUI written for Python 2.7 designed to compute 
 * v2.42: forgot some conditions for MacOS compatibility  oops  thanks Nicolas M. again  :-)
 * v2.43: auto create the directTDoA_server_list.db file at 1st start, file does not need to be in the repo anymore
 * v2.44: MacOS tested OK, code cleanup +warning about missing GPS timestamps in IQ recordings  -uglymaps +kickass NASA maps
-
+* v2.50: some TODO list items coded or fixed
 
 ## TODO LIST
-* adding a list of known MIL/GOV/MARITIME/AERO/DIPLO/... TX site locations beside the list of World cities
 * dealing with nodes that forwards a xx° yy' zz.z'' GEO format (gnss_pos retrieving)
-* work harder on recorded IQ BW change possibility, the center frequency moves but the IQ bandwidth stays at 10kHz apparently
-* adding a pop-up at the end of process to give possibility to display the png, the pdf, the generated .m to be edited and re-processed w/o 1 or 2 nodes and if we want to restart the GUI like it does at this time (v2.20)
-* adding already defined TDoA map boundaries list like Europe, NorthAm, Asia, Russia, Middle-East, Africa etc....
-* adding already defined sets of selected nodes list (the ones you mostly always use for DF'ing stuff)
-* invert LON & LAT in all the 'most likely point' coordinates references
-* adding some buttons in the final popup so we can display that 'most likely point' in wikimapia, google maps, bing maps, geohack ..
-* saving the 'most likely point' coordinates references as text in TDoA dir then into IQ/... backup/archive directory
-* saving the png & pdf in IQ/... backup/archive directory
-* try to set the user map boundaries to respect equirectangular World view for better map view
+* manual user map boundaries auto-geometry to respect equirectangular World view for more realistic map views
 * modifying the update process to use John's new json serverlist format + adding the GPS fixes/minute info in each node point
