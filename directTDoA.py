@@ -3,14 +3,13 @@
 
 from Tkinter import *
 import threading, os, signal, subprocess, platform, tkMessageBox, time, urllib2, re, glob, webbrowser
-from os.path import dirname, abspath
 from subprocess import PIPE
 from PIL import Image, ImageTk
 from shutil import copyfile
 from tkColorChooser import askcolor
 
 
-VERSION = "directTDoA v2.44 by linkz"
+VERSION = "directTDoA v2.50 by linkz"
 
 
 class ReadKnownPointFile:
@@ -45,7 +44,7 @@ class CheckFileSize(threading.Thread):
         global t, checkfilesize
         checkfilesize = 1
         while t == 0:
-            time.sleep(0.5)
+            time.sleep(0.5)  # file size refresh time in white background GUI window
             if platform.system() == "Windows":
                 for wavfiles in glob.glob("TDoA\\iq\\*wav"):
                     os.path.getsize(wavfiles)
@@ -65,9 +64,53 @@ class ProcessFinished:
         pass
 
     def run(self):
-        global tdoa_position
-        finish = tkMessageBox.showinfo("PROCESS ENDED", str(tdoa_position) + "\n\nClick to restart the GUI")
+        global tdoa_position, varfile
+        llon = llon2 = tdoa_position.rsplit(' ')[5]
+        llat = llat2 = tdoa_position.rsplit(' ')[10]
+        if "-" in llat:
+            sign1 = "S"
+            llat = llat[1:]
+        else:
+            sign1 = "N"
+        if "-" in llon:
+            sign2 = "W"
+            llon = llon[1:]
+        else:
+            sign2 = "E"
+        mnt2, sec2 = divmod(float(llon) * 3600, 60)
+        deg2, mnt2 = divmod(mnt2, 60)
+        mnt1, sec1 = divmod(float(llat) * 3600, 60)
+        deg1, mnt1 = divmod(int(mnt1), 60)
+        latstring = str(int(deg1)) + "_" + str(int(mnt1)) + "_" + str(int(sec1)) + "_" + sign1
+        lonstring = str(int(deg2)) + "_" + str(int(mnt2)) + "_" + str(int(sec2)) + "_" + sign2
+
+        #  backup the .pdf and .png files and saving most likely coords as text in previously created /iq/... dir
+        if platform.system() == "Windows":
+            copyfile("TDoA\\pdf\\TDoA_" + varfile + ".pdf",
+                     "TDoA\\iq\\" + starttime + "_F" + str(frequency) + "\\TDoA_" + varfile + ".pdf")
+            copyfile("TDoA\\png\\TDoA_" + varfile + ".png",
+                     "TDoA\\iq\\" + starttime + "_F" + str(frequency) + "\\TDoA_" + varfile + ".png")
+            with open("./TDoA/iq/" + starttime + "_F" + str(
+                    frequency) + "/TDoA_" + varfile + "_found_" + llat + sign1 + "_" + llon + sign2, 'w') as tdoa_file:
+                tdoa_file.write('')
+
+        if platform.system() == "Linux" or platform.system() == "Darwin":
+            copyfile("./TDoA/pdf/TDoA_" + varfile + ".pdf",
+                     "./TDoA/iq/" + starttime + "_F" + str(frequency) + "/TDoA_" + varfile + ".pdf")
+            copyfile("./TDoA/png/TDoA_" + varfile + ".png",
+                     "./TDoA/iq/" + starttime + "_F" + str(frequency) + "/TDoA_" + varfile + ".png")
+            with open("./TDoA/iq/" + starttime + "_F" + str(
+                    frequency) + "/TDoA_" + varfile + "_found_" + llat + sign1 + "_" + llon + sign2, 'w') as tdoa_file:
+                tdoa_file.write('')
+
+        # last popup window showing at end of process
+        finish = tkMessageBox.askyesno(title="TDoA process just finished.",
+                                       message="Most likely location coords are " + llat2 + "°" + sign1 + " " + llon2 + "°" + sign2 + "\n\nClick Yes to open \"Geohack\" webpage centered on most likely point found by the process\nClick No to open files directory and restart GUI")
         if finish:
+            webbrowser.open_new("https://tools.wmflabs.org/geohack/geohack.php?params=" + latstring + "_" + lonstring)
+
+        elif finish is False:
+            webbrowser.open("./TDoA/iq/" + starttime + "_F" + str(frequency))
             executable = sys.executable
             args = sys.argv[:]
             args.insert(0, sys.executable)
@@ -182,7 +225,7 @@ class OctaveProcessing(threading.Thread):
         self.parent = parent
 
     def run(self):
-        global varfile, tdoa_position, bad_node
+        global varfile, tdoa_position, bad_node, stdout
         tdoa_filename = "proc_tdoa_" + varfile + ".m"
         bad_node = False
         if platform.system() == "Windows":  # not working
@@ -190,18 +233,22 @@ class OctaveProcessing(threading.Thread):
             # tdoa_filename = 'C:\Users\linkz\Desktop\TDoA-master-win\\' + tdoa_filename  # work in progress for Windows
         if platform.system() == "Linux" or platform.system() == "Darwin":
             exec_octave = 'octave'
-        proc = subprocess.Popen([exec_octave, tdoa_filename], cwd='./TDoA/', stdout=PIPE,
-                                shell=False)
+        proc = subprocess.Popen([exec_octave, tdoa_filename], cwd='./TDoA/', stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=False)
+
         while True:
             line = proc.stdout.readline()
-            if line != '':
-                pass
+            line2 = proc.stderr.readline()
+            with open("./TDoA/iq/" + starttime + "_F" + str(frequency) + "/TDoA_stdout.txt", 'a') as tdoa_console:
+                if "wav 254" in line:  # number 254 indicating no GPS timestamps found in the node IQ rec
+                    bad_node = True
+                    tdoa_console.write("WARNING: " + line.rstrip().rsplit('_', 3)[
+                        2] + " has no recent GPS timestamps, remove it next time.\n")
+                tdoa_console.write(line.rstrip() + '\n')
+            if line2 != '':
+                with open("./TDoA/iq/" + starttime + "_F" + str(frequency) + "/TDoA_stderr.txt", 'a') as tdoa_console2:
+                    tdoa_console2.write(line2.rstrip() + '\n')
             if "iq/" in line:
                 self.parent.writelog("processing " + line.rstrip())
-                if "wav 254" in line:  # adding the parse of number 254 indicating no GPS timestamps found in the IQ rec
-                    bad_node = True
-                    self.parent.writelog("WARNING: \"" + line.rstrip().rsplit('_', 3)[
-                        2] + "\" has no recent GPS timestamps, remove it next time.")
             if "tdoa" in line:
                 self.parent.writelog(line.rstrip())
             if "most likely position:" in line:
@@ -244,7 +291,7 @@ class StartKiwiSDR(threading.Thread):
 
     def run(self):
         global hostlisting, namelisting, frequency, portlisting, lpcut, hpcut, proc2_pid
-        global parent, line, nbfile, IQfiles, t
+        global parent, line, nbfile, IQfiles, t, varfile
         IQfiles = []
         line = []
         nbfile = 1
@@ -254,9 +301,12 @@ class StartKiwiSDR(threading.Thread):
         if platform.system() == "Linux" or platform.system() == "Darwin":
             execname = 'python2'
         proc2 = subprocess.Popen(
-            [execname, 'kiwirecorder.py', '-s', str(hostlisting), str(namelisting), '-f', str(frequency), '-p',
-             str(portlisting), '-L', str(lpcut), '-H', str(hpcut), '-m', 'iq', '-w'], stdout=PIPE, shell=False)
+            [execname, 'kiwirecorder.py', '-s', str(hostlisting), '-p', str(portlisting), str(namelisting), '-f',
+             str(frequency), '-L', str(0 - lpcut), '-H', str(hpcut), '-m', 'iq', '-w'], stdout=PIPE, shell=False)
         self.parent.writelog("IQ recording in progress...please wait")
+        # self.parent.writelog(   # debug
+        #     execname + ' kiwirecorder.py -s ' + str(hostlisting) + ' -p ' + str(portlisting) + ' ' + str(
+        #         namelisting) + ' -f ' + str(frequency) + ' -L ' + str(0 - lpcut) + ' -H ' + str(hpcut) + ' -m iq -w')
         proc2_pid = proc2.pid
 
 
@@ -388,7 +438,7 @@ class FillMapWithNodes(threading.Thread):
 class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-canvas-zoom-move-pan?noredirect=1&lq=1 :)
     def __init__(self, parent):
         Frame.__init__(self, parent=None)
-        parent.geometry("1000x670+300+0")
+        parent.geometry("1000x700+300+0")
         global dx0, dy0, dx1, dy1
         global serverlist, portlist, namelist, dmap, host, white, black, mapfl, mapboundaries_set
         # host = Variable
@@ -417,7 +467,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         self.canvas.bind('<Configure>', self.show_image)  # canvas is resized
         self.canvas.bind('<ButtonPress-1>', self.move_from)  # map move
         self.canvas.bind('<B1-Motion>', self.move_to)  # map move
-        # self.canvas.bind_all('<MouseWheel>', self.wheel)  # Windows Zoom disabled in this version !
+        self.canvas.bind_all('<MouseWheel>', self.wheel)  # Windows Zoom disabled in this version !
         # self.canvas.bind('<Button-5>', self.wheel)  # Linux Zoom disabled in this version !
         # self.canvas.bind('<Button-4>', self.wheel)  # Linux Zoom disabled in this version !
         self.canvas.bind("<ButtonPress-3>", self.on_button_press)  # red rectangle selection
@@ -439,64 +489,75 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         print host
 
     def on_button_press(self, event):
-        # save mouse drag start position
+        global map_preset, map_manual
+        if map_preset == 1:
+            self.deletePoint(sx0, sy0, "mappreset")
+            self.rect = None
+            map_preset = 0
         self.start_x = self.canvas.canvasx(event.x)
         self.start_y = self.canvas.canvasy(event.y)
         # create rectangle if not yet exist
         if not self.rect:
-            self.rect = self.canvas.create_rectangle(self.x, self.y, 1, 1, outline='red')
+            self.rect = self.canvas.create_rectangle(self.x, self.y, 1, 1, outline='red', tag="mapmanual")
 
-    def on_move_press(self, event):  # draw mapping bordering for the final TDoA map need
-        global lat_min_map, lat_max_map, lon_min_map, lon_max_map
-        cur_x = self.canvas.canvasx(event.x)
-        cur_y = self.canvas.canvasy(event.y)
-        lonmin = str((((self.start_x - 1910) * 180) / 1910)).rsplit('.')[0]
-        lonmax = str(((cur_x - 1910) * 180) / 1910).rsplit('.')[0]
-        latmax = str(0 - ((cur_y - 990) / 11)).rsplit('.')[0]
-        latmin = str(((self.start_y - 990) / 11)).rsplit('.')[0]
+    def on_move_press(self, event):  # draw mapping bordering for the final TDoA map
+        global lat_min_map, lat_max_map, lon_min_map, lon_max_map, map_preset, map_manual
+        if map_preset == 1:
+            pass
+        else:
+            cur_x = self.canvas.canvasx(event.x)
+            cur_y = self.canvas.canvasy(event.y)
+            lonmin = str((((self.start_x - 1910) * 180) / 1910)).rsplit('.')[0]
+            lonmax = str(((cur_x - 1910) * 180) / 1910).rsplit('.')[0]
+            latmax = str(0 - ((cur_y - 990) / 11)).rsplit('.')[0]
+            latmin = str(((self.start_y - 990) / 11)).rsplit('.')[0]
 
-        if cur_x > self.start_x and cur_y > self.start_y:
-            lat_max_map = str(0 - int(latmin))
-            lat_min_map = latmax
-            lon_max_map = str(lonmax)
-            lon_min_map = str(lonmin)
+            if cur_x > self.start_x and cur_y > self.start_y:
+                lat_max_map = str(0 - int(latmin))
+                lat_min_map = latmax
+                lon_max_map = str(lonmax)
+                lon_min_map = str(lonmin)
 
-        if cur_x < self.start_x and cur_y > self.start_y:
-            lat_max_map = str(0 - int(latmin))
-            lat_min_map = latmax
-            lon_max_map = str(lonmin)
-            lon_min_map = str(lonmax)
+            if cur_x < self.start_x and cur_y > self.start_y:
+                lat_max_map = str(0 - int(latmin))
+                lat_min_map = latmax
+                lon_max_map = str(lonmin)
+                lon_min_map = str(lonmax)
 
-        if cur_x > self.start_x and cur_y < self.start_y:
-            lat_max_map = str(latmax)
-            lat_min_map = str(0 - int(latmin))
-            lon_max_map = str(lonmax)
-            lon_min_map = str(lonmin)
+            if cur_x > self.start_x and cur_y < self.start_y:
+                lat_max_map = str(latmax)
+                lat_min_map = str(0 - int(latmin))
+                lon_max_map = str(lonmax)
+                lon_min_map = str(lonmin)
 
-        if cur_x < self.start_x and cur_y < self.start_y:
-            lat_max_map = str(latmax)
-            lat_min_map = str(0 - int(latmin))
-            lon_max_map = str(lonmin)
-            lon_min_map = str(lonmax)
+            if cur_x < self.start_x and cur_y < self.start_y:
+                lat_max_map = str(latmax)
+                lat_min_map = str(0 - int(latmin))
+                lon_max_map = str(lonmin)
+                lon_min_map = str(lonmax)
 
-        w, h = self.canvas.winfo_width(), self.canvas.winfo_height()
-        if event.x > 0.98*w:
-            self.canvas.xview_scroll(1, 'units')
-        elif event.x < 0.02*w:
-            self.canvas.xview_scroll(-1, 'units')
-        if event.y > 0.98*h:
-            self.canvas.yview_scroll(1, 'units')
-        elif event.y < 0.02*h:
-            self.canvas.yview_scroll(-1, 'units')
-        # expand rectangle as you drag the mouse
-        self.canvas.coords(self.rect, self.start_x, self.start_y, cur_x, cur_y)
-        self.show_image()
+            w, h = self.canvas.winfo_width(), self.canvas.winfo_height()
+            if event.x > 0.98 * w:
+                self.canvas.xview_scroll(1, 'units')
+            elif event.x < 0.02 * w:
+                self.canvas.xview_scroll(-1, 'units')
+            if event.y > 0.98 * h:
+                self.canvas.yview_scroll(1, 'units')
+            elif event.y < 0.02 * h:
+                self.canvas.yview_scroll(-1, 'units')
+            # expand rectangle as you drag the mouse
+            self.canvas.coords(self.rect, self.start_x, self.start_y, cur_x, cur_y)
+            self.show_image()
 
     def on_button_release(self, event):
-        global mapboundaries_set
-        tkMessageBox.showinfo("TDoA map Geographical boundaries set",
-                              message="LONGITUDE RANGE: from " + lon_min_map + "° to " + lon_max_map + "°\nLATITUDE RANGE: from " + lat_min_map + "° to " + lat_max_map + "°")
-        mapboundaries_set = 1
+        global mapboundaries_set, map_preset, map_manual, lon_min_map, lon_max_map, lat_min_map, lat_max_map
+        if map_preset == 1 and map_manual == 0:
+            pass
+        else:
+            tkMessageBox.showinfo("TDoA map Geographical boundaries set",
+                              message="LONGITUDE RANGE: from " + str(lon_min_map) + "° to " + str(lon_max_map) + "°\nLATITUDE RANGE: from " + str(lat_min_map) + "° to " + str(lat_max_map) + "°")
+            mapboundaries_set = 1
+            map_manual = 1
 
     def create_point(self, y, x, n):  # map known point creation process, works only when self.imscale = 1.0
         global currentcity, selectedcity
@@ -515,11 +576,11 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         self.canvas.create_text(xx0, yy0 - 10, text=selectedcity.rsplit(' (')[0], justify='center', fill=colorline[3],
                                 tag=selectedcity.rsplit(' (')[0])
 
-    def deletePoint(self, y, x, n):  # city map point deletion process
+    def deletePoint(self, y, x, n):  # deletion process (rectangles)
         FillMapWithNodes(self).deletePoint(n.rsplit(' (')[0])
 
     def onClick(self, event):
-        global snrcheck, snrhost, host, white, black, frequency
+        global snrcheck, snrhost, host, white, black
         # x1, x2, y1, y2, o, full_list, snrcheck, snrhost, host
         host = self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0]
         self.menu = Menu(self, tearoff=0, fg="black", bg="gray", font='TkFixedFont 7')
@@ -527,17 +588,22 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
             self.menu.add_command(
                 label="Use: " + str(host).rsplit("$", 4)[0] + " (" + str(host).rsplit("$", 4)[3] + "/" +
                       str(host).rsplit("$", 4)[4] + " users) for TdoA process", command=self.populate)
-            self.menu.add_command(
-                label="Open \"" + str(host).rsplit("$", 4)[0] + "/f=" + str(frequency) + "iqz8\" in browser",
-                command=self.openinbrowser)
+            try:
+                self.menu.add_command(
+                    label="Open \"" + str(host).rsplit("$", 4)[0] + "/f=" + str(frequency.get()) + "iqz8\" in browser",
+                    command=self.openinbrowser)
+            except ValueError as ve:
+                pass
         else:
             self.menu.add_command(
                 label="Use: " + str(host).rsplit("$", 4)[0] + " (" + str(host).rsplit("$", 4)[3] + "/" +
                       str(host).rsplit("$", 4)[4] + " users) for TdoA process", state=DISABLED, command=None)
-            self.menu.add_command(
-                label="Open \"" + str(host).rsplit("$", 4)[0] + "/f=" + str(frequency) + "iqz8\" in browser",
-                state=DISABLED, command=None)
-
+            try:
+                self.menu.add_command(
+                    label="Open \"" + str(host).rsplit("$", 4)[0] + "/f=" + str(frequency.get()) + "iqz8\" in browser",
+                    state=DISABLED, command=None)
+            except ValueError as ve:
+                pass
         self.menu.add_command(label=str(host).rsplit("$", 4)[2].replace("_", " "), state=DISABLED, font='TkFixedFont 7',
                               command=None)
         self.menu.add_separator()
@@ -665,9 +731,8 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         os.execvp(sys.executable, args)
 
     def openinbrowser(self):
-        global frequency
-        if frequency != "10000":
-            url = "http://" + str(host).rsplit("$", 4)[0] + "/?f=" + str(frequency) + "iqz8"
+        if frequency.get() != 10000:
+            url = "http://" + str(host).rsplit("$", 4)[0] + "/?f=" + str(frequency.get()) + "iqz8"
             webbrowser.open_new(url)
         else:
             url = "http://" + str(host).rsplit("$", 4)[0]
@@ -771,18 +836,18 @@ class MainWindow(Frame):
         # self.parent = parent
         self.member1 = ZoomAdvanced(parent)
         if os.path.isfile('directTDoA_server_list.db') is not True:
-            tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ", message="oops no database found, Click OK to run an update now")
+            tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ", message="oops no node db found, Click OK to run an update now")
             RunUpdate().run()
         ReadKnownPointFile().run()
         global frequency, checkfilesize
         global line, i, bgc, fgc, dfgc, lpcut, hpcut
         global latmin, latmax, lonmin, lonmax, bbox1, lat_min_map, lat_max_map, lon_min_map, lon_max_map
-        global selectedlat, selectedlon, selectedcity
-        frequency = DoubleVar()
-        bgc = '#d9d9d9'
-        fgc = '#000000'
-        dfgc = '#a3a3a3'
-        frequency = 10000  # default frequency
+        global selectedlat, selectedlon, selectedcity, map_preset, map_manual
+        frequency = DoubleVar(self, 10000.0)
+        #frequency.set("10000.0")  # default frequency
+        bgc = '#d9d9d9'  # GUI background color
+        fgc = '#000000'  # GUI foreground color
+        dfgc = '#a3a3a3'  # GUI (disabled) foreground color
         lpcut = 5000  # default low pass filter
         hpcut = 5000  # default high pass filter
         lat_min_map = ""
@@ -792,17 +857,20 @@ class MainWindow(Frame):
         selectedlat = ""
         selectedlon = ""
         selectedcity = ""
-
+        map_preset = 0
+        map_manual = 0
         self.label0 = Label(parent)
         self.label0.place(relx=0, rely=0.69, relheight=0.4, relwidth=1)
         self.label0.configure(background=bgc, font="TkFixedFont", foreground=fgc, width=214, text="")
 
-        self.Entry1 = Entry(parent, textvariable=frequency)  # frequency box
+        numeric_entry_only = (self.register(self.numeric_only), '%S')
+        self.Entry1 = Entry(parent, textvariable=frequency, validate='key', vcmd=numeric_entry_only)  # frequency box
         self.Entry1.place(relx=0.06, rely=0.892, height=24, relwidth=0.1)
         self.Entry1.configure(background="white", disabledforeground=dfgc, font="TkFixedFont", foreground=fgc,
                               insertbackground=fgc, width=214)
         self.Entry1.bind('<FocusIn>', self.clickfreq)
-        self.Entry1.bind('<Leave>', self.choosedfreq)
+        #self.Entry1.bind('<Leave>', self.choosedfreq)
+        self.Entry1.bind('<KeyPress>', self.choosedfreq)
 
         self.label1 = Label(parent)
         self.label1.place(relx=0.01, rely=0.895)
@@ -823,22 +891,13 @@ class MainWindow(Frame):
                                foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
                                text="Start TDoA proc", command=self.clickstop, state="disabled")
 
-        # self.TCombobox1 = ttk.Combobox(parent, state=DISABLED)  # IQ BW Combobox disabled until it's functionnal
-        # self.TCombobox1.place(relx=0.24, rely=0.892, height=24, relwidth=0.1)
-        # self.TCombobox1.configure(font="TkTextFont",
-        #                         values=["IQ bandwidth", "10000", "5000", "4000", "3000", "2000", "1000", "500", "400",
-        #                                   "300", "200", "100", "50"])
-        # self.TCombobox1.current(0)
-        # self.TCombobox1.bind("<<ComboboxSelected>>", self.bwchoice)
-
         #  2nd part of buttons
-
         self.Choice = Entry(parent)
         self.Choice.place(relx=0.01, rely=0.95, height=21, relwidth=0.18)
         self.Choice.insert(0, "TDoA map city/site search here")
         self.ListBox = Listbox(parent)
         self.ListBox.place(relx=0.2, rely=0.95, height=21, relwidth=0.3)
-        self.label3 = Label(parent)  # KNOWN POINT
+        self.label3 = Label(parent)  # Known point
         self.label3.place(relx=0.54, rely=0.95, height=21, relwidth=0.3)
         self.label3.configure(background=bgc, font="TkFixedFont", foreground=fgc, width=214, text="", anchor="w")
 
@@ -854,7 +913,7 @@ class MainWindow(Frame):
                                foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
                                text="update map", command=self.runupdate, state="normal")
 
-        self.Text2 = Text(parent)  # console window
+        self.Text2 = Text(parent)  # Console window
         self.Text2.place(relx=0.005, rely=0.7, relheight=0.18, relwidth=0.6)
         self.Text2.configure(background="black", font="TkTextFont", foreground="red", highlightbackground=bgc,
                              highlightcolor=fgc, insertbackground=fgc, selectbackground="#c4c4c4",
@@ -875,6 +934,8 @@ class MainWindow(Frame):
         menubar = Menu(self)
         parent.config(menu=menubar)
         filemenu = Menu(menubar, tearoff=0)
+        filemenu2 = Menu(menubar, tearoff=0)
+        filemenu3 = Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Map Settings", menu=filemenu)
         submenu1 = Menu(filemenu, tearoff=0)
         submenu2 = Menu(filemenu, tearoff=0)
@@ -910,13 +971,38 @@ class MainWindow(Frame):
         submenu3.add_command(label="Favorite node color", command=lambda *args: self.color_change(1))
         submenu3.add_command(label="Blacklisted node color", command=lambda *args: self.color_change(2))
         submenu3.add_command(label="Known map point color", command=lambda *args: self.color_change(3))
-        menubar.add_command(label="How to TDoA with this tool", command=self.about)
-        menubar.add_command(label="General infos", command=self.general)
+
+        menubar.add_cascade(label="Map Presets",menu=filemenu2)
+        filemenu2.add_command(label="Europe", command=lambda *args: self.map_preset(0))
+        filemenu2.add_command(label="Africa", command=lambda *args: self.map_preset(1))
+        filemenu2.add_command(label="Middle-East", command=lambda *args: self.map_preset(2))
+        filemenu2.add_command(label="South Asia", command=lambda *args: self.map_preset(8))
+        filemenu2.add_command(label="South-East Asia", command=lambda *args: self.map_preset(7))
+        filemenu2.add_command(label="East Asia", command=lambda *args: self.map_preset(5))
+        filemenu2.add_command(label="North America", command=lambda *args: self.map_preset(9))
+        filemenu2.add_command(label="Central America", command=lambda *args: self.map_preset(6))
+        filemenu2.add_command(label="South America", command=lambda *args: self.map_preset(3))
+        filemenu2.add_command(label="Oceania", command=lambda *args: self.map_preset(4))
+        filemenu2.add_command(label="East Russia", command=lambda *args: self.map_preset(10))
+        filemenu2.add_command(label="West Russia", command=lambda *args: self.map_preset(11))
+        filemenu2.add_command(label="USA", command=lambda *args: self.map_preset(12))
+        # next map boundaries presets come here, leave 20 for reset
+        filemenu2.add_command(label="--- RESET ---", command=lambda *args: self.map_preset(20))
+
+        menubar.add_cascade(label="IQ bandwidth", menu=filemenu3)
+        iqset = ['10000', '9000', '8000', '7000', '6000', '5000', '4000', '3000', '2000', '1000', '900', '800', '700',
+                 '600', '500', '400', '300', '200', '100', '50']
+        for bw in iqset:
+            filemenu3.add_command(label=bw + " Hz", command=lambda bw=bw: self.set_iq(bw))
+
+        menubar.add_command(label="Help", command=self.about)
+        menubar.add_command(label="About", command=self.general)
 
         self.listbox_update(my_info1)
         self.ListBox.bind('<<ListboxSelect>>', self.on_select)
         self.Choice.bind('<FocusIn>', self.resetcity)
         self.Choice.bind('<KeyRelease>', self.on_keyrelease)
+        self.Entry1.delete(0, 'end')
 
     def on_keyrelease(self, event):
         value = event.widget.get()
@@ -989,31 +1075,101 @@ class MainWindow(Frame):
 
 2/ Enter a frequency (in kHz)
 
-3/ Hold Left-mouse button to move the World Map to your desired location
+3/ Choose from the top bar menu a specific bandwidth for the IQ recordings if necessary
 
-4/ Hold Right-mouse button to drag a rec rectangle to set the TDoA computed map geographical boundaries
+4/ Hold Left-mouse button to move the World Map to your desired location
 
-5/ Type some text in the bottom left box to choose a city or TX site to display on final TDoA map (if needed)
+5/ Hold Right-mouse button to drag a rec rectangle to set the TDoA computed map geographical boundaries or select one of the presets from the top bar menu, you can cancel by drawing again by hand or choose RESET
 
-6/ Click Start Recording button and wait for some seconds (Recorded IQ files size are displayed in the white window)
+6/ Type some text in the bottom left box to search for a city or TX site to display on final TDoA map (if needed)
 
-7/ Click Start TDoA button and WAIT until the TDoA process stops! (it may take some CPU process time!)
+7/ Click Start Recording button and wait for some seconds (Recorded IQ files size are displayed in the white window)
 
-8/ Calculated TDoA map is automatically displayed as Figure1 pop-up window
+8/ Click Start TDoA button and WAIT until the TDoA process stops! (it may take some CPU process time!)
 
-9/ There is a .pdf created in TDoA/pdf directory but this file creation process takes more time !!!
-Wait for the final popup window that tells you the most likely location found by the TDoA process
+9/ Calculated TDoA map is automatically displayed as a 'Figure1' ghostscript pop-up window and it will close itself 
+
+10/ There is a .pdf fill creation still running in the background, it takes time, so wait for the final popup window that tells you the most likely location found by the TDoA process and if you want to open geohack with those coords and/or restart GUI
 """)
 
     @staticmethod
     def general():  # about menu
-        tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ",
+        tkMessageBox.showinfo(title="  (ツ)  ",
                               message="""
-A backup copy of ".wavs" ".m" and "gnss_pos" files is automatically made in a new "iq/<timeofprocess>_F<frequency>/"
-directory to post-compute again the recs if needed
+Thanks for using directTDoA GUI !
 
-The World map is not real-time, click UPDATE button to refresh, of course, only GPS enabled nodes are displayed...
+I have decided to create that GUI in order to make the TDoA stuff written by Christoph Mayer just easier.
+
+I have no credits at all in GNU Octave calculation process and I would like to thank Christoph so much for the public release of his code <3
+
+A backup copy of ".wavs", ".m", "gnss_pos", "png" and "pdf" files is automatically made in a new "iq/<timeofprocess>_F<frequency>/" directory to post-compute again the recs if needed
+
+The World map is not real-time, click UPDATE button to refresh, of course only GPS enabled nodes are displayed...
+
+Some nodes may require a password or are down, process will fail then, it will be fixed in a next directTDoA.py release...
 """)
+
+    def map_preset(self, pmap):  # save config menu
+        global mapboundaries_set, lon_min_map, lon_max_map, lat_min_map, lat_max_map, sx0, sx1, sy0, sy1, mappreset
+        global map_preset, map_manual
+        if map_preset == 1:
+            self.member1.deletePoint(sx0, sy0, "mappreset")
+        if pmap != 20:
+            #  a= min_longitude  b= max_latitude  c= max_longitude  d= min_latitude
+            if pmap == 0:  # Europe
+                p = {'a': -30, 'b': 72, 'c': 50, 'd': 30}
+            if pmap == 1:  # Africa
+                p = {'a': -20, 'b': 40, 'c': 55, 'd': -35}
+            if pmap == 2:  # Middle-East
+                p = {'a': 25, 'b': 45, 'c': 65, 'd': 10}
+            if pmap == 3:  # South America
+                p = {'a': -85, 'b': 15, 'c': -30, 'd': -60}
+            if pmap == 4:  # Oceania
+                p = {'a': 110, 'b': -10, 'c': 180, 'd': -50}
+            if pmap == 5:  # East Asia
+                p = {'a': 73, 'b': 55, 'c': 147, 'd': 15}
+            if pmap == 6:  # Central America
+                p = {'a': -120, 'b': 33, 'c': -60, 'd': 5}
+            if pmap == 7:  # South-East Asia
+                p = {'a': 85, 'b': 30, 'c': 155, 'd': -12}
+            if pmap == 8:  # South Asia
+                p = {'a': 60, 'b': 39, 'c': 100, 'd': 4}
+            if pmap == 9:  # North America
+                p = {'a': -170, 'b': 82, 'c': -50, 'd': 13}
+            if pmap == 10:  # East Russia
+                p = {'a': 27, 'b': 77, 'c': 90, 'd': 40}
+            if pmap == 11:  # West Russia
+                p = {'a': 90, 'b': 82, 'c': 180, 'd': 40}
+            if pmap == 12:  # USA
+                p = {'a': -125, 'b': 55, 'c': -66, 'd': 20}
+            ## next map boundaries presets come here
+            sx0 = (1907.5 + ((float(p['a']) * 1910) / 180))
+            sx1 = (1907.5 + ((float(p['c']) * 1910) / 180))
+            if float(p['b']) > 0:  # point is located in North Hemisphere
+                sy0 = (987.5 - (float(p['b']) * 11))
+                sy1 = (987.5 - (float(p['d']) * 11))
+            else:  # point is located in South Hemisphere
+                sy0 = (987.5 + (float(0 - (float(p['b']) * 11))))
+                sy1 = (987.5 + (float(0 - float(p['d'])) * 11))
+            self.member1.canvas.create_rectangle(sx0, sy0, sx1, sy1, tag="mappreset", outline='yellow')
+            self.member1.deletePoint(sx0, sy0, "mapmanual")
+            lon_min_map = p['a']
+            lat_max_map = p['b']
+            lon_max_map = p['c']
+            lat_min_map = p['d']
+            mapboundaries_set = 1
+            map_preset = 1
+            map_manual = 0
+        else:  # Reset the previous preset and permit the manual setting of map boundaries
+            self.member1.deletePoint(sx0, sy0, "mappreset")
+            mapboundaries_set = None
+            map_preset = 0
+            self.member1.rect = None
+            map_manual = 1
+            lon_min_map = None
+            lat_max_map = None
+            lon_max_map = None
+            lat_min_map = None
 
     @staticmethod
     def setmapfilter(mapfl):
@@ -1093,17 +1249,38 @@ The World map is not real-time, click UPDATE button to refresh, of course, only 
         self.Button1.configure(state='normal')
         # self.Entry1.delete(0, 'end')
 
+    def numeric_only(self, S):
+        freq_typed = re.match(r"\d+(.\d+)?$", S)
+        return freq_typed is not None
+
+    def callback(self, frequency):
+        pass
+
     def choosedfreq(self, ff):
-        global frequency
-        frequency = self.Entry1.get()
+        if ff.char in ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'):
+            try:
+                frequency.trace("w", lambda name, index, mode, frequency=frequency: self.callback(frequency))
+                return True
+            except ValueError:
+                return False
+        else:
+            pass
 
-    # def bwchoice(self, m):  # affects only the main window apparance, real-time   work in progress
-    #     global bw, lpcut, hpcut
-    #     bw = self.TCombobox1.get()
-    #     self.writelog("|<----" + str(int(bw)/2) + "Hz ----[tune frequency]---- " + str(int(bw)/2) + "Hz ---->|")
-    #     lpcut = hpcut = int(bw) / 2
+    def set_iq(self, m):
+        global lpcut, hpcut
+        try:
+            if 5 < frequency.get() < 30000:
+                self.writelog("Setting IQ bandwidth at " + m + " Hz       | " + str(
+                float(frequency.get()) - (float(m) / 2000)) + " | <---- " + str(float(frequency.get())) + " ----> | " + str(
+                float(frequency.get()) + (float(m) / 2000)) + " |")
+                lpcut = hpcut = int(m) / 2
+            else:
+                frequency.set(10000)
+                self.writelog("Error, frequency is too low or too high")
+        except ValueError as ve:
+            pass
 
-    # def checksnr(self):  #work in progress
+    # def checksnr(self):  # work in progress
     #     global snrcheck, snrfreq
     #     snrcheck = True
     #     snrfreq = float(self.Entry1.get())
@@ -1115,7 +1292,7 @@ The World map is not real-time, click UPDATE button to refresh, of course, only 
         global serverlist, portlist, portlisting, starttime, x1, x2, y1, y2, mapboundaries_set
         if mapboundaries_set is None:
             tkMessageBox.showinfo("WARNING",
-                                  message="Set TDoA map Geographical boundaries, right click and draw red rectangle")
+                                  message="Set TDoA map Geographical boundaries, right click and draw red rectangle or select one of presets via the top bar menu.")
         else:
             lonmin = str((((bbox2[0] - 1910) * 180) / 1910)).rsplit('.')[0]  # LONGITUDE MIN
             lonmax = str(((bbox2[2] - 1910) * 180) / 1910).rsplit('.')[0]  # LONGITUDE MAX
@@ -1185,24 +1362,6 @@ The World map is not real-time, click UPDATE button to refresh, of course, only 
             nbfile = len(IQfiles)
         self.writelog("IQ Recording(s) has been stopped...")
         self.Button2.configure(state="disabled")
-        # make a backup of IQ and gnss_pos files in a new directory named by the datetime process start and frequency
-        time.sleep(1)
-        if platform.system() == "Windows":
-            os.makedirs("TDoA\iq\\" + starttime + "_F" + str(frequency))
-            for file in os.listdir("TDoA\iq\\"):
-                if file.endswith(".wav"):
-                    copyfile("TDoA\iq\\" + file, "TDoA\iq\\" + starttime + "_F" + str(frequency) + "\\" + file)
-            for file in os.listdir("TDoA\gnss_pos\\"):
-                if file.endswith(".txt"):
-                    copyfile("TDoA\gnss_pos\\" + file, "TDoA\iq\\" + starttime + "_F" + str(frequency) + "\\" + file)
-        if platform.system() == "Linux" or platform.system() == "Darwin":
-            os.makedirs("./TDoA/iq/" + starttime + "_F" + str(frequency))
-            for file in os.listdir("./TDoA/iq//"):
-                if file.endswith(".wav"):
-                    copyfile("./TDoA/iq/" + file, "./TDoA/iq/" + starttime + "_F" + str(frequency) + "/" + file)
-            for file in os.listdir("./TDoA/gnss_pos//"):
-                if file.endswith(".txt"):
-                    copyfile("./TDoA/gnss_pos/" + file, "./TDoA/iq/" + starttime + "_F" + str(frequency) + "/" + file)
 
         #  creating the .m file
         with open('./TDoA/proc_tdoa_' + varfile + ".m", "w") as g:
@@ -1262,13 +1421,37 @@ endfunction """)
 
         g.close()
         self.writelog("./TDoA/proc_tdoa_" + varfile + ".m file created")
-        #  backup the .m file in previously /iq/... created dir
+        # backup of IQ, gnss_pos and .m file in a new directory named by the datetime process start and frequency
+        time.sleep(1)
         if platform.system() == "Windows":
+            os.makedirs("TDoA\iq\\" + starttime + "_F" + str(frequency))
+            for file in os.listdir("TDoA\iq\\"):
+                if file.endswith(".wav"):
+                    copyfile("TDoA\iq\\" + file, "TDoA\iq\\" + starttime + "_F" + str(frequency) + "\\" + file)
+            for file in os.listdir("TDoA\gnss_pos\\"):
+                if file.endswith(".txt"):
+                    copyfile("TDoA\gnss_pos\\" + file, "TDoA\iq\\" + starttime + "_F" + str(frequency) + "\\" + file)
             copyfile("TDoA\\proc_tdoa_" + varfile + ".m",
                      "TDoA\\iq\\" + starttime + "_F" + str(frequency) + "\\proc_tdoa_" + varfile + ".m")
+
         if platform.system() == "Linux" or platform.system() == "Darwin":
+            os.makedirs("./TDoA/iq/" + starttime + "_F" + str(frequency))
+            for file in os.listdir("./TDoA/iq//"):
+                if file.endswith(".wav"):
+                    copyfile("./TDoA/iq/" + file, "./TDoA/iq/" + starttime + "_F" + str(frequency) + "/" + file)
+            for file in os.listdir("./TDoA/gnss_pos//"):
+                if file.endswith(".txt"):
+                    copyfile("./TDoA/gnss_pos/" + file, "./TDoA/iq/" + starttime + "_F" + str(frequency) + "/" + file)
             copyfile("./TDoA/proc_tdoa_" + varfile + ".m",
                      "./TDoA/iq/" + starttime + "_F" + str(frequency) + "/proc_tdoa_" + varfile + ".m")
+
+        #  backup the .m file in previously created /iq/... dir
+        # if platform.system() == "Windows":
+        #     copyfile("TDoA\\proc_tdoa_" + varfile + ".m",
+        #              "TDoA\\iq\\" + starttime + "_F" + str(frequency) + "\\proc_tdoa_" + varfile + ".m")
+        # if platform.system() == "Linux" or platform.system() == "Darwin":
+        #     copyfile("./TDoA/proc_tdoa_" + varfile + ".m",
+        #              "./TDoA/iq/" + starttime + "_F" + str(frequency) + "/proc_tdoa_" + varfile + ".m")
         self.writelog("running Octave process now... please wait")
         time.sleep(1)
         OctaveProcessing(self).start()
