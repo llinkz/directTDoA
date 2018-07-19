@@ -3,29 +3,40 @@
 This piece of software is JUST a GUI written for Python 2.7 designed to compute TDoA maps with GPS enabled KiwiSDR servers around the world using GNU Octave & the EXCELLENT work of Christoph Mayer @ https://github.com/hcab14/TDoA + his forked "kiwiclient" python stuff, original code by Dmitry Janushkevich @ https://github.com/dev-zzo/kiwiclient
 
 
-## INSTALL AND RUN (on LINUX)
+## INSTALL AND RUN (on LINUX) Thanks Daniel E. for the work on that installation procedure
 
-* install python 2.x
+* install python 2.7
+
 * install pip
+
 * install GNU octave
 
-* git clone --recursive https://github.com/llinkz/directTDoA
-* cd directTDoA
-* ./setup.sh  (will install python modules & compile the necessary .oct file)
-* python2 directTDoA.py
+`git clone --recursive https://github.com/llinkz/directTDoA`
+
+`cd directTDoA`
+
+`./setup.sh` (this script will install python modules & compile the necessary .oct file)
+
+`python2 directTDoA.py`
 
 
-## INSTALL AND RUN (on MAC OS) Thanks to Nicolas M. for the procedure
+## INSTALL AND RUN (on MAC OS) Thanks Nicolas M. for the procedure
 
 * REQUIREMENT 	Xcode + Homebrew (https://brew.sh/index_fr)
-* install Homebrew, in terminal : /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-* install Python 2.7, in terminal : brew install python@2
-* install python modules, in terminal  : pip2 install pillow numpy
-* install GNU Octave 4.4.0, in Terminal : brew install octave
-* git clone --recursive https://github.com/llinkz/directTDoA
-* cd directTDoA
-* ./setup.sh  (will install python modules & compile the necessary .oct file)
-* python2 directTDoA.py
+
+Install Homebrew, in terminal : `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
+
+Install Python 2.7, in terminal : `brew install python@2`
+
+Install GNU Octave 4.4.0, in Terminal : `brew install octave`
+
+`git clone --recursive https://github.com/llinkz/directTDoA`
+
+`cd directTDoA`
+
+`./setup.sh`  (this script will install python modules & compile the necessary .oct file)
+
+`python2 directTDoA.py`
 
 
 ## LICENSE
