@@ -290,10 +290,10 @@ Winnipeg (Canada),49.883,-97.166
 Calgary (Canada),51.083,-114.08
 Victoria (Canada),48.4333,-123.35
 Ottawa (Canada),45.4167,-75.7
-Québec (Canada),46.84,-71.2456
+Quebec (Canada),46.84,-71.2456
 Halifax (Canada),44.65,-63.6
 Edmonton (Canada),53.55,-113.5
-Montréal (Canada),45.5,-73.5833
+Montreal (Canada),45.5,-73.5833
 Vancouver (Canada),49.2734,-123.1216
 Toronto (Canada),43.7,-79.42
 Bangui (Central African Republic),4.3666,18.5583
@@ -700,7 +700,7 @@ Tamale (Ghana),9.4004,-0.84
 Kumasi (Ghana),6.69,-1.63
 Sekondi (Ghana),4.9433,-1.704
 Accra (Ghana),5.55,-0.2167
-Piraiévs (Greece),37.95,23.7
+Piraievs (Greece),37.95,23.7
 Thessaloniki (Greece),40.6961,22.885
 Athens (Greece),37.9833,23.7333
 Quetzaltenango (Guatemala),14.83,-91.52
@@ -1918,3 +1918,60 @@ Mutare (Zimbabwe),-18.97,32.65
 Chitungwiza (Zimbabwe),-18,31.1
 Harare (Zimbabwe),-17.8178,31.0447
 Bulawayo (Zimbabwe),-20.17,28.58
+Pristina (Kosovo),42.6667,21.1659
+Tifariti (Western Sahara),26.1537,-10.567
+Podgorica (Montenegro),42.4113,19.2625
+Praia (Cape Verde),14.8439,-23.5094
+Bern (Switzerland),46.894,7.4474
+Reykjavik (Iceland),64.1034,-21.9301
+Bridgetown (Barbados),13.0179,-59.6187
+Male (Republic of Maldives),4.0944,73.5081
+Thimphu (Bhutan),27.3962,89.6361
+Malabo (Equatorial Guinea),3.7520,8.7737
+Noumea (New Caledonia),-22.2758,166.458
+Suva (Fiji),-18.1330,178.4417
+Mbabane (Swaziland),-26.3166,31.1333
+Luxembourg (Luxembourg),49.6116,6.13
+Castries (Saint Lucia),14.0019,-61
+Moroni (Comoros),-11.7041,43.2402
+Honiara (Solomon Islands),-9.4379,159.9497
+Dili (East Timor),-8.5593,125.5794
+Sao_Tome (Sao Tome and Principe),0.3334,6.7333
+Pago_Pago (American Samoa),-14.2766,-170.7066
+Port_of_Spain (Trinidad and Tobago),10.6519,-61.517
+Willemstad (Curacao),12.2004,-69.0199
+Apia (Samoa),-13.8415,-171.7386
+Port_Vila (Vanuatu),-17.7333,168.3166
+Monaco (Monaco),43.7396,7.4069
+Banjul (The Gambia),13.4538,-16.5917
+Tarawa (Kiribati),1.3381,173.0175
+Oranjestad (Aruba),12.5303,-70.0289
+Victoria (Seychelles),-4.6166,55.4499
+Gibraltar (Gibraltar),36.1333,-5.35
+Saint_Helier (Jersey),49.187,-2.107
+Bandar_Seri_Begawan (Brunei),4.8833,114.9332
+George_Town (Cayman Islands),19.2804,-81.3299
+Douglas (Isle of Man),54.1504,-4.48
+Papeete (French Polynesia),-17.5333,-149.5666
+Ramallah (Palestine),31.9029,35.2062
+Majuro (Marshall Islands),7.1030,171.38
+Andorra (Andorra),42.5,1.5164
+Saint_Johns (Antigua and Barbuda),17.1180,-61.85
+Nukualofa (Tonga),-21.1385,-175.2205
+Torshavn (Faroe Islands),62.03,-6.82
+Belmopan (Belize),17.2520,-88.767
+Nuuk (Greenland),64.1982,-51.7326
+Roseau (Dominica),15.301,-61.387
+Basseterre (Saint Kitts and Nevis),17.302,-62.717
+Mariehamn (Aland),60.0969,19.949
+Palikir (Federated States of Micronesia),6.9166,158.1499
+Saint_Georges (Grenada),12.0526,-61.7416
+Valletta (Malta),35.8997,14.5147
+Vaduz (Liechtenstein),47.1337,9.5166
+San_Marino (San Marino),43.9171,12.4666
+Funafuti (Tuvalu),-8.5166,179.2166
+Stanley (Falkland Islands),-51.7,-57.8499
+Longyearbyen (Svalbard and Jan Mayen Islands),78.2166,15.5499
+Agana (Guam),13.47,144.75
+Hamilton (Bermuda),32.2941,-64.7839
+Vatican_City (Vatican),41.9,12.4478
