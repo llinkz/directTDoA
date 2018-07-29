@@ -9,19 +9,28 @@ FUM (Papeete PYF),-17.5060,-149.4827
 FUF (Martinique MTQ),14.5322,-60.9790
 6WW (Dakar SEN),14.7604,-17.2740
 FUV (Djibouti DJI),11.535952,43.155575
-FUE (Le Cranou FRA),48.3372,-4.0436
+FUE (Pencran FRA),48.4259,-4.2409
 FUO (Toulon FRA),43.1357,6.0600
 FUE_VLF (Kerlouan FRA),48.6342,-4.3506
 HWU_VLF (Rosnay FRA),46.7131,1.2452
 FTA_VLF (Ste Assise FRA),48.5446,2.5794
 HWN (Rosnay FRA),46.7131,1.2453
 Vernon (Main FAF TX site FRA),49.0951,1.5084
+3AC (Monaco Radio MCO),43.7319,7.4276
 DCF77_VLF (Mainflingen DEU),50.0154,9.008
+RIT (Severomorsk Northern Fleet RUS),69.0588,33.3266
 GYN2_VLF (Inskip GBR),53.8300,-2.8342
 MSF_VLF (Anthorn GBR),54.9111,-3.2793
-CFH (Halifax CAN),44.9672,-63.9821
+CKN (Esquimalt CAN),49.1087,-122.2423
 CHU (Ottawa CAN),45.2948,-75.7578
+CYQX (Gander Radio CAN),48.9660,-54.6727
+VDD (Debert CAN),45.4216,-63.5594
+Cardiff (CFB Edmonton Military CAN),53.7852,-113.5390
+Pointe_Petre (CFB Trenton Military CAN),43.8434,-77.1475
+Matsui (NRS Aldergrove CAN),49.1076,-122.2443
+Newport_Corner (NRS Halifax  CAN),44.9672,-63.9821
 CTA (Palhais POR),38.6035,-9.0315
+TBO (Izimir TUR),38.4649,27.4665
 BPC_VLF (Shangqiu CHN),34.4565,115.8369
 NSY_VLF (Niscemi ITA),37.1256,14.4364
 TBB_VLF (Bafa TUR),37.4127,27.3233
@@ -38,6 +47,20 @@ NMN (CAMSLANT Chesapeake USA),36.7284,-76.0098
 NMF (COMMSTA Boston USA),41.7156,-70.5016
 NMG (COMMSTA New Orleans USA),29.8812,-89.9440
 NOJ (COMMSTA Kodiak USA),57.7787,-152.5295
+AFRTS_Barrigada (Barrigada Guam USA),13.4782,144.8377
+HFGCS_Lajes (PLA Terceira Azores),38.7111,-27.1507
+HFGCS_Andrews (ADW Andrews USA),38.9667,-76.6830
+HFGCS_Ascension (HAW Georgetown IOT),-7.9173,-14.3895
+HFGCS_Croughton (CRO Croughton GBR),51.9882,-1.1801
+HFGCS_Diego_Garcia (JDG Diego Garcia IOT),-7.4299,72.4425
+HFGCS_Elmendorf (AED Anchorage USA),61.2478,-149.7225
+HFGCS_Guam (GUA Guam USA),13.5871,144.8425
+KEA5 (New York Radio Riverhead USA),40.8818,-72.6373
+HFDL_San_Francisco (H01 KNK9 Dixon USA),38.38,-121.7594
+HFDL_Molokai (H02 KXH6 Molokai USA),21.1844,-157.1869
+HFDL_Riverhead (H04 WLK7 Riverhead USA),40.8818,-72.6373
+HFDL_Auckland (H05 ZKG32 Wiroa Island AUS),-37.0155,174.8110
+HFDL_Hat_Yai (H06 Hat Yai THA),6.937,100.3885
 SAQ (Grimeton SWE),57.1131,12.3972
 EBA (Madrid SPA),40.4770,-3.1970
 PBB (Den Helder NLD),52.9192,4.7436
@@ -50,7 +73,7 @@ Aarhus (Danish navy DNK),56.1228,10.2068
 SVO (Olympia Radio Volakas GRC),37.6042,21.4885
 SXA (Athens GRC),37.9751,23.9182
 SXH (Thessalonique GRC),40.5042,22.8249
-IAR (Roma Radio ITA),41.7818,12.4630
+IAR (Roma ITA),41.7861,12.4586
 IDR (Roma ITA),41.9800,12.3619
 DDHxx (Pinneberg DEU),53.6733,9.8097
 DHO38_VLF (Saterland-Ramsloh DEU),53.0805,7.6124
@@ -63,8 +86,8 @@ MHFCS_Humpty_Doo (Darwin AUS),-12.5344,131.0636
 MHFCS_Townsville (Boyle AUS),-19.2380,146.7222
 MHFCS_Riverina (Lyndoch AUS),-35.1255,146.9794
 WWV (Fort Collins USA),40.6797,-105.0425
-EIP (Shannon Volmet IRL),52.7817,-8.9330
-DHFCS_Ascension (Georgetown),-7.9173,-14.3895
+EIP (Shannon Volmet IRL),52.7447,-8.9269
+DHFCS_Ascension (Georgetown IOT),-7.9173,-14.3895
 DHFCS_Akrotiri (Akrotiri CYP),34.6140,32.9369
 DHFCS_Falklands (Mount Pleasant FLK),-51.8464,-58.4521
 DHFCS_Forest_Moor (Menwith Hill GBR),54.0060,-1.7249
@@ -83,9 +106,10 @@ JMSDF_Kushira (JJF6 Kushira JAP),31.4603,130.9189
 JFX (Kagoshima Fishing Radio JAP),31.3218,130.5277
 JFW (Iwaki Fishing Radio JAP),36.9511,140.9260
 Bangkok_Radio (Bangkok THA),13.6663,100.6060
-Irirangi (Navy NZL),-39.4613,175.6685
+HMNZS_Irirangi (Navy NZL),-39.4613,175.6685
 ZLM (Taupo Radio NZL),-38.868,176.435
 HAARP (Gakona USA),62.3923,-145.1505
+CSY (Santa Maria Azores),36.9950,-25.169
 Lashkar_Gah (Afghanistan),31.583,64.36
 Kondoz (Afghanistan),36.728,68.8725
 Jalalabad (Afghanistan),34.4415,70.4361
