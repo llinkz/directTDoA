@@ -15,7 +15,7 @@ This piece of software is JUST a GUI written for Python 2.7 designed to compute 
 
 `cd directTDoA`
 
-`./setup.sh` (this script will install python modules & compile the necessary .oct file)
+`./setup.sh` (this script will install python modules, compile the necessary .oct file and apply the patch to bypass the .png file creation)
 
 `python2 directTDoA.py`
 
@@ -34,7 +34,7 @@ Install GNU Octave 4.4.0, in Terminal : `brew install octave`
 
 `cd directTDoA`
 
-`./setup.sh`  (this script will install python modules & compile the necessary .oct file)
+`./setup.sh`  (this script will install python modules, compile the necessary .oct file and apply the patch to bypass the .png file creation)
 
 `python2 directTDoA.py`
 
