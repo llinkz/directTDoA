@@ -51,7 +51,7 @@ AFRTS_Barrigada (Barrigada Guam USA),13.4782,144.8377
 HFGCS_Lajes (PLA Terceira Azores),38.7111,-27.1507
 HFGCS_Andrews (ADW Andrews USA),38.9667,-76.6830
 HFGCS_Ascension (HAW Georgetown IOT),-7.9173,-14.3895
-HFGCS_Croughton (CRO Croughton GBR),51.9882,-1.1801
+HFGCS_Croughton (CRO Croughton GBR),52.0039,-1.3603
 HFGCS_Diego_Garcia (JDG Diego Garcia IOT),-7.4299,72.4425
 HFGCS_Elmendorf (AED Anchorage USA),61.2478,-149.7225
 HFGCS_Guam (GUA Guam USA),13.5871,144.8425
@@ -81,6 +81,7 @@ DHJ58 (Hurup DEU),54.7606,9.5499
 DHJ59 (Wilhelmshaven DEU),53.6770,7.6120
 DHM85 (Marlow DEU),54.1430,12.5534
 DHM91 (Albersloh DEU),51.8864,7.7221
+Staberhuk_Radar (German Navy DEU),54.4162,11.3026
 MHFCS_North_West_Cape (Exmouth AUS),-21.9089,114.1319
 MHFCS_Humpty_Doo (Darwin AUS),-12.5344,131.0636
 MHFCS_Townsville (Boyle AUS),-19.2380,146.7222
@@ -92,7 +93,7 @@ DHFCS_Akrotiri (Akrotiri CYP),34.6140,32.9369
 DHFCS_Falklands (Mount Pleasant FLK),-51.8464,-58.4521
 DHFCS_Forest_Moor (Menwith Hill GBR),54.0060,-1.7249
 DHFCS_Inskip (Inskip GBR),53.8255,-2.8345
-DHFCS_Croughton (Croughton GBR),51.9882,-1.1801
+DHFCS_Croughton (Croughton GBR),52.0039,-1.3603
 DHFCS_St_Eval (St Eval GBR),50.4786,-5.0004
 DHFCS_Crimond (Crimond GBR),57.6111,-1.8835
 Amici_di_ITALCABLE (Viareggio ITA),43.9141,10.2956
