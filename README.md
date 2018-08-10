@@ -65,8 +65,9 @@ Install GNU Octave 4.4.0, in Terminal : `brew install octave`
 * v2.44: MacOS tested OK, code cleanup +warning about missing GPS timestamps in IQ recordings  -uglymaps +kickass NASA maps
 * v2.50: some TODO list items coded or fixed
 * v2.60: map update now based on John's json listing + GPS fix/min map filter + nodes are identified by IDs, no hosts anymore + no .png file creation (patch) + no more gnss_pos.txt backup and no more TDoA/gnss_pos/ purge
+* v2.70: Octave subprocess management modified (no more octave defunct remaining in "ps aux" now) + stdout & stderr saved in the same "TDoA/iq/<backup>/TDoA_<freq>.txt" file
+
 
 ## TODO LIST
-* dealing with nodes that forwards a xx° yy' zz.z'' GEO format (gnss_pos retrieving)
-* manual user map boundaries auto-geometry to respect equirectangular World view for more realistic map views
-* modifying the update process to use John's new json serverlist format + adding the GPS fixes/minute info in each node point
+* offline tool to re-compute the backup IQ files more easily ?
+* ultimateTDoA variant mode ? (c)Daniel Ekmann, to basically record all possible nodes at same time in order to post-compute TDoAs later with a dynamic .m file
