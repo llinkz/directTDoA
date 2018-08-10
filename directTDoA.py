@@ -9,7 +9,7 @@ from PIL import Image, ImageTk
 from shutil import copyfile
 from tkColorChooser import askcolor
 
-VERSION = "directTDoA v2.60 by linkz"
+VERSION = "directTDoA v2.70 by linkz"
 
 
 class Restart:
@@ -19,18 +19,18 @@ class Restart:
     @staticmethod
     def run():
         global proc_pid, proc2_pid
-        try:
-            os.kill(proc2_pid, signal.SIGINT)
+        try:  # ...to kill octave
+            os.killpg(os.getpgid(proc_pid), signal.SIGKILL)
+            # os.kill(proc_pid, signal.SIGKILL)
         except:
             pass
-        try:
-            os.kill(proc_pid, signal.SIGKILL)
+        try:  # to kill kiwirecorder.py
+            os.killpg(os.getpgid(proc2_pid), signal.SIGKILL)
+            # os.kill(proc2_pid, signal.SIGKILL)
         except:
             pass
-        executable = sys.executable
-        args = sys.argv[:]
-        args.insert(0, sys.executable)
-        os.execvp(sys.executable, args)
+        # restart directTDoA.py
+        os.execv(sys.executable, [sys.executable] + sys.argv)
 
 
 class ReadKnownPointFile:
@@ -65,7 +65,7 @@ class CheckFileSize(threading.Thread):
         global t, checkfilesize
         checkfilesize = 1
         while t == 0:
-            time.sleep(0.5)  # file size refresh time
+            time.sleep(0.3)  # file size refresh time
             if platform.system() == "Windows":
                 for wavfiles in glob.glob("TDoA\\iq\\*wav"):
                     os.path.getsize(wavfiles)
@@ -80,14 +80,16 @@ class CheckFileSize(threading.Thread):
                 t = 0
 
 
-class ProcessFinished:
-    def __init__(self):
-        pass
+class ProcessFinished(threading.Thread):
+    def __init__(self, parent=None):
+        super(ProcessFinished, self).__init__()
+        self.parent = parent
 
     def run(self):
         global tdoa_position, varfile
         llon = tdoa_position.rsplit(' ')[5]  # the longitude value returned by Octave process (without letters)
         llat = tdoa_position.rsplit(' ')[10] # the latitude value returned by Octave process (without letters)
+
         if "-" in llat:  # adding the latitude letter "N" or "S"
             sign1 = "S"
             llat = llat[1:]  # removing the latitude minus sign
@@ -233,32 +235,20 @@ class OctaveProcessing(threading.Thread):
             # tdoa_filename = 'C:\Users\linkz\Desktop\TDoA-master-win\\' + tdoa_filename  # work in progress for Windows
         if platform.system() == "Linux" or platform.system() == "Darwin":
             exec_octave = 'octave'
-        proc = subprocess.Popen([exec_octave, tdoa_filename], cwd='./TDoA/', stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=False)
+        proc = subprocess.Popen([exec_octave, tdoa_filename], cwd='./TDoA/', stderr=subprocess.STDOUT,
+                                stdout=subprocess.PIPE, shell=False, preexec_fn=os.setsid)
         proc_pid = proc.pid
-        while True:
-            line = proc.stdout.readline()
-            line2 = proc.stderr.readline()
-            with open("./TDoA/iq/" + starttime + "_F" + str(frequency) + "/TDoA_stdout.txt", 'a') as tdoa_console:
-                if "wav 254" in line:  # number 254 indicating no GPS timestamps found in the node IQ rec
-                    bad_node = True
-                    tdoa_console.write("WARNING: " + line.rstrip().rsplit('_', 3)[
-                        2] + " has no recent GPS timestamps, remove it next time.\n")
-                tdoa_console.write(line.rstrip() + '\n')
-            if line2 != '':
-                with open("./TDoA/iq/" + starttime + "_F" + str(frequency) + "/TDoA_stderr.txt", 'a') as tdoa_console2:
-                    tdoa_console2.write(line2.rstrip() + '\n')
-            if "iq/" in line:
-                self.parent.writelog("processing " + line.rstrip())
-            if "tdoa" in line:
-                self.parent.writelog(line.rstrip())
+        logfile = open("./TDoA/iq/" + starttime + "_F" + str(frequency) + "/TDoA_" + varfile + "_log.txt", 'w')
+        for line in proc.stdout:
+            # sys.stdout.write(line)
+            logfile.write(line)
             if "most likely position:" in line:
-                tdoa_position = line.rstrip()
-                self.parent.writelog(line.rstrip())
+                tdoa_position = line
             if "finished" in line:
-                if bad_node:
-                    self.parent.writelog(
-                        "WARNING: bad GPS node(s) have been used, consider this TDoA as incomplete.")
-                ProcessFinished().run()
+                logfile.close()
+                ProcessFinished(self).start()
+                proc.terminate()
+        proc.wait()
 
 
 class SnrProcessing(threading.Thread):  # work in progress
@@ -302,7 +292,8 @@ class StartKiwiSDR(threading.Thread):
             execname = 'python2'
         proc2 = subprocess.Popen(
             [execname, 'kiwirecorder.py', '-s', str(hostlisting), '-p', str(portlisting), str(namelisting), '-f',
-             str(frequency), '-L', str(0 - lpcut), '-H', str(hpcut), '-m', 'iq', '-w'], stdout=PIPE, shell=False)
+             str(frequency), '-L', str(0 - lpcut), '-H', str(hpcut), '-m', 'iq', '-w'], stdout=PIPE, shell=False,
+            preexec_fn=os.setsid)
         proc2_pid = proc2.pid
         self.parent.writelog("IQ recording in progress...please wait")
         # self.parent.writelog(   # debug
@@ -647,10 +638,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
             u.close()
             tkMessageBox.showinfo(title=" ",
                                   message=str(host.rsplit(':')[0]) + " has been added to the favorite list !")
-            executable = sys.executable
-            args = sys.argv[:]
-            args.insert(0, sys.executable)
-            os.execvp(sys.executable, args)
+            Restart().run()
 
     def remfavorite(self):
         global white, black, newwhite
@@ -672,10 +660,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         u.close()
         tkMessageBox.showinfo(title=" ",
                               message=str(host.rsplit(':')[0]) + " has been removed from the favorites list !")
-        executable = sys.executable
-        args = sys.argv[:]
-        args.insert(0, sys.executable)
-        os.execvp(sys.executable, args)
+        Restart().run()
 
     def addblacklist(self):
         ReadConfigFile().read_cfg()
@@ -701,10 +686,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
             u.close()
             tkMessageBox.showinfo(title=" ",
                                   message=str(host.rsplit(':')[0]) + " has been added to the blacklist !")
-            executable = sys.executable
-            args = sys.argv[:]
-            args.insert(0, sys.executable)
-            os.execvp(sys.executable, args)
+            Restart().run()
 
     def remblacklist(self):
         global white, black, newblack
@@ -726,10 +708,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         u.close()
         tkMessageBox.showinfo(title=" ",
                               message=str(host.rsplit(':')[0]) + " has been removed from the blacklist !")
-        executable = sys.executable
-        args = sys.argv[:]
-        args.insert(0, sys.executable)
-        os.execvp(sys.executable, args)
+        Restart().run()
 
     def openinbrowser(self):
         if frequency.get() != 10000:
@@ -1051,22 +1030,6 @@ class MainWindow(Frame):
             selectedlat = ""
             selectedlon = ""
 
-    # @staticmethod
-    # def restartgui():
-    #     global proc_pid, proc2_pid
-    #     try:
-    #         os.kill(proc2_pid, signal.SIGINT)
-    #     except:
-    #         pass
-    #     try:
-    #         os.kill(proc_pid, signal.SIGKILL)
-    #     except:
-    #         pass
-    #     executable = sys.executable
-    #     args = sys.argv[:]
-    #     args.insert(0, sys.executable)
-    #     os.execvp(sys.executable, args)
-
     def writelog(self, msg):  # the main console log text feed
         self.Text2.insert('end -1 lines', "[" + str(time.strftime('%H:%M.%S', time.gmtime())) + "] - " + msg + "\n")
         time.sleep(0.01)
@@ -1195,20 +1158,14 @@ class MainWindow(Frame):
     def setmapfilter(self, mapfl):
         ReadConfigFile().read_cfg()
         SaveConfigFile().save_cfg("mapfl", mapfl)
-        executable = sys.executable
-        args = sys.argv[:]
-        args.insert(0, sys.executable)
-        os.execvp(sys.executable, args)
+        Restart().run()
 
     def min_gps_filter(self):
         ReadConfigFile().read_cfg()
         gps_per_min_filter = tkSimpleDialog.askinteger("Input", "Min GPS fixes/min? (" + gpsfl + ")", parent=self,
                                                        minvalue=0, maxvalue=30)
         SaveConfigFile().save_cfg("gpsfl", gps_per_min_filter)
-        executable = sys.executable
-        args = sys.argv[:]
-        args.insert(0, sys.executable)
-        os.execvp(sys.executable, args)
+        Restart().run()
 
     def color_change(self, value):  # node color choices
         global colorline
@@ -1225,20 +1182,14 @@ class MainWindow(Frame):
             elif value == 3:
                 colorline = colorline[0] + "," + colorline[1] + "," + colorline[2] + "," + color_n
             SaveConfigFile().save_cfg("nodecolor", colorline)
-            executable = sys.executable
-            args = sys.argv[:]
-            args.insert(0, sys.executable)
-            os.execvp(sys.executable, args)
+            Restart().run()
         else:
             pass
 
     def setmap(self, mapc):
         ReadConfigFile().read_cfg()
         SaveConfigFile().save_cfg("mapc", mapc)
-        executable = sys.executable
-        args = sys.argv[:]
-        args.insert(0, sys.executable)
-        os.execvp(sys.executable, args)
+        Restart().run()
 
     def runupdate(self):  # if UPDATE button is pushed
         self.Button1.configure(state="disabled")
@@ -1316,7 +1267,7 @@ class MainWindow(Frame):
                 self.writelog("ERROR: Please enter a frequency first !")
             elif self.Entry1.get() == '' or float(self.Entry1.get()) < 0 or float(self.Entry1.get()) > 30000:
                 self.writelog("ERROR: Please check the frequency !")
-            elif len(namelist) < 1:
+            elif len(namelist) < 3:
                 self.writelog("ERROR: Select at least 3 nodes for TDoA processing !")
             else:
                 frequency = str(float(self.Entry1.get()))
@@ -1338,7 +1289,7 @@ class MainWindow(Frame):
         global selectedcity, starttime, latmin, latmax, lonmin, lonmax, nbfile, proc2_pid
         global lat_min_map, lat_max_map, lon_min_map, lon_max_map, checkfilesize
         checkfilesize = 0
-        os.kill(proc2_pid, signal.SIGINT)
+        os.kill(proc2_pid, signal.SIGTERM)
         if platform.system() == "Windows":
             for file in os.listdir("TDoA\iq\\"):
                 if file.endswith(".wav"):
