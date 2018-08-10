@@ -64,6 +64,7 @@ Install GNU Octave 4.4.0, in Terminal : `brew install octave`
 * v2.43: auto create the directTDoA_server_list.db file at 1st start, file does not need to be in the repo anymore
 * v2.44: MacOS tested OK, code cleanup +warning about missing GPS timestamps in IQ recordings  -uglymaps +kickass NASA maps
 * v2.50: some TODO list items coded or fixed
+* v2.60: map update now based on John's json listing + GPS fix/min map filter + nodes are identified by IDs, no hosts anymore + no .png file creation (patch) + no more gnss_pos.txt backup and no more TDoA/gnss_pos/ purge
 
 ## TODO LIST
 * dealing with nodes that forwards a xx° yy' zz.z'' GEO format (gnss_pos retrieving)
