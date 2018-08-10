@@ -5,7 +5,7 @@
    text(0.5, 0.98,  plot_info.title, 'fontweight', 'bold', 'horizontalalignment', 'center', 'fontsize', 15);
  
 -  print('-dpng','-S900,600', fullfile('png', sprintf('%s.png', plot_info.plotname)));
-+##  print('-dpng','-S900,600', fullfile('png', sprintf('%s.png', plot_info.plotname))); nopng patch for directTDoA v3.xx
++##  print('-dpng','-S900,600', fullfile('png', sprintf('%s.png', plot_info.plotname))); nopng patch for directTDoA v2.6x
    print('-dpdf','-S900,600', fullfile('pdf', sprintf('%s.pdf', plot_info.plotname)));
  endfunction
  
