@@ -66,7 +66,7 @@ Install GNU Octave 4.4.0, in Terminal : `brew install octave`
 * v2.50: some TODO list items coded or fixed
 * v2.60: map update now based on John's json listing + GPS fix/min map filter + nodes are identified by IDs, no hosts anymore + no .png file creation (patch) + no more gnss_pos.txt backup and no more TDoA/gnss_pos/ purge
 * v2.70: Octave subprocess management modified (no more octave defunct remaining in "ps aux" now) + stdout & stderr saved in the same "TDoA/iq/<backup>/TDoA_<freq>.txt" file
-
+* v2.71: each node color brightness is now based on its latest GPS fix/me value, it will become darker when fix/min will go towards "0" + my own kiwiSDR coordinates more accurate
 
 ## TODO LIST
 * offline tool to re-compute the backup IQ files more easily ?
