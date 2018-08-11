@@ -9,7 +9,7 @@ from PIL import Image, ImageTk
 from shutil import copyfile
 from tkColorChooser import askcolor
 
-VERSION = "directTDoA v2.70 by linkz"
+VERSION = "directTDoA v2.71 by linkz"
 
 
 class Restart:
@@ -65,7 +65,7 @@ class CheckFileSize(threading.Thread):
         global t, checkfilesize
         checkfilesize = 1
         while t == 0:
-            time.sleep(0.3)  # file size refresh time
+            time.sleep(0.5)  # file size refresh time
             if platform.system() == "Windows":
                 for wavfiles in glob.glob("TDoA\\iq\\*wav"):
                     os.path.getsize(wavfiles)
@@ -205,7 +205,7 @@ class RunUpdate(threading.Thread):
             with open('directTDoA_server_list.db', "w") as g:
                 g.write("   \n")
                 g.write(
-                    "['ffffffffffff', 'linkz.ddns.net:8073', '30', 'linkz', '45.5', '5.5', 'directTDoA GUI developer, French Alps', '0', '4']\n")
+                    "['ffffffffffff', 'linkz.ddns.net:8073', '30', 'linkz', '45.4', '5.3', 'directTDoA GUI developer, French Alps', '0', '4']\n")
                 for i in range(len(json_data)):
                     g.write("['" + json_data[i]['mac'] + "', '" + str(json_data[i]['h']) + ":" + str(
                         json_data[i]['p']) + "', '" + str(json_data[i]['fm']) + "', '" + json_data[i][
@@ -308,7 +308,6 @@ class FillMapWithNodes(threading.Thread):
         self.parent = parent
 
     def run(self):
-        # time.sleep(0.5)
         global manual_bound_x, manual_bound_y, manual_bound_xsize, manual_bound_ysize, map_preset, map_manual
         global my_short, my_name, my_user, my_usermx, my_fm
         if os.path.isfile('directTDoA_server_list.db') is True:
@@ -360,12 +359,12 @@ class FillMapWithNodes(threading.Thread):
                     my_y_zeros.append(987.5 + (float(0 - float(my_lat[n])) * 11))
                     my_y_ones.append(987.5 + (float(0 - float(my_lat[n])) * 11) + 5)
                 if (int(my_user[n])) / (int(my_usermx[n])) == 0:  # OK slots available on the node
-                    if my_tag[n] in white:  # favorite node color
-                        mycolor.append(colorline[1])
-                    elif my_tag[n] in black:  # blacklisted node color
-                        mycolor.append(colorline[2])
-                    else:
-                        mycolor.append(colorline[0])  # normal node color
+                    if my_tag[n] in white:    # favorite node color
+                        mycolor.append(self.color_variant(colorline[1], int(self.gpsfix2color(my_fm[n]))))
+                    elif my_tag[n] in black:  # blacklist node color
+                        mycolor.append(self.color_variant(colorline[2], int(self.gpsfix2color(my_fm[n]))))
+                    else:                     # standard node color
+                        mycolor.append(self.color_variant(colorline[0], int(self.gpsfix2color(my_fm[n]))))
                 else:
                     mycolor.append('red')  # if no slots available, map point is always created red
                 n += 1
@@ -389,6 +388,24 @@ class FillMapWithNodes(threading.Thread):
                 pass
             self.parent.canvas.scan_dragto(-int(dx0.split('.')[0]), -int(dy0.split('.')[0]), gain=1)  # adjust map pos.
             self.parent.show_image()
+
+    def color_variant(self, hex_color, brightness_offset=1):
+        # source : https://chase-seibert.github.io/blog/2011/07/29/python-calculate-lighterdarker-rgb-colors.html
+        if len(hex_color) != 7:
+            raise Exception("Passed %s into color_variant(), needs to be in #87c95f format." % hex_color)
+        rgb_hex = [hex_color[x:x + 2] for x in [1, 3, 5]]
+        new_rgb_int = [int(hex_value, 16) + brightness_offset for hex_value in rgb_hex]
+        new_rgb_int = [min([255, max([0, i])]) for i in new_rgb_int]
+        return "#" + "".join([self.int2hex(i) for i in new_rgb_int])
+
+    def gpsfix2color(self, a):
+        colorscaled = float(float(a) - 30) / float(30)
+        return colorscaled * 255
+
+    def int2hex(self, x):
+        val = hex(x)[2:]
+        val = "0" + val if len(val) < 2 else val
+        return val
 
     def add_point(self, m):
         global gpsfl
@@ -1164,6 +1181,8 @@ class MainWindow(Frame):
         ReadConfigFile().read_cfg()
         gps_per_min_filter = tkSimpleDialog.askinteger("Input", "Min GPS fixes/min? (" + gpsfl + ")", parent=self,
                                                        minvalue=0, maxvalue=30)
+        if gps_per_min_filter is None:
+            gps_per_min_filter = 0
         SaveConfigFile().save_cfg("gpsfl", gps_per_min_filter)
         Restart().run()
 
