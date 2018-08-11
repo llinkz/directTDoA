@@ -3,13 +3,13 @@
 This piece of software is JUST a GUI written for Python 2.7 designed to compute TDoA maps with GPS enabled KiwiSDR servers around the world using GNU Octave & the EXCELLENT work of Christoph Mayer @ https://github.com/hcab14/TDoA + his forked "kiwiclient" python stuff, original code by Dmitry Janushkevich @ https://github.com/dev-zzo/kiwiclient
 
 
-## INSTALL AND RUN (on LINUX) Thanks Daniel E. for the work on that installation procedure
+## INSTALL AND RUN (on LINUX) Thanks Daniel E. for the install procedure
 
-* install python 2.7
+Install python 2.7.xx
 
-* install pip
+Install python-pip (search for the right package for your distro)
 
-* install GNU octave
+Install GNU octave 4.4.0 (stable version)
 
 `git clone --recursive https://github.com/llinkz/directTDoA`
 
@@ -17,10 +17,10 @@ This piece of software is JUST a GUI written for Python 2.7 designed to compute 
 
 `./setup.sh` (this script will install python modules, compile the necessary .oct file and apply the patch to bypass the .png file creation)
 
-`python2 directTDoA.py`
+`./directTDoA.py` (note: check the shebang if it fails on your system. On my Archlinux it should be "#!/usr/bin/python2" for example)
 
 
-## INSTALL AND RUN (on MAC OS) Thanks Nicolas M. for the procedure
+## INSTALL AND RUN (on MAC OS) Thanks Nicolas M. for the install procedure
 
 * REQUIREMENT 	Xcode + Homebrew (https://brew.sh/index_fr)
 
@@ -36,7 +36,7 @@ Install GNU Octave 4.4.0, in Terminal : `brew install octave`
 
 `./setup.sh`  (this script will install python modules, compile the necessary .oct file and apply the patch to bypass the .png file creation)
 
-`python2 directTDoA.py`
+`./directTDoA.py`
 
 
 ## LICENSE
@@ -45,7 +45,7 @@ Install GNU Octave 4.4.0, in Terminal : `brew install octave`
 
 ## WARNING
 * This code may contain some silly procedures and dumb algorithms as I'm not a python guru, but it almost works so...
-* This GUI may freeze sometimes, just watch for the console output and restart it..
+* This code is not optimized at all as well, will try to do my best during free time...
 
 
 ## CHANGE LOG
