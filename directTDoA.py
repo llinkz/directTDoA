@@ -2,19 +2,17 @@
 # -*- coding: utf-8 -*-
 
 from Tkinter import *
-import tkSimpleDialog
+import tkSimpleDialog, codecs, unicodedata, tkFileDialog
 import threading, os, signal, subprocess, platform, tkMessageBox, time, re, glob, webbrowser, json, requests
 from subprocess import PIPE
 from PIL import Image, ImageTk
 from shutil import copyfile
 from tkColorChooser import askcolor
 
-VERSION = "directTDoA v2.71 by linkz"
+VERSION = "directTDoA v3.00 by linkz"
 
 
 class Restart:
-    def __init__(self):
-        pass
 
     @staticmethod
     def run():
@@ -34,8 +32,6 @@ class Restart:
 
 
 class ReadKnownPointFile:
-    def __init__(self):
-        pass
 
     @staticmethod
     def run():
@@ -65,19 +61,11 @@ class CheckFileSize(threading.Thread):
         global t, checkfilesize
         checkfilesize = 1
         while t == 0:
-            time.sleep(0.5)  # file size refresh time
-            if platform.system() == "Windows":
-                for wavfiles in glob.glob("TDoA\\iq\\*wav"):
-                    os.path.getsize(wavfiles)
-                    filename = wavfiles.replace("TDoA\\iq\\", "")
-                    self.parent.writelog2(str(filename) + " - " + str(os.path.getsize(wavfiles) / 1024) + "KB")
-                t = 0
-            if platform.system() == "Linux" or platform.system() == "Darwin":
-                for wavfiles in glob.glob("./TDoA/iq/*wav"):
-                    os.path.getsize(wavfiles)
-                    filename = wavfiles.replace("./TDoA/iq/", "")
-                    self.parent.writelog2(str(filename) + " - " + str(os.path.getsize(wavfiles) / 1024) + "KB")
-                t = 0
+            time.sleep(0.5)  # file size measurement refresh rate
+            for wavfiles in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
+                self.parent.writelog2(
+                    wavfiles.rsplit(os.sep, 1)[1] + " - " + str(os.path.getsize(wavfiles) / 1024) + "KB")
+            t = 0
 
 
 class ProcessFinished(threading.Thread):
@@ -110,36 +98,25 @@ class ProcessFinished(threading.Thread):
         deg1, mnt1 = divmod(int(mnt1), 60)
         latstring = str(int(deg1)) + "_" + str(int(mnt1)) + "_" + str(int(sec1)) + "_" + sign1  # geohack url lat arg
         lonstring = str(int(deg2)) + "_" + str(int(mnt2)) + "_" + str(int(sec2)) + "_" + sign2  # geohack url lon arg
-
         #  backup the .pdf file and saving most likely coords as text in previously created /iq/... dir
-        if platform.system() == "Windows":
-            copyfile("TDoA\\pdf\\TDoA_" + varfile + ".pdf",
-                     "TDoA\\iq\\" + starttime + "_F" + str(frequency) + "\\TDoA_" + varfile + ".pdf")
-            with open("./TDoA/iq/" + starttime + "_F" + str(
-                    frequency) + "/TDoA_" + varfile + "_found " + llat + sign1 + " " + llon + sign2, 'w') as tdoa_file:
-                tdoa_file.write('')
-
-        if platform.system() == "Linux" or platform.system() == "Darwin":
-            copyfile("./TDoA/pdf/TDoA_" + varfile + ".pdf",
-                     "./TDoA/iq/" + starttime + "_F" + str(frequency) + "/TDoA_" + varfile + ".pdf")
-            with open("./TDoA/iq/" + starttime + "_F" + str(
-                    frequency) + "/TDoA_" + varfile + "_found " + llat + sign1 + " " + llon + sign2, 'w') as tdoa_file:
-                tdoa_file.write('')
-
+        copyfile(os.path.join('TDoA', 'pdf') + os.sep + "TDoA_" + varfile + ".pdf",
+                 os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
+                     frequency) + os.sep + "TDoA_" + varfile + ".pdf")
+        with open(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
+                frequency) + os.sep + "TDoA_" + varfile + "_found " + llat + sign1 + " " + llon + sign2, 'w') as tdoa_file:
+            tdoa_file.write("https://tools.wmflabs.org/geohack/geohack.php?params=" + latstring + "_" + lonstring)
+        tdoa_file.close()
         # last popup window shown at end of process
         finish = tkMessageBox.askyesno(title="TDoA process just finished.",
                                        message="Most likely location coords are " + llat + "°" + sign1 + " " + llon + "°" + sign2 + "\n\nClick Yes to open \"Geohack\" webpage centered on most likely point found by the process\nClick No to open files directory and restart GUI")
         if finish:  # opens a web browser with geohack url containing most likely point coordinates & restart GUI
             webbrowser.open_new("https://tools.wmflabs.org/geohack/geohack.php?params=" + latstring + "_" + lonstring)
         elif finish is False:  # opens directory that containing TDoA files & restart GUI
-            webbrowser.open("./TDoA/iq/" + starttime + "_F" + str(frequency))
+            webbrowser.open(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(frequency))
         Restart().run()
 
 
 class ReadConfigFile:
-
-    def __init__(self):
-        pass
 
     def read_cfg(self):
         global dx0, dy0, dx1, dy1, dmap, mapfl, gpsfl, white, black, colorline
@@ -159,12 +136,9 @@ class ReadConfigFile:
 
 
 class SaveConfigFile:
-    def __init__(self):
-        pass
 
     def save_cfg(self, field, input):
         global dmap, mapfl, gpsfl, white, black, colorline
-        # ReadConfigFile().read_cfg()
         with open('directTDoA.cfg', "w") as u:
             u.write("# Default map geometry \n%s,%s,%s,%s\n" % (bbox2[0], bbox2[1], bbox2[2], bbox2[3]))
 
@@ -189,36 +163,78 @@ class SaveConfigFile:
 
 
 class RunUpdate(threading.Thread):
-
     def __init__(self, parent=None):
         super(RunUpdate, self).__init__()
         self.parent = parent
 
     def run(self):
         try:
-            nbnode = 0
-            response = requests.get("http://kiwisdr.com/tdoa/files/kiwi.gps.json")
-            json_data = json.loads(response.text)
+            nodelist = requests.get("http://rx.linkfanel.net/kiwisdr_com.js")  # getting the full KiwiSDR node list
+            json_data = json.loads(nodelist.text[nodelist.text.find('['):].replace('},\n]\n;\n', '}]'))  # remove chars
+            #json_data = json.loads(nodelist.text)  # when kiwisdr_com.js will be in real json format
+            snrlist = requests.get("http://sibamanna.duckdns.org/snrmap_4bands.json")
+            json_data2 = json.loads(snrlist.text)
+            try:
+                linkz_status = requests.get("http://linkz.ddns.net:8073/status", timeout=3)
+                s_fix = re.search('fixes_min=(.*)', linkz_status.text)
+                l_fixes = s_fix.group(1)
+            except:
+                l_fixes = 0
+                pass
             if os.path.isfile('directTDoA_server_list.db') is True:
-                copyfile("directTDoA_server_list.db", "directTDoA_server_list.db.bak")
                 os.remove('directTDoA_server_list.db')
-            with open('directTDoA_server_list.db', "w") as g:
-                g.write("   \n")
-                g.write(
-                    "['ffffffffffff', 'linkz.ddns.net:8073', '30', 'linkz', '45.4', '5.3', 'directTDoA GUI developer, French Alps', '0', '4']\n")
-                for i in range(len(json_data)):
-                    g.write("['" + json_data[i]['mac'] + "', '" + str(json_data[i]['h']) + ":" + str(
-                        json_data[i]['p']) + "', '" + str(json_data[i]['fm']) + "', '" + json_data[i][
-                                'id'] + "', '" + str(json_data[i]['lat']) + "', '" + str(
-                        json_data[i]['lon']) + "', '" + str(json_data[i]['n'].encode('ascii', 'ignore')) + "', '" + str(
-                        json_data[i]['u']) + "', '" + str(json_data[i]['um']) + "']\n")
-                    nbnode += 1
-                g.seek(0)
-                g.write("%s\n" % str(nbnode + 1))
+            with codecs.open('directTDoA_server_list.db', 'w', encoding='utf8') as g:
+                g.write("[\n")
+                for i in range(len(json_data)):  # parse all nodes
+                    if 'fixes_min' in json_data[i] and 'GPS' in json_data[i]['sdr_hw']:  # parse only GPS nodes
+                        for index, element in enumerate(json_data2['features']):  # check IS0KYB db
+                            if json_data[i]['id'] in json.dumps(json_data2['features'][index]):
+                                if json_data[i]['tdoa_id'] == '':
+                                    node_id = json_data[i]['url'].split('//', 1)[1].split(':', 1)[0].replace(".", "").replace("-", "")
+                                    try:
+                                        ipfield = re.search(
+                                            r'\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))\b',
+                                            json_data[i]['url'].split('//', 1)[1].split(':', 1)[0])
+                                        node_id = "ip" + str(ipfield.group(1)).replace(".", "")
+                                    except:
+                                        pass
+                                    try:
+                                        hamcallfield = re.search(
+                                            r"(.*)(\s|,|\/|^)([A-Za-z]{1,2}[0-9][A-Za-z]{1,3})(\s|,|\/|\@|\-)(.*)",
+                                            json_data[i]['name'])
+                                        node_id = hamcallfield.group(3).upper()
+                                    except:
+                                        pass
+                                else:
+                                    node_id = json_data[i]['tdoa_id']
+                                try:
+                                    gpsfield = re.search(
+                                        r"([-+]?[0-9]{1,2}(\.[0-9]*)?)(,| ) ?([-+]?[0-9]{1,3}(\.[0-9]*))?",
+                                        json_data[i]['gps'][1:-1])
+                                    nodelat = gpsfield.group(1)
+                                    nodelon = gpsfield.group(4)
+                                except:
+                                    # Admins not respecting KiwiSDR admin page GPS field format (nn.nnnnnn, nn.nnnnnn)
+                                    # => nodes will be shown at top-right map edge, as it fails the update code process
+                                    print "*** Error reading <gps> field : >> " + str(unicodedata.normalize("NFKD", json_data[i]['gps'][1:-1]).encode("ascii", "ignore")) + " << for \"" + unicodedata.normalize("NFKD", json_data[i]["name"]).encode("ascii", "ignore") + "\""
+                                    print "*** This node will be displayed at 90N 180E position and is not usable for TDoA"
+                                    nodelat = "90"
+                                    nodelon = "180"
+                                # (-?(90[:°d] * 00[:\'\'m]*00(\.0+)?|[0-8][0-9][ :°d]*[0-5][0-9][ :\'\'m]*[0-5][0-9](\.\d+)?)[ :\?\"s]*(N|n|S|s)?)[ ,]*(-?(180[ :°d]*00[ :\'\'m]*00(\.0+)?|(1[0-7][0-9]|0[0-9][0-9])[ :°d]*[0-5][0-9][ :\'\'m]*[0-5][0-9](\.\d+)?)[ :\?\"s]*(E|e|W|w)?)
+                                g.write(' { \"mac\":\"' + json_data[i]['id'] + '\", \"url\":\"' + json_data[i]['url'].split('//', 1)[1] + '\", \"gps\":\"' + json_data[i]['fixes_min'] + '\", \"id\":\"' + node_id + '\", \"lat\":\"' + nodelat + '\", \"lon\":\"' + nodelon + '\", \"name\":\"' + unicodedata.normalize("NFKD", json_data[i]["name"]).encode("ascii", "ignore") + '\", \"users\":\"' + json_data[i]['users'] + '\", \"usersmax\":\"' + json_data[i]['users_max'] + '\", \"snr1\":\"' + str(element['properties']['snr1_avg']) + '\", \"snr2\":\"' + str(element['properties']['snr2_avg']) + '\", \"snr3\":\"' + str(element['properties']['snr3_avg']) + '\", \"snr4\":\"' + str(element['properties']['snr4_avg']) + '\", \"nlvl1\":\"' + str(element['properties']['bg1_avg']) + '\", \"nlvl2\":\"' + str(element['properties']['bg2_avg']) + '\", \"nlvl3\":\"' + str(element['properties']['bg3_avg']) + '\", \"nlvl4\":\"' + str(element['properties']['bg4_avg']) + '\"},\n')
+                            else:
+                                pass
+                    else:
+                        pass
+                # here is the hardcode for my own KiwiSDR, it will soon include real SNR/noise values.. thx Marco
+                g.write(' { "mac":"04a316df1bca", "url":"linkz.ddns.net:8073", "gps":"' + str(l_fixes) + '", "id":"linkz", "lat":"45.4", "lon":"5.3", "name":"directTDoA GUI developer, French Alps", "users":"0", "usersmax":"4", "snr1":"0", "snr2":"0", "snr3":"0", "snr4":"0", "nlvl1":"0", "nlvl2":"0", "nlvl3":"0", "nlvl4":"0"}\n]')
                 g.close()
+                # normally if update process is ok, we can make a backup copy of the server listing
+                copyfile("directTDoA_server_list.db", "directTDoA_server_list.db.bak")
                 Restart().run()
-        except:
-            print "UPDATE FAIL, can't retrieve json source"
+        except Exception as e:
+            print e
+            print "UPDATE FAIL, sorry"
 
 
 class OctaveProcessing(threading.Thread):
@@ -235,10 +251,11 @@ class OctaveProcessing(threading.Thread):
             # tdoa_filename = 'C:\Users\linkz\Desktop\TDoA-master-win\\' + tdoa_filename  # work in progress for Windows
         if platform.system() == "Linux" or platform.system() == "Darwin":
             exec_octave = 'octave'
-        proc = subprocess.Popen([exec_octave, tdoa_filename], cwd='./TDoA/', stderr=subprocess.STDOUT,
-                                stdout=subprocess.PIPE, shell=False, preexec_fn=os.setsid)
+        proc = subprocess.Popen([exec_octave, tdoa_filename], cwd=os.path.join('TDoA'), stderr=subprocess.STDOUT,
+                                stdout=subprocess.PIPE, shell=False , preexec_fn=os.setsid)
         proc_pid = proc.pid
-        logfile = open("./TDoA/iq/" + starttime + "_F" + str(frequency) + "/TDoA_" + varfile + "_log.txt", 'w')
+        logfile = open(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
+            frequency) + os.sep + "TDoA_" + varfile + "_log.txt", 'w')
         for line in proc.stdout:
             # sys.stdout.write(line)
             logfile.write(line)
@@ -258,13 +275,9 @@ class SnrProcessing(threading.Thread):  # work in progress
 
     def run(self):
         global proc3, snrfreq
-        if platform.system() == "Windows":
-            execname = 'python'
-        if platform.system() == "Linux" or platform.system() == "Darwin":
-            execname = 'python2'
         proc3 = subprocess.Popen(
-            [execname, 'microkiwi_waterfall.py', '--file=wf.bin', '-z', '8', '-o', str(snrfreq), '-s', str(snrhost)],
-            stdout=PIPE, shell=False)
+            [sys.executable, 'microkiwi_waterfall.py', '--file=wf.bin', '-z', '8', '-o', str(snrfreq), '-s',
+             str(snrhost)], stdout=PIPE, shell=False)
         while True:
             line3 = proc3.stdout.readline()
             if "bytes" in line3:
@@ -286,19 +299,15 @@ class StartKiwiSDR(threading.Thread):
         line = []
         nbfile = 1
         t = 0
-        if platform.system() == "Windows":
-            execname = 'python'
-        if platform.system() == "Linux" or platform.system() == "Darwin":
-            execname = 'python2'
         proc2 = subprocess.Popen(
-            [execname, 'kiwirecorder.py', '-s', str(hostlisting), '-p', str(portlisting), str(namelisting), '-f',
+            [sys.executable, 'kiwirecorder.py', '-s', str(hostlisting), '-p', str(portlisting), str(namelisting), '-f',
              str(frequency), '-L', str(0 - lpcut), '-H', str(hpcut), '-m', 'iq', '-w'], stdout=PIPE, shell=False,
             preexec_fn=os.setsid)
         proc2_pid = proc2.pid
-        self.parent.writelog("IQ recording in progress...please wait")
-        # self.parent.writelog(   # debug
-        #     execname + ' kiwirecorder.py -s ' + str(hostlisting) + ' -p ' + str(portlisting) + ' ' + str(
-        #         namelisting) + ' -f ' + str(frequency) + ' -L ' + str(0 - lpcut) + ' -H ' + str(hpcut) + ' -m iq -w')
+        self.parent.writelog("IQ Recordings in progress...please wait")
+        #self.parent.writelog('kiwirecorder.py -s ' + str(hostlisting) + ' -p ' + str(portlisting) + ' ' + str(
+        #    namelisting) + ' -f ' + str(frequency) + ' -L ' + str(0 - lpcut) + ' -H ' + str(hpcut) + ' -m iq -w')
+        # debug
 
 
 class FillMapWithNodes(threading.Thread):
@@ -309,118 +318,92 @@ class FillMapWithNodes(threading.Thread):
 
     def run(self):
         global manual_bound_x, manual_bound_y, manual_bound_xsize, manual_bound_ysize, map_preset, map_manual
-        global my_short, my_name, my_user, my_usermx, my_fm
         if os.path.isfile('directTDoA_server_list.db') is True:
-            with open('directTDoA_server_list.db') as h:
-                global my_x_zeros, my_y_zeros, my_x_ones, my_y_ones, mycolor, my_host, my_tag
-                i = 1
-                lines = h.readlines()
-                nbgpsnodes = lines[0]
-                my_tag = []
-                my_host = []
-                my_fm = []
-                my_short = []
-                my_lat = []
-                my_lon = []
-                my_name = []
-                my_user = []
-                my_usermx = []
-                while i < (int(nbgpsnodes) + 1):
-                    line = lines[i]
-                    id = re.search(r"\['(.*)', '(.*)', '(.*)', '(.*)', '(.*)', '(.*)', '(.*)', '(.*)', '(.*)'\]$", line)
-                    my_tag.append(id.group(1))
-                    my_host.append(id.group(2))
-                    my_fm.append(id.group(3))
-                    my_short.append(id.group(4))
-                    my_lat.append(id.group(5))
-                    my_lon.append(id.group(6))
-                    my_name.append(id.group(7).replace(" ", "_"))
-                    my_user.append(id.group(8))
-                    my_usermx.append(id.group(9))
-                    i += 1
-            h.close()
-            my_x_zeros = []
-            my_y_zeros = []
-            my_x_ones = []
-            my_y_ones = []
-            mycolor = []
-            n = 0
-            while n < len(my_tag):
-                if float(my_lon[n]) > 0:  # nodes are between LONGITUDE 0 to +180
-                    my_x_zeros.append(1907.5 + ((float(my_lon[n]) * 1910) / 180))
-                    my_x_ones.append(my_x_zeros[n] + 5)
-                else:  # nodes are between LONGITUDE -180 to 0
-                    my_x_zeros.append(1907.5 + ((float(my_lon[n]) * 1910) / 180))
-                    my_x_ones.append(my_x_zeros[n] + 5)
-                if float(my_lat[n]) > 0:  # nodes are between LATITUDE 0 to +90
-                    my_y_zeros.append(987.5 - (float(my_lat[n]) * 11))
-                    my_y_ones.append(987.5 - (float(my_lat[n]) * 11) + 5)
-                else:  # nodes are between LATITUDE 0 to -60
-                    my_y_zeros.append(987.5 + (float(0 - float(my_lat[n])) * 11))
-                    my_y_ones.append(987.5 + (float(0 - float(my_lat[n])) * 11) + 5)
-                if (int(my_user[n])) / (int(my_usermx[n])) == 0:  # OK slots available on the node
-                    if my_tag[n] in white:    # favorite node color
-                        mycolor.append(self.color_variant(colorline[1], int(self.gpsfix2color(my_fm[n]))))
-                    elif my_tag[n] in black:  # blacklist node color
-                        mycolor.append(self.color_variant(colorline[2], int(self.gpsfix2color(my_fm[n]))))
-                    else:                     # standard node color
-                        mycolor.append(self.color_variant(colorline[0], int(self.gpsfix2color(my_fm[n]))))
-                else:
-                    mycolor.append('red')  # if no slots available, map point is always created red
-                n += 1
+            with open('directTDoA_server_list.db') as f:
+                db_data = json.load(f)
+                for i in range(len(db_data)):
+                    try:
+                        if (int(db_data[i]["users"])) / (int(db_data[i]["usersmax"])) == 0:  # OK slots available
+                            temp_snr_avg = (int(db_data[i]["snr1"]) + int(db_data[i]["snr2"]) + int(
+                                db_data[i]["snr3"]) + int(db_data[i]["snr4"])) / 4
+                            if db_data[i]["mac"] in white:    # favorite node color
+                                node_color = (self.color_variant(colorline[1], (int(temp_snr_avg) - 45) * 5))
+                            elif db_data[i]["mac"] in black:  # blacklist node color
+                                node_color = (self.color_variant(colorline[2], (int(temp_snr_avg) - 45) * 5))
+                            else:                             # standard node color
+                                node_color = (self.color_variant(colorline[0], (int(temp_snr_avg) - 45) * 5))
+                        else:
+                            node_color = 'red'  # if no slots available, map point is always created red
+                    except Exception as e:
+                        pass
+                    try:
+                        if mapfl == "1" and db_data[i]["mac"] not in black:
+                            self.add_point(self.convert_lat(db_data[i]["lat"]), self.convert_lon(db_data[i]["lon"]),
+                                           node_color, db_data[i]["url"], db_data[i]["mac"], db_data[i]["id"],
+                                           db_data[i]["name"].replace(" ", "_").replace("!", "_"), db_data[i]["users"],
+                                           db_data[i]["usersmax"], db_data[i]["gps"], db_data[i]["snr1"],
+                                           db_data[i]["snr2"], db_data[i]["snr3"], db_data[i]["snr4"],
+                                           db_data[i]["nlvl1"], db_data[i]["nlvl2"], db_data[i]["nlvl3"],
+                                           db_data[i]["nlvl4"])
+                        elif mapfl == "2" and db_data[i]["mac"] in white:
+                            self.add_point(self.convert_lat(db_data[i]["lat"]), self.convert_lon(db_data[i]["lon"]),
+                                           node_color, db_data[i]["url"], db_data[i]["mac"], db_data[i]["id"],
+                                           db_data[i]["name"].replace(" ", "_").replace("!", "_"), db_data[i]["users"],
+                                           db_data[i]["usersmax"], db_data[i]["gps"], db_data[i]["snr1"],
+                                           db_data[i]["snr2"], db_data[i]["snr3"], db_data[i]["snr4"],
+                                           db_data[i]["nlvl1"], db_data[i]["nlvl2"], db_data[i]["nlvl3"],
+                                           db_data[i]["nlvl4"])
+                        elif mapfl == "3" and db_data[i]["mac"] in black:
+                            self.add_point(self.convert_lat(db_data[i]["lat"]), self.convert_lon(db_data[i]["lon"]),
+                                           node_color, db_data[i]["url"], db_data[i]["mac"], db_data[i]["id"],
+                                           db_data[i]["name"].replace(" ", "_").replace("!", "_"), db_data[i]["users"],
+                                           db_data[i]["usersmax"], db_data[i]["gps"], db_data[i]["snr1"],
+                                           db_data[i]["snr2"], db_data[i]["snr3"], db_data[i]["snr4"],
+                                           db_data[i]["nlvl1"], db_data[i]["nlvl2"], db_data[i]["nlvl3"],
+                                           db_data[i]["nlvl4"])
+                        elif mapfl == "0":
+                            self.add_point(self.convert_lat(db_data[i]["lat"]), self.convert_lon(db_data[i]["lon"]),
+                                           node_color, db_data[i]["url"], db_data[i]["mac"], db_data[i]["id"],
+                                           db_data[i]["name"].replace(" ", "_").replace("!", "_"), db_data[i]["users"],
+                                           db_data[i]["usersmax"], db_data[i]["gps"], db_data[i]["snr1"],
+                                           db_data[i]["snr2"], db_data[i]["snr3"], db_data[i]["snr4"],
+                                           db_data[i]["nlvl1"], db_data[i]["nlvl2"], db_data[i]["nlvl3"],
+                                           db_data[i]["nlvl4"])
+                    except Exception as e:
+                        print e
+                        pass
+        self.parent.canvas.scan_dragto(-int(dx0.split('.')[0]), -int(dy0.split('.')[0]), gain=1)  # adjust map pos.
+        self.parent.show_image()
 
-            m = 0
-            while m < len(my_tag):
-                if mapfl == "1" and my_tag[m] not in black:
-                    self.add_point(m)
-                elif mapfl == "2" and my_tag[m] in white:
-                    self.add_point(m)
-                elif mapfl == "3" and my_tag[m] in black:
-                    self.add_point(m)
-                elif mapfl == "0":
-                    self.add_point(m)
-                m += 1
-            try:
-                if manual_bound_x and map_preset == 0:
-                    self.parent.canvas.create_rectangle(manual_bound_x, manual_bound_y, manual_bound_xsize,
-                                                        manual_bound_ysize, outline='red', tag="mapmanual")
-            except:
-                pass
-            self.parent.canvas.scan_dragto(-int(dx0.split('.')[0]), -int(dy0.split('.')[0]), gain=1)  # adjust map pos.
-            self.parent.show_image()
+    def convert_lat(self, lat):
+        if float(lat) > 0:  # nodes are between LATITUDE 0 and 90N
+            return 987.5 - (float(lat) * 11)
+        else:  # nodes are between LATITUDE 0 and 60S
+            return 987.5 + (float(0 - float(lat)) * 11)
+
+    def convert_lon(self, lon):
+        return (1907.5 + ((float(lon) * 1910) / 180))
 
     def color_variant(self, hex_color, brightness_offset=1):
         # source : https://chase-seibert.github.io/blog/2011/07/29/python-calculate-lighterdarker-rgb-colors.html
-        if len(hex_color) != 7:
-            raise Exception("Passed %s into color_variant(), needs to be in #87c95f format." % hex_color)
         rgb_hex = [hex_color[x:x + 2] for x in [1, 3, 5]]
         new_rgb_int = [int(hex_value, 16) + brightness_offset for hex_value in rgb_hex]
         new_rgb_int = [min([255, max([0, i])]) for i in new_rgb_int]
-        return "#" + "".join([self.int2hex(i) for i in new_rgb_int])
+        return "#" + "".join(["0" + hex(i)[2:] if len(hex(i)[2:]) < 2 else hex(i)[2:] for i in new_rgb_int])
 
-    def gpsfix2color(self, a):
-        colorscaled = float(float(a) - 30) / float(30)
-        return colorscaled * 255
-
-    def int2hex(self, x):
-        val = hex(x)[2:]
-        val = "0" + val if len(val) < 2 else val
-        return val
-
-    def add_point(self, m):
+    def add_point(self, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r):
         global gpsfl
-        if int(my_fm[m]) >= int(gpsfl):  # GPS/min filter
-            self.parent.canvas.create_rectangle(my_x_zeros[m], my_y_zeros[m], my_x_ones[m], my_y_ones[m],
-                                                fill=mycolor[m], outline="black", activefill='white',
-                                                tag=str(
-                                                    my_host[m] + "$" + my_tag[m] + "$" + my_short[m] + "$" +
-                                                    my_name[m] + "$" + my_user[m] + "$" + my_usermx[
-                                                        m] + "$" + my_fm[m]))
-            self.parent.canvas.tag_bind(str(
-                my_host[m] + "$" + my_tag[m] + "$" + my_short[m] + "$" + my_name[m] + "$" + my_user[m] + "$" +
-                my_usermx[m] + "$" + my_fm[m]), "<Button-1>", self.parent.onClick)
-        else:
-            pass
+        #  a   b    c    d   e   f   g    h     i     j   k    l    m    n    o   p   q   r
+        # lon lat color host mac id name user usermx gps snr1 snr2 snr3 snr4 bg1 bg2 bg3 bg4
+        if int(j) >= int(gpsfl):  # GPS/min filter
+            try:
+                self.parent.canvas.create_rectangle(float(b), float(a), float(b) + 5, float(a) + 5, fill=str(c),
+                                                    outline="black", activefill='white', tag=str(
+                        '$'.join(map(str, [d, e, f, g, h, i, j, k, l, m, n, o, p, q, r]))))
+                self.parent.canvas.tag_bind(str('$'.join(map(str, [d, e, f, g, h, i, j, k, l, m, n, o, p, q, r]))),
+                                            "<Button-1>", self.parent.onClick)
+            except Exception as error_add_point:
+                print error_add_point
 
     def deletePoint(self, n):  # city/site map point deletion process
         self.parent.canvas.delete(self.parent, n.rsplit(' (')[0])
@@ -548,7 +531,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         if map_preset == 1 and map_manual == 0:
             pass
         else:
-            tkMessageBox.showinfo("TDoA map Geographical boundaries set",
+            tkMessageBox.showinfo("TDoA map boundaries :",
                               message="LATITUDE RANGE: from " + str(lat_min_map) + "° to " + str(lat_max_map) + "°\nLONGITUDE RANGE: from " + str(lon_min_map) + "° to " + str(lon_max_map) + "°")
             mapboundaries_set = 1
             map_manual = 1
@@ -575,49 +558,100 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
 
     def onClick(self, event):  # host sub menus
         global snrcheck, snrhost, host, white, black
-        # x1, x2, y1, y2, o, full_list, snrcheck, snrhost, host
         host = self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0]
-        self.menu = Menu(self, tearoff=0, fg="black", bg="gray", font='TkFixedFont 7')
-        #  host.rsplit("$", 6)[0]  host
-        #  host.rsplit("$", 6)[1]  id
-        #  host.rsplit("$", 6)[2]  short name
-        #  host.rsplit("$", 6)[3]  name
-        #  host.rsplit("$", 6)[4]  users
-        #  host.rsplit("$", 6)[5]  users max
-        #  host.rsplit("$", 6)[6]  GPS fixes per minute
-        if int(host.rsplit("$", 6)[4]) / int(host.rsplit("$", 6)[5]) == 0:
+        self.menu = Menu(self, tearoff=0, fg="black", bg="grey", font='TkFixedFont 7')
+        #  host.rsplit("$", 14)[#] <<
+        #  0=host  1=id  2=short name  3=name  4=users  5=users max  6=GPS fix/min
+        #  7=SNR 0-2 MHz  8=SNR 2-10 MHz  9=SNR 10-20 MHz  10=SNR 20-30 MHz
+        #  11=Noise 0-2 MHz  12=Noise 2-10 MHz 13=Noise 10-20 MHz  14=Noise 20-30 MHz
+        temp_snr_avg = (int(host.rsplit("$", 14)[7]) + int(host.rsplit("$", 14)[8]) + int(
+            host.rsplit("$", 14)[9]) + int(host.rsplit("$", 14)[10])) / 4
+        temp_noise_avg = (int(host.rsplit("$", 14)[11]) + int(host.rsplit("$", 14)[12]) + int(
+            host.rsplit("$", 14)[13]) + int(host.rsplit("$", 14)[14])) / 4
+        font_snr1 = font_snr2 = font_snr3 = font_snr4 = 'TkFixedFont 7'
+        if int(host.rsplit("$", 14)[4]) / int(host.rsplit("$", 14)[5]) == 0:  # node is available
+            # color gradiant below depending on SNR average
             self.menu.add_command(
-                label="Use: " + str(host).rsplit("$", 6)[2] + " [" + host.rsplit("$", 6)[6] + " GPS fix/min] [" + str(
-                    host.rsplit("$", 6)[4]) + "/" + str(host.rsplit("$", 6)[5]) + " users] for TdoA process",
+                label="Add " + str(host).rsplit("$", 14)[2] + " for TDoA process [" + host.rsplit("$", 14)[
+                    6] + " GPS fix/min] [" + str(host.rsplit("$", 14)[4]) + "/" + str(
+                    host.rsplit("$", 14)[5]) + " users]",
+                background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
+                foreground=self.get_font_color((self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
                 command=self.populate)
+            self.menu.add_command(label=str(host.rsplit("$", 14)[3]).replace("_", " "), state=NORMAL,
+                                  background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
+                                  foreground=self.get_font_color(
+                                      (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))), command=None)
             try:
                 self.menu.add_command(
-                    label="Open \"" + str(host).rsplit("$", 6)[0] + "/f=" + str(frequency.get()) + "iqz8\" in browser",
+                    label="Open \"" + str(host).rsplit("$", 14)[0] + "/f=" + str(frequency.get()) + "iqz8\" in browser",
+                    state=NORMAL, background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
+                    foreground=self.get_font_color((self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
                     command=self.openinbrowser)
+                if frequency.get() <= 2000:
+                    font_snr1 = 'TkFixedFont 8 bold'
+                elif 2001 < frequency.get() <= 10000:
+                    font_snr2 = 'TkFixedFont 8 bold'
+                elif 10000 < frequency.get() <= 20000:
+                    font_snr3 = 'TkFixedFont 8 bold'
+                elif 20000 < frequency.get() <= 30000:
+                    font_snr4 = 'TkFixedFont 8 bold'
             except ValueError:
                 pass
-        else:
-            self.menu.add_command(
-                label="Use: " + str(host).rsplit("$", 6)[2] + " [" + host.rsplit("$", 6)[6] + " GPS fix/min] [" + str(
-                    host.rsplit("$", 6)[4]) + "/" + str(host.rsplit("$", 6)[5]) + " users] for TdoA process",
-                state=DISABLED, command=None)
-            try:
-                self.menu.add_command(
-                    label="Open \"" + str(host.rsplit("$", 6)[0]) + "/f=" + str(frequency.get()) + "iqz8\" in browser",
-                    state=DISABLED, command=None)
-            except ValueError:
-                pass
-        self.menu.add_command(label=str(host.rsplit("$", 6)[3]).replace("_", " "), state=DISABLED, font='TkFixedFont 7',
+        else:  # node is busy
+            self.menu.add_command(label=str(host).rsplit("$", 14)[2] + " is busy, sorry. [" + host.rsplit("$", 14)[
+                6] + " GPS fix/min] [" + str(host.rsplit("$", 14)[4]) + "/" + str(host.rsplit("$", 14)[5]) + " users]",
+                                  background=(self.color_variant("#FF0000", (int(temp_snr_avg) - 50) * 5)),
+                                  foreground=self.get_font_color(
+                                      (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))), command=None)
+            self.menu.add_command(label=str(host.rsplit("$", 14)[3]).replace("_", " "), state=NORMAL,
+                                  background=(self.color_variant("#FF0000", (int(temp_snr_avg) - 50) * 5)),
+                                  foreground=self.get_font_color(
+                                      (self.color_variant("#FF0000", (int(temp_snr_avg) - 50) * 5))), command=None)
 
-                              command=None)  # showing the node full name as "comment"
         self.menu.add_separator()
-        if host.rsplit('$', 6)[1] in white:  # if node is a favorite
+        self.menu.add_command(label="AVG SNR on 0-30 MHz: " + str(temp_snr_avg) + " dB - AVG Noise: " + str(
+            temp_noise_avg) + " dBm (S" + str(self.convert_dbm_to_smeter(int(temp_noise_avg))) + ")",
+                              background=(self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5)),
+                              foreground=self.get_font_color(
+                                  (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))), command=None)
+        self.menu.add_separator()
+        self.menu.add_command(
+            label="AVG SNR on 0-2 MHz: " + host.rsplit("$", 14)[7] + " dB - AVG Noise: " + host.rsplit("$", 14)[
+                11] + " dBm (S" + str(self.convert_dbm_to_smeter(int(host.rsplit("$", 14)[11]))) + ")",
+            background=(self.color_variant("#FFFF00", (int(host.rsplit("$", 14)[7]) - 50) * 5)),
+            foreground=self.get_font_color(
+                (self.color_variant("#FFFF00", (int(host.rsplit("$", 14)[7]) - 50) * 5))), font=font_snr1,
+            command=None)
+        self.menu.add_command(
+            label="AVG SNR on 2-10 MHz: " + host.rsplit("$", 14)[8] + " dB - AVG Noise: " + host.rsplit("$", 14)[
+                12] + " dBm (S" + str(self.convert_dbm_to_smeter(int(host.rsplit("$", 14)[12]))) + ")",
+            background=(self.color_variant("#FFFF00", (int(host.rsplit("$", 14)[8]) - 50) * 5)),
+            foreground=self.get_font_color(
+                (self.color_variant("#FFFF00", (int(host.rsplit("$", 14)[8]) - 50) * 5))), font=font_snr2,
+            command=None)
+        self.menu.add_command(
+            label="AVG SNR on 10-20 MHz: " + host.rsplit("$", 14)[9] + " dB - AVG Noise: " + host.rsplit("$", 14)[
+                13] + " dBm (S" + str(self.convert_dbm_to_smeter(int(host.rsplit("$", 14)[13]))) + ")",
+            background=(self.color_variant("#FFFF00", (int(host.rsplit("$", 14)[9]) - 50) * 5)),
+            foreground=self.get_font_color(
+                (self.color_variant("#FFFF00", (int(host.rsplit("$", 14)[9]) - 50) * 5))), font=font_snr3,
+            command=None)
+        self.menu.add_command(
+            label="AVG SNR on 20-30 MHz: " + host.rsplit("$", 14)[10] + " dB - AVG Noise: " + host.rsplit("$", 14)[
+                14] + " dBm (S" + str(self.convert_dbm_to_smeter(int(host.rsplit("$", 14)[14]))) + ")",
+            background=(self.color_variant("#FFFF00", (int(host.rsplit("$", 14)[10]) - 50) * 5)),
+            foreground=self.get_font_color(
+                (self.color_variant("#FFFF00", (int(host.rsplit("$", 14)[10]) - 50) * 5))), font=font_snr4,
+            command=None)
+        self.menu.add_separator()
+        if host.rsplit('$', 14)[1] in white:  # if node is a favorite
             self.menu.add_command(label="remove from favorites", command=self.remfavorite)
-        elif host.rsplit('$', 6)[1] not in black:
+        elif host.rsplit('$', 14)[1] not in black:
             self.menu.add_command(label="add to favorites", command=self.addfavorite)
-        if host.rsplit('$', 6)[1] in black:  # if node is blacklisted
+        if host.rsplit('$', 14)[1] in black:  # if node is blacklisted
             self.menu.add_command(label="remove from blacklist", command=self.remblacklist)
-        elif host.rsplit('$', 6)[1] not in white:
+        elif host.rsplit('$', 14)[1] not in white:
             self.menu.add_command(label="add to blacklist", command=self.addblacklist)
 
         # self.menu.add_command(label="check SNR", state=DISABLED, command=self.displaySNR)  # for next devel
@@ -630,10 +664,34 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
 
         self.menu.post(event.x_root, event.y_root)
 
+    def get_font_color (self, ff):  # adapting the font color regarding background luminosity
+        # stackoverflow.com/questions/946544/good-text-foreground-color-for-a-given-background-color/946734#946734
+        rgb_hex = [ff[x:x + 2] for x in [1, 3, 5]]
+        if int(rgb_hex[0], 16)*0.299 + int(rgb_hex[1], 16)*0.587 + int(rgb_hex[2], 16)*0.114 > 186:
+            return "#000000"
+        else:
+            return "#FFFFFF"
+        # if (red*0.299 + green*0.587 + blue*0.114) > 186 use #000000 else use #ffffff
+        pass
+
+    def convert_dbm_to_smeter (self, dbm):
+        dBm_values = [-121, -115, -109, -103, -97, -91, -85, -79, -73, -63, -53, -43, -33, -23, -13, -3]
+        if dbm != 0:
+            return next(x[0] for x in enumerate(dBm_values) if x[1] > dbm)
+        else:
+            return "--"
+
+    def color_variant(self, hex_color, brightness_offset=1):
+        # source : https://chase-seibert.github.io/blog/2011/07/29/python-calculate-lighterdarker-rgb-colors.html
+        rgb_hex = [hex_color[x:x + 2] for x in [1, 3, 5]]
+        new_rgb_int = [int(hex_value, 16) + brightness_offset for hex_value in rgb_hex]
+        new_rgb_int = [min([255, max([0, i])]) for i in new_rgb_int]
+        return "#" + "".join(["0" + hex(i)[2:] if len(hex(i)[2:]) < 2 else hex(i)[2:] for i in new_rgb_int])
+
     def addfavorite(self):
         global white, black
         ReadConfigFile().read_cfg()
-        if host.rsplit('$', 6)[1] in white:
+        if host.rsplit('$', 14)[1] in white:
             tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ",
                                   message=str(host.rsplit(':')[0]) + " is already in the favorite list !")
         else:
@@ -645,10 +703,10 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
                     "# Default map filter (0= All  1= Standard+Favorites  2= Favorites  3= Blacklisted , GPS/min) \n%s,%s\n" % (
                     mapfl, gpsfl))
                 if white[0] == "":
-                    u.write("# Whitelist \n%s\n" % host.rsplit('$', 6)[1])
+                    u.write("# Whitelist \n%s\n" % host.rsplit('$', 14)[1])
                     u.write("# Blacklist \n%s\n" % ','.join(black))
                 else:
-                    white.append(host.rsplit('$', 6)[1])
+                    white.append(host.rsplit('$', 14)[1])
                     u.write("# Whitelist \n%s\n" % ','.join(white))
                     u.write("# Blacklist \n%s\n" % ','.join(black))
                 u.write("# Default Colors (standard,favorites,blacklisted,known) \n%s\n" % ','.join(colorline))
@@ -662,7 +720,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         newwhite = []
         ReadConfigFile().read_cfg()
         for f in white:
-            if f != host.rsplit('$', 6)[1]:
+            if f != host.rsplit('$', 14)[1]:
                 newwhite.append(f)
         os.remove('directTDoA.cfg')
         with open('directTDoA.cfg', "w") as u:
@@ -681,7 +739,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
 
     def addblacklist(self):
         ReadConfigFile().read_cfg()
-        if host.rsplit('$', 6)[1] in black:
+        if host.rsplit('$', 14)[1] in black:
             tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ",
                                   message=str(host.rsplit(':')[0]) + " is already blacklisted !")
         else:
@@ -694,9 +752,9 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
                     mapfl, gpsfl))
                 if black[0] == "":
                     u.write("# Whitelist \n%s\n" % ','.join(white))
-                    u.write("# Blacklist \n%s\n" % host.rsplit('$', 6)[1])
+                    u.write("# Blacklist \n%s\n" % host.rsplit('$', 14)[1])
                 else:
-                    black.append(host.rsplit('$', 6)[1])
+                    black.append(host.rsplit('$', 14)[1])
                     u.write("# Whitelist \n%s\n" % ','.join(white))
                     u.write("# Blacklist \n%s\n" % ','.join(black))
                 u.write("# Default Colors (standard,favorites,blacklisted,known) \n%s\n" % ','.join(colorline))
@@ -710,7 +768,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         newblack = []
         ReadConfigFile().read_cfg()
         for f in black:
-            if f != host.rsplit('$', 6)[1]:
+            if f != host.rsplit('$', 14)[1]:
                 newblack.append(f)
         os.remove('directTDoA.cfg')
         with open('directTDoA.cfg', "w") as u:
@@ -729,10 +787,10 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
 
     def openinbrowser(self):
         if frequency.get() != 10000:
-            url = "http://" + str(host).rsplit("$", 6)[0] + "/?f=" + str(frequency.get()) + "iqz8"
+            url = "http://" + str(host).rsplit("$", 14)[0] + "/?f=" + str(frequency.get()) + "iqz8"
             webbrowser.open_new(url)
         else:
-            url = "http://" + str(host).rsplit("$", 6)[0]
+            url = "http://" + str(host).rsplit("$", 14)[0]
             webbrowser.open_new(url)
 
     def populate(self):
@@ -840,7 +898,6 @@ class MainWindow(Frame):
         global latmin, latmax, lonmin, lonmax, bbox1, lat_min_map, lat_max_map, lon_min_map, lon_max_map
         global selectedlat, selectedlon, selectedcity, map_preset, map_manual
         frequency = DoubleVar(self, 10000.0)
-        #frequency.set("10000.0")  # default frequency
         bgc = '#d9d9d9'  # GUI background color
         fgc = '#000000'  # GUI foreground color
         dfgc = '#a3a3a3'  # GUI (disabled) foreground color
@@ -857,14 +914,30 @@ class MainWindow(Frame):
         map_manual = 0
         self.label0 = Label(parent)
         self.label0.place(relx=0, rely=0.69, relheight=0.4, relwidth=1)
-        self.label0.configure(background=bgc, font="TkFixedFont", foreground=fgc, width=214, text="")
+        self.label0.configure(background=bgc, foreground=fgc, width=214)
+        # legend
+        self.label00 = Label(parent)
+        self.label00.place(x=0, y=0, height=14, width=75)
+        self.label00.configure(background="grey", font="TkFixedFont 7", anchor="w", fg="black", text="Legend:")
+        self.label01 = Label(parent)
+        self.label01.place(x=0, y=14, height=14, width=75)
+        self.label01.configure(background="grey", font="TkFixedFont 7", anchor="w", fg=colorline[0], text="█ Standard")
+        self.label02 = Label(parent)
+        self.label02.place(x=0, y=28, height=14, width=75)
+        self.label02.configure(background="grey", font="TkFixedFont 7", anchor="w", fg=colorline[1], text="█ Favorite")
+        self.label03 = Label(parent)
+        self.label03.place(x=0, y=42, height=14, width=75)
+        self.label03.configure(background="grey", font="TkFixedFont 7", anchor="w", fg="red", text="█ Busy")
+        self.label04 = Label(parent)
+        self.label04.place(x=0, y=56, height=14, width=75)
+        self.label04.configure(background="grey", font="TkFixedFont 7", anchor="w", fg="#001E00", text="█ no SNR data")
 
         numeric_entry_only = (self.register(self.numeric_only), '%S')
         self.Entry1 = Entry(parent, textvariable=frequency, validate='key', vcmd=numeric_entry_only)  # frequency box
         self.Entry1.place(relx=0.06, rely=0.892, height=24, relwidth=0.1)
         self.Entry1.configure(background="white", disabledforeground=dfgc, font="TkFixedFont", foreground=fgc,
                               insertbackground=fgc, width=214)
-        self.Entry1.bind('<FocusIn>', self.clickfreq)
+        #self.Entry1.bind('<FocusIn>', self.clickfreq)
         #self.Entry1.bind('<Leave>', self.choosedfreq)
         self.Entry1.bind('<KeyPress>', self.choosedfreq)
 
@@ -916,6 +989,10 @@ class MainWindow(Frame):
                              selectforeground=fgc, undo="1", width=970, wrap="word")
         self.writelog("This is " + VERSION + " (ounaid@gmail.com), a GUI written for python 2.7 / Tk")
         self.writelog("All credits to Christoph Mayer for his excellent TDoA work : http://hcab14.blogspot.com")
+        self.writelog("Thanks to Pierre (linkfanel) for his listing of available KiwiSDR nodes")
+        self.writelog("Thanks to Marco (IS0KYB) for his SNR measurements listing of the KiwiSDR network")
+        self.writelog(
+            "Already computed TDoA runs : " + str([len(d) for r, d, folder in os.walk(os.path.join('TDoA', 'iq'))][0]))
         vsb2 = Scrollbar(parent, orient="vertical", command=self.Text2.yview)  # adding scrollbar to console
         vsb2.place(relx=0.6, rely=0.7, relheight=0.18, relwidth=0.02)
         self.Text2.configure(yscrollcommand=vsb2.set)
@@ -938,26 +1015,7 @@ class MainWindow(Frame):
         submenu2 = Menu(filemenu, tearoff=0)
         submenu3 = Menu(filemenu, tearoff=0)
         filemenu.add_cascade(label='Default map', menu=submenu1, underline=0)
-        submenu1.add_command(label="Grayscale (bright)",
-                             command=lambda *args: self.setmap('maps/directTDoA_map_grayscale_bright.jpg'))
-        submenu1.add_command(label="Grayscale (dark)",
-                             command=lambda *args: self.setmap('maps/directTDoA_map_grayscale.jpg'))
-        submenu1.add_command(label="Sat",
-                             command=lambda *args: self.setmap('maps/directTDoA_map_sat.jpg'))
-        submenu1.add_command(label="Snow Cover",
-                             command=lambda *args: self.setmap('maps/directTDoA_map_snowcover.jpg'))
-        submenu1.add_command(label="NASA Albedo",
-                             command=lambda *args: self.setmap('maps/directTDoA_map_NASA_albedo.jpg'))
-        submenu1.add_command(label="NASA BlueMarble",
-                             command=lambda *args: self.setmap('maps/directTDoA_map_NASA_bluemarble.jpg'))
-        submenu1.add_command(label="NASA Topography",
-                             command=lambda *args: self.setmap('maps/directTDoA_map_NASA_topo.jpg'))
-        submenu1.add_command(label="NASA Topography (grayscale)",
-                             command=lambda *args: self.setmap('maps/directTDoA_map_NASA_topo_grayscale.jpg'))
-        submenu1.add_command(label="NASA Vegetation",
-                             command=lambda *args: self.setmap('maps/directTDoA_map_NASA_vegetation.jpg'))
-        submenu1.add_command(label="NASA Vegetation (grayscale)",
-                             command=lambda *args: self.setmap('maps/directTDoA_map_NASA_vegetation_grayscale.jpg'))
+        submenu1.add_command(label="Browse maps folder", command=self.choose_map)
         filemenu.add_cascade(label='Map Filters', menu=submenu2, underline=0)
         submenu2.add_command(label="Minimum GPS fixes/min", command=self.min_gps_filter)
         submenu2.add_command(label="Display All nodes", command=lambda *args: self.setmapfilter('0'))
@@ -984,7 +1042,7 @@ class MainWindow(Frame):
         filemenu2.add_command(label="West Russia", command=lambda *args: self.map_preset(10))
         filemenu2.add_command(label="East Russia", command=lambda *args: self.map_preset(11))
         filemenu2.add_command(label="USA", command=lambda *args: self.map_preset(12))
-        filemenu2.add_command(label="World",command=lambda *args: self.map_preset(13))
+        filemenu2.add_command(label="World (use with caution)",command=lambda *args: self.map_preset(13))
         # next map boundaries presets come here, keep preset "20" for reset
         #
         #
@@ -1066,10 +1124,10 @@ class MainWindow(Frame):
     def help():
         master = Tk()
         w = Message(master, text="""
-    1/ Choose KiwiSDR nodes by left-click on them and select \"Use:\" command to add them to the list (min=3 max=6)
+    1/ Hold Left-mouse button to move the World Map to your desired location
     2/ Enter the frequency, between 0 and 30000 (kHz)
     3/ Choose from the top bar menu a specific bandwidth for the IQ recordings if necessary
-    4/ Hold Left-mouse button to move the World Map to your desired location
+    4/ Choose KiwiSDR nodes by left-click on them and select \"Use:\" command to add them to the list (min=3 max=6)
     5/ Hold Right-mouse button to drag a rec rectangle to set the TDoA computed map geographical boundaries 
        or select one of the presets from the top bar menu, you can cancel by drawing again by hand or choose RESET
     6/ Type some text in the bottom left box to search for a city or TX site to display on final TDoA map (if needed)
@@ -1093,16 +1151,15 @@ class MainWindow(Frame):
 
     A backup copy of processed ".wav", ".m", ".pdf" files is automatically made in a TDoA/iq/ subdirectory
     Check TDoA/iq/<timeofprocess>_F<frequency>/ to find your files.
-    You can compute again your IQ recordings, to do so, just copy the .wav in iq/ and proc_tdoa_xxxx.m in TDoA/
-    Edit that proc_tdoa_xxxx.m to change map boundaries or remove IQ sources (don't forget to change the index numbers)
-    Then, in linux terminal, type "octave-cli proc_tdoa_xxxx.m" from /TDoA directory to run again the process.
-    Be aware that the next created PDF file will be stored in TDoA/pdf/ and NOT in the backup iq/ directory !
-
+    You can compute again your IQ recordings, to do so, just run the ./recompute.sh script
+    
     The World map is not real-time, click UPDATE button to refresh, of course only GPS enabled nodes are displayed...
 
-    Thanks to Christoph Mayer for the public release of his codes
-    Thanks to John Seamons for the GPS timestamps in IQ files
-    Thanks to Dmitry Janushkevich for the original kiwirecorder python codes
+    Thanks to Christoph Mayer for the public release of his TDoA GNU-Octave scripts
+    Thanks to John Seamons for including the GPS timestamps in IQ files
+    Thanks to Dmitry Janushkevich for the original kiwirecorder project python scripts
+    Thanks to Pierre Ynard (linkfanel) for the KiwiSDR network node listing used as source for GUI map update
+    Thanks to Marco Cogoni (IS0KYB) for the KiwiSDR network SNR measurements listing used as source for GUI map update
 
     linkz
     """, width=1000, font="TkFixedFont 8", bg="white", anchor="center")
@@ -1143,6 +1200,8 @@ class MainWindow(Frame):
                 p = {'a': -125, 'b': 55, 'c': -66, 'd': 20}
             if pmap == 13:  # World
                 p = {'a': -179, 'b': 89, 'c': 179, 'd': -59}
+                tkMessageBox.showinfo("WARNING",
+                                      message="Using the entire World as TDoA map boundaries will take MANY CPU TIME.")
             ## next map boundaries presets come here
             sx0 = (1907.5 + ((float(p['a']) * 1910) / 180))
             sx1 = (1907.5 + ((float(p['c']) * 1910) / 180))
@@ -1205,9 +1264,13 @@ class MainWindow(Frame):
         else:
             pass
 
-    def setmap(self, mapc):
+    def choose_map(self):
+        mapname = tkFileDialog.askopenfilename(initialdir="maps")
+        if not mapname or not mapname.lower().endswith(('.png', '.jpg', '.jpeg')):
+            tkMessageBox.showinfo("", message="Error, select png/jpg/jpeg files only.\n Loading default map now.")
+            mapname = "maps/directTDoA_map_grayscale_dark.jpg"
         ReadConfigFile().read_cfg()
-        SaveConfigFile().save_cfg("mapc", mapc)
+        SaveConfigFile().save_cfg("mapc", "maps/" + os.path.split(mapname)[1])
         Restart().run()
 
     def runupdate(self):  # if UPDATE button is pushed
@@ -1217,9 +1280,6 @@ class MainWindow(Frame):
         RunUpdate(self).start()  # start the update thread
 
     # ---------------------------------------------------MAIN-----------------------------------------------------------
-    def clickfreq(self, ff):
-        self.Button1.configure(state='normal')
-        # self.Entry1.delete(0, 'end')
 
     def numeric_only(self, S):
         freq_typed = re.match(r"\d+(.\d+)?$", S)
@@ -1286,19 +1346,15 @@ class MainWindow(Frame):
                 self.writelog("ERROR: Please enter a frequency first !")
             elif self.Entry1.get() == '' or float(self.Entry1.get()) < 0 or float(self.Entry1.get()) > 30000:
                 self.writelog("ERROR: Please check the frequency !")
-            elif len(namelist) < 3:
+            elif len(namelist) < 3:  # debug
                 self.writelog("ERROR: Select at least 3 nodes for TDoA processing !")
             else:
                 frequency = str(float(self.Entry1.get()))
                 self.Button1.configure(state="disabled")
                 self.Button2.configure(state="normal")
                 self.Button3.configure(state='disabled')
-                if platform.system() == "Windows":
-                    for wavfiles in glob.glob("TDoA\\iq\\*wav"):
-                        os.remove(wavfiles)
-                if platform.system() == "Linux" or platform.system() == "Darwin":
-                    for wavfiles in glob.glob("./TDoA/iq/*wav"):
-                        os.remove(wavfiles)
+                for wavfiles in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
+                    os.remove(wavfiles)
                 time.sleep(0.2)
                 StartKiwiSDR(self).start()
                 CheckFileSize(self).start()
@@ -1309,28 +1365,20 @@ class MainWindow(Frame):
         global lat_min_map, lat_max_map, lon_min_map, lon_max_map, checkfilesize
         checkfilesize = 0
         os.kill(proc2_pid, signal.SIGTERM)
-        if platform.system() == "Windows":
-            for file in os.listdir("TDoA\iq\\"):
-                if file.endswith(".wav"):
-                    IQfiles.append(os.path.split(file)[1])
-        if platform.system() == "Linux" or platform.system() == "Darwin":
-            for file in os.listdir("./TDoA/iq/"):
-                if file.endswith(".wav"):
-                    IQfiles.append(os.path.split(file)[1])
+        for file in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
+            IQfiles.append(os.path.split(file)[1])
         firstfile = IQfiles[0]
         varfile = str(firstfile.split("_", 2)[1].split("_", 1)[0])
         for i in range(len(IQfiles)):
             nbfile = len(IQfiles)
-        self.writelog("IQ Recording(s) has been stopped...")
+        self.writelog("IQ Recordings stopped...")
         self.Button2.configure(state="disabled")
 
         #  creating the .m file
-        with open('./TDoA/proc_tdoa_' + varfile + ".m", "w") as g:
+        with open(os.path.join('TDoA') + os.sep + "proc_tdoa_" + varfile + ".m", "w") as g:
             g.write("## -*- octave -*-\n")
-            g.write("## This file was auto-generated by " + VERSION + "\n")
-            g.write("\n")
-            g.write("function [tdoa,input]=proc_tdoa_" + varfile + "\n")
-            g.write("\n")
+            g.write("## This file was auto-generated by " + VERSION + "\n\n")
+            g.write("function [tdoa,input]=proc_tdoa_" + varfile + "\n\n")
             for i in range(len(IQfiles)):
                 g.write("  input(" + str(i + 1) + ").fn    = fullfile('iq', '" + str(IQfiles[i]) + "');\n")  # newformat
             g.write("""
@@ -1380,24 +1428,29 @@ disp("finished");
 endfunction """)
 
         g.close()
-        self.writelog("./TDoA/proc_tdoa_" + varfile + ".m file created")
+        self.writelog(os.path.join('TDoA') + os.sep + "proc_tdoa_" + varfile + ".m file created")
         # backup of IQ, gnss_pos and .m file in a new directory named by the datetime process start and frequency
         time.sleep(0.5)
-        if platform.system() == "Windows":
-            os.makedirs("TDoA\iq\\" + starttime + "_F" + str(frequency))
-            for file in os.listdir("TDoA\iq\\"):
-                if file.endswith(".wav"):
-                    copyfile("TDoA\iq\\" + file, "TDoA\iq\\" + starttime + "_F" + str(frequency) + "\\" + file)
-            copyfile("TDoA\\proc_tdoa_" + varfile + ".m",
-                     "TDoA\\iq\\" + starttime + "_F" + str(frequency) + "\\proc_tdoa_" + varfile + ".m")
-
-        if platform.system() == "Linux" or platform.system() == "Darwin":
-            os.makedirs("./TDoA/iq/" + starttime + "_F" + str(frequency))
-            for file in os.listdir("./TDoA/iq//"):
-                if file.endswith(".wav"):
-                    copyfile("./TDoA/iq/" + file, "./TDoA/iq/" + starttime + "_F" + str(frequency) + "/" + file)
-            copyfile("./TDoA/proc_tdoa_" + varfile + ".m",
-                     "./TDoA/iq/" + starttime + "_F" + str(frequency) + "/proc_tdoa_" + varfile + ".m")
+        os.makedirs(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(frequency))
+        for file in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
+            copyfile(file, os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
+                frequency) + os.sep + file.rsplit(os.sep, 1)[1])
+        copyfile(os.path.join('TDoA') + os.sep + "proc_tdoa_" + varfile + ".m",
+                 os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
+                     frequency) + os.sep + "proc_tdoa_" + varfile + ".m")
+        with open(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
+                frequency) + os.sep + "recompute.sh", "w") as recompute:
+            recompute.write("""#!/bin/sh
+## This file is intended to copy back *.wav to iq directory and proc_tdoa_""" + varfile + """.m to TDoA directory
+## and to open a file editor so you can modify .m file parameters.
+/usr/bin/cp ./*.wav ../
+/usr/bin/cp proc_tdoa_""" + varfile + """.m ../../
+cd ../..
+$EDITOR proc_tdoa_""" + varfile + """.m
+octave-cli proc_tdoa_""" + varfile + """.m""")
+            recompute.close()
+            os.chmod(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
+                frequency) + os.sep + "recompute.sh", 0o777)
         self.writelog("Running Octave process now... please wait")
         time.sleep(0.5)
         OctaveProcessing(self).start()

@@ -1,6 +1,8 @@
 # directTDoA
 
 This piece of software is JUST a GUI written for Python 2.7 designed to compute TDoA maps with GPS enabled KiwiSDR servers around the world using GNU Octave & the EXCELLENT work of Christoph Mayer @ https://github.com/hcab14/TDoA + his forked "kiwiclient" python stuff, original code by Dmitry Janushkevich @ https://github.com/dev-zzo/kiwiclient
+Thanks to Pierre Ynard (linkfanel) for the listing of available KiwiSDR nodes used as source for the TDoA map update process (http://rx.linkfanel.net)
+Thanks to Marco Cogoni (IS0KYB) for allowing me the use of his SNR measurements of the KiwiSDR network (http://sibamanna.duckdns.org/sdr_map.html)
 
 
 ## INSTALL AND RUN (on LINUX) Thanks Daniel E. for the install procedure
@@ -62,12 +64,19 @@ Install GNU Octave 4.4.0, in Terminal : `brew install octave`
 * v2.41: update process modified due to missing tags for some nodes in kiwisdr.com/public page
 * v2.42: forgot some conditions for MacOS compatibility  oops  thanks Nicolas M. again  :-)
 * v2.43: auto create the directTDoA_server_list.db file at 1st start, file does not need to be in the repo anymore
-* v2.44: MacOS tested OK, code cleanup +warning about missing GPS timestamps in IQ recordings  -uglymaps +kickass NASA maps
+* v2.44: MacOS tested OK, code cleanup + warning about missing GPS timestamps in IQ recordings  -uglymaps +kickass NASA maps
 * v2.50: some TODO list items coded or fixed
 * v2.60: map update now based on John's json listing + GPS fix/min map filter + nodes are identified by IDs, no hosts anymore + no .png file creation (patch) + no more gnss_pos.txt backup and no more TDoA/gnss_pos/ purge
 * v2.70: Octave subprocess management modified (no more octave defunct remaining in "ps aux" now) + stdout & stderr saved in the same "TDoA/iq/<backup>/TDoA_<freq>.txt" file
 * v2.71: each node color brightness is now based on its latest GPS fix/min value, it will become darker when fix/min will go towards "0" + my own kiwiSDR coordinates more accurate
+* v2.72: Adding the SNR values of each node from linkfanel's (JSON) database + Color points (nodes) change in brightness according to the SNR, minimum=0 <darker - brighter> maximum=35? (version not released)
+* v2.80: Listing update is now made from both linkfanel's (JSON) databases only (GPS enabled nodes list + SNR values) + adding regexp to create TDoA_id (parsing callsigns), IPs and node various coordinates format (version not released)
+* v2.90: Code clean-up + SNR values are now only from IS0KYB (JSON) database + count TDoA runs at start + adding a ./recompute.sh script to backup dir + directTDoA node db now in JSON format + add map legend + popup menu font color managed for more readibility + new maps
+* v3.00: More code clean-up and as the GUI has changed a lot recently, it's now entering the v.3xx version range
 
 ## TODO LIST
-* offline tool to re-compute the backup IQ files more easily ?
 * ultimateTDoA variant mode ? (c)Daniel Ekmann, to basically record all possible nodes at same time in order to post-compute TDoAs later with a dynamic .m file
+* securizing the node.db.bak in case of multiple faulty update processes
+* adding more error triggers in case of faulty update process or failed connections to node (bad password / node is busy)
+* compute mini-waterfall pictures on selected nodes if necessary (directly in python, not via jupyther notebook stuff)
+* merging a part of the directKiwi code to connect & get the audio stream from the selected nodes (faster than the webconnect to openwebrx interface)
