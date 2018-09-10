@@ -6,6 +6,7 @@ import requests
 import json
 import threading
 import codecs
+import unicodedata
 import os
 from shutil import copyfile
 from restart import Restart

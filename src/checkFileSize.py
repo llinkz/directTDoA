@@ -1,10 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os
 import glob
-import time
+import os
 import threading
+import time
+
 
 class CheckFileSize(threading.Thread):
     def __init__(self, parent=None):

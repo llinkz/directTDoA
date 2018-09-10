@@ -1,7 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import json
 import os
 import threading
+
 
 class FillMapWithNodes(threading.Thread):
 
@@ -100,5 +102,3 @@ class FillMapWithNodes(threading.Thread):
 
     def deletePoint(self, n):  # city/site map point deletion process
         self.parent.canvas.delete(self.parent, n.rsplit(' (')[0])
-
-

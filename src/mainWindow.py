@@ -1,6 +1,27 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from tkinter import Frame, DoubleVar, Label, Entry, Button, Listbox, Text, Scrollbar, Menu, Message, Tk, IQfiles
+import tkSimpleDialog
+import tkFileDialog
+import tkMessageBox
+import signal
+import glob
+import re
+import os
+from shutil import copyfile
+import time
+from tkColorChooser import askcolor
+from restart import Restart
+from runUpdate import RunUpdate
+from readKnownPointFile import ReadKnownPointFile
+from zoomAdvanced import ZoomAdvanced
+from readConfigFile import ReadConfigFile
+from saveConfigFile import SaveConfigFile
+from startKiwiSDR import StartKiwiSDR
+from checkFileSize import CheckFileSize
+from octaveProcessing import OctaveProcessing
+
 class MainWindow(Frame):
 
     def __init__(self, parent):
