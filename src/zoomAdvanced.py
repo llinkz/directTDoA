@@ -12,8 +12,13 @@ from restart import Restart
 class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-canvas-zoom-move-pan?noredirect=1&lq=1 :)
     def __init__(self, parent):
         Frame.__init__(self, parent=None)
-        parent.geometry("1200x700+150+10")
-        global dx0, dy0, dx1, dy1
+        self.app = parent
+        self.app.geometry("1200x700+150+10")
+        self.dx0 = "0"
+        self.dx1 = "0"
+        self.dy0 = "0"
+        self.dy1 = "0"
+        
         global serverlist, portlist, namelist, shortlist, dmap, host, white, black, mapfl, mapboundaries_set
         # host = Variable
         serverlist = []
@@ -58,7 +63,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         self.rect = None
         self.start_x = None
         self.start_y = None
-        self.canvas.scan_dragto(-int(dx0.split('.')[0]), -int(dy0.split('.')[0]), gain=1)  # adjust map pos.
+        self.canvas.scan_dragto(-int(self.dx0.split('.')[0]), -int(self.dy0.split('.')[0]), gain=1)  # adjust map pos.
         self.show_image()
         FillMapWithNodes(self).start()
 
@@ -297,7 +302,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         else:
             os.remove('directTDoA.cfg')
             with open('directTDoA.cfg', "w") as u:
-                u.write("# Default map geometry \n%s,%s,%s,%s" % (dx0, dy0, dx1, dy1))
+                u.write("# Default map geometry \n%s,%s,%s,%s" % (self.dx0, self.dy0, self.dx1, self.dy1))
                 u.write("# Default map picture \n%s\n" % dmap)
                 u.write(
                     "# Default map filter (0= All  1= Standard+Favorites  2= Favorites  3= Blacklisted , GPS/min) \n%s,%s\n" % (
@@ -324,7 +329,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
                 newwhite.append(f)
         os.remove('directTDoA.cfg')
         with open('directTDoA.cfg', "w") as u:
-            u.write("# Default map geometry \n%s,%s,%s,%s" % (dx0, dy0, dx1, dy1))
+            u.write("# Default map geometry \n%s,%s,%s,%s" % (self.dx0, self.dy0, self.dx1, self.dy1))
             u.write("# Default map picture \n%s\n" % (dmap))
             u.write(
                 "# Default map filter (0= All  1= Standard+Favorites  2= Favorites  3= Blacklisted , GPS/min) \n%s,%s\n" % (
@@ -345,7 +350,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         else:
             os.remove('directTDoA.cfg')
             with open('directTDoA.cfg', "w") as u:
-                u.write("# Default map geometry \n%s,%s,%s,%s" % (dx0, dy0, dx1, dy1))
+                u.write("# Default map geometry \n%s,%s,%s,%s" % (self.dx0, self.dy0, self.dx1, self.dy1))
                 u.write("# Default map picture \n%s\n" % dmap)
                 u.write(
                     "# Default map filter (0= All  1= Standard+Favorites  2= Favorites  3= Blacklisted , GPS/min) \n%s,%s\n" % (
@@ -372,7 +377,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
                 newblack.append(f)
         os.remove('directTDoA.cfg')
         with open('directTDoA.cfg', "w") as u:
-            u.write("# Default map geometry \n%s,%s,%s,%s" % (dx0, dy0, dx1, dy1))
+            u.write("# Default map geometry \n%s,%s,%s,%s" % (self.dx0, self.dy0, self.dx1, self.dy1))
             u.write("# Default map picture \n%s\n" % dmap)
             u.write(
                 "# Default map filter (0= All  1= Standard+Favorites  2= Favorites  3= Blacklisted , GPS/min) \n%s,%s\n" % (
