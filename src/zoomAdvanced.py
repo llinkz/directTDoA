@@ -406,7 +406,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
                 portlist.append(host.rsplit(':')[1].rsplit('$')[0])  # port
                 namelist.append(host.rsplit('$')[1])  # id
                 shortlist.append(host.rsplit('$')[2])  # short name
-                app.title(VERSION + " - Selected nodes : " + str(shortlist).replace("[", "").replace("'", "").replace("]", "").replace(",", " +"))
+                self.app.title(self.app.VERSION + " - Selected nodes : " + str(shortlist).replace("[", "").replace("'", "").replace("]", "").replace(",", " +"))
                 full_list = str(serverlist).replace("[", "").replace("'", "").replace("]", "").replace(",", " +")
             else:
                 tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ",

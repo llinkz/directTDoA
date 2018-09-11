@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from tkinter import Frame, DoubleVar, Label, Entry, Button, Listbox, Text, Scrollbar, Menu, Message, Tk, IQfiles
+from tkinter import Frame, DoubleVar, Label, Entry, Button, Listbox, Text, Scrollbar, Menu, Message, Tk, END
 import tkSimpleDialog
 import tkFileDialog
 import tkMessageBox
@@ -26,77 +26,84 @@ class MainWindow(Frame):
 
     def __init__(self, parent):
         Frame.__init__(self, parent)
+        self.app = parent
         # self.parent = parent
         self.member1 = ZoomAdvanced(parent)
         if os.path.isfile('directTDoA_server_list.db') is not True:
             tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ", message="oops no node db found, Click OK to run an update now")
             RunUpdate().run()
         ReadKnownPointFile().run()
-        global frequency, checkfilesize
-        global line, i, bgc, fgc, dfgc, lpcut, hpcut
-        global latmin, latmax, lonmin, lonmax, bbox1, lat_min_map, lat_max_map, lon_min_map, lon_max_map
-        global selectedlat, selectedlon, selectedcity, map_preset, map_manual
-        frequency = DoubleVar(self, 10000.0)
-        bgc = '#d9d9d9'  # GUI background color
-        fgc = '#000000'  # GUI foreground color
-        dfgc = '#a3a3a3'  # GUI (disabled) foreground color
-        lpcut = 5000  # default low pass filter
-        hpcut = 5000  # default high pass filter
-        lat_min_map = ""
-        lat_max_map = ""
-        lon_min_map = ""
-        lon_max_map = ""
-        selectedlat = ""
-        selectedlon = ""
-        selectedcity = ""
-        map_preset = 0
-        map_manual = 0
-        self.label0 = Label(parent)
+        self.app.checkfilesize = ""
+        self.app.line = ""
+        self.app.i = 0
+        self.app.latmin = ""
+        self.app.latmax = ""
+        self.app.lonmin = ""
+        self.app.lonmax = ""
+        self.app.bbox1 = ""
+        
+        self.app.frequency = DoubleVar(self, 10000.0)
+        self.app.bgc = '#d9d9d9'  # GUI background color
+        self.app.fgc = '#000000'  # GUI foreground color
+        self.app.dfgc = '#a3a3a3'  # GUI (disabled) foreground color
+        self.app.lpcut = 5000  # default low pass filter
+        self.app.hpcut = 5000  # default high pass filter
+        self.app.lat_min_map = ""
+        self.app.lat_max_map = ""
+        self.app.lon_min_map = ""
+        self.app.lon_max_map = ""
+        self.app.selectedlat = ""
+        self.app.selectedlon = ""
+        self.app.selectedcity = ""
+        self.app.map_preset = 0
+        self.app.map_manual = 0
+
+        self.label0 = Label(self.app)
         self.label0.place(relx=0, rely=0.69, relheight=0.4, relwidth=1)
-        self.label0.configure(background=bgc, foreground=fgc, width=214)
+        self.label0.configure(background=self.app.bgc, foreground=self.app.fgc, width=214)
         # legend
-        self.label00 = Label(parent)
+        self.label00 = Label(self.app)
         self.label00.place(x=0, y=0, height=14, width=75)
         self.label00.configure(background="grey", font="TkFixedFont 7", anchor="w", fg="black", text="Legend:")
-        self.label01 = Label(parent)
+        self.label01 = Label(self.app)
         self.label01.place(x=0, y=14, height=14, width=75)
         self.label01.configure(background="grey", font="TkFixedFont 7", anchor="w", fg=colorline[0], text="█ Standard")
-        self.label02 = Label(parent)
+        self.label02 = Label(self.app)
         self.label02.place(x=0, y=28, height=14, width=75)
         self.label02.configure(background="grey", font="TkFixedFont 7", anchor="w", fg=colorline[1], text="█ Favorite")
-        self.label03 = Label(parent)
+        self.label03 = Label(self.app)
         self.label03.place(x=0, y=42, height=14, width=75)
         self.label03.configure(background="grey", font="TkFixedFont 7", anchor="w", fg="red", text="█ Busy")
-        self.label04 = Label(parent)
+        self.label04 = Label(self.app)
         self.label04.place(x=0, y=56, height=14, width=75)
         self.label04.configure(background="grey", font="TkFixedFont 7", anchor="w", fg="#001E00", text="█ no SNR data")
 
         numeric_entry_only = (self.register(self.numeric_only), '%S')
-        self.Entry1 = Entry(parent, textvariable=frequency, validate='key', vcmd=numeric_entry_only)  # frequency box
+        self.Entry1 = Entry(self.app, textvariable=frequency, validate='key', vcmd=numeric_entry_only)  # frequency box
         self.Entry1.place(relx=0.06, rely=0.892, height=24, relwidth=0.1)
-        self.Entry1.configure(background="white", disabledforeground=dfgc, font="TkFixedFont", foreground=fgc,
-                              insertbackground=fgc, width=214)
+        self.Entry1.configure(background="white", disabledforeground=self.app.dfgc, font="TkFixedFont", foreground=self.app.fgc,
+                              insertbackground=self.app.fgc, width=214)
         #self.Entry1.bind('<FocusIn>', self.clickfreq)
         #self.Entry1.bind('<Leave>', self.choosedfreq)
         self.Entry1.bind('<KeyPress>', self.choosedfreq)
 
-        self.label1 = Label(parent)
+        self.label1 = Label(self.app)
         self.label1.place(relx=0.01, rely=0.895)
-        self.label1.configure(background=bgc, font="TkFixedFont", foreground=fgc, text="Freq:")
+        self.label1.configure(background=self.app.bgc, font="TkFixedFont", foreground=self.app.fgc, text="Freq:")
         self.label2 = Label(parent)
         self.label2.place(relx=0.162, rely=0.895)
-        self.label2.configure(background=bgc, font="TkFixedFont", foreground=fgc, text="kHz")
+        self.label2.configure(background=self.app.bgc, font="TkFixedFont", foreground=self.app.fgc, text="kHz")
 
         self.Button1 = Button(parent)  # Start recording button
         self.Button1.place(relx=0.77, rely=0.89, height=24, relwidth=0.10)
-        self.Button1.configure(activebackground=bgc, activeforeground=fgc, background=bgc, disabledforeground=dfgc,
-                               foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
+        self.Button1.configure(activebackground=self.app.bgc, activeforeground=self.app.fgc, background=self.app.bgc, disabledforeground=self.app.dfgc,
+                               foreground=self.app.fgc, highlightbackground=self.app.bgc, highlightcolor=self.app.fgc, pady="0",
                                text="Start recording", command=self.clickstart, state="normal")
 
         self.Button2 = Button(parent)  # Stop button
         self.Button2.place(relx=0.88, rely=0.89, height=24, relwidth=0.1)
-        self.Button2.configure(activebackground=bgc, activeforeground=fgc, background=bgc, disabledforeground=dfgc,
-                               foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
+        self.Button2.configure(activebackground=self.app.bgc, activeforeground=self.app.fgc, background=self.app.bgc, disabledforeground=self.app.dfgc,
+                               foreground=self.app.fgc, highlightbackground=self.app.bgc, highlightcolor=self.app.fgc, pady="0",
                                text="Start TDoA proc", command=self.clickstop, state="disabled")
 
         #  2nd part of buttons
@@ -107,26 +114,26 @@ class MainWindow(Frame):
         self.ListBox.place(relx=0.2, rely=0.95, height=21, relwidth=0.3)
         self.label3 = Label(parent)  # Known point
         self.label3.place(relx=0.54, rely=0.95, height=21, relwidth=0.3)
-        self.label3.configure(background=bgc, font="TkFixedFont", foreground=fgc, width=214, text="", anchor="w")
+        self.label3.configure(background=self.app.bgc, font="TkFixedFont", foreground=self.app.fgc, width=214, text="", anchor="w")
 
         self.Button5 = Button(parent)  # Restart GUI button
         self.Button5.place(relx=0.81, rely=0.94, height=24, relwidth=0.08)
-        self.Button5.configure(activebackground=bgc, activeforeground=fgc, background="red", disabledforeground=dfgc,
-                               foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
+        self.Button5.configure(activebackground=self.app.bgc, activeforeground=self.app.fgc, background="red", disabledforeground=self.app.dfgc,
+                               foreground=self.app.fgc, highlightbackground=self.app.bgc, highlightcolor=self.app.fgc, pady="0",
                                text="Restart GUI", command=Restart().run, state="normal")
 
         self.Button3 = Button(parent)  # Update button
         self.Button3.place(relx=0.90, rely=0.94, height=24, relwidth=0.08)
-        self.Button3.configure(activebackground=bgc, activeforeground=fgc, background=bgc, disabledforeground=dfgc,
-                               foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
+        self.Button3.configure(activebackground=self.app.bgc, activeforeground=self.app.fgc, background=self.app.bgc, disabledforeground=self.app.dfgc,
+                               foreground=self.app.fgc, highlightbackground=self.app.bgc, highlightcolor=self.app.fgc, pady="0",
                                text="update map", command=self.runupdate, state="normal")
 
         self.Text2 = Text(parent)  # Console window
         self.Text2.place(relx=0.005, rely=0.7, relheight=0.18, relwidth=0.6)
-        self.Text2.configure(background="black", font="TkTextFont", foreground="red", highlightbackground=bgc,
-                             highlightcolor=fgc, insertbackground=fgc, selectbackground="#c4c4c4",
-                             selectforeground=fgc, undo="1", width=970, wrap="word")
-        self.writelog("This is " + VERSION + " (ounaid@gmail.com), a GUI written for python 2.7 / Tk")
+        self.Text2.configure(background="black", font="TkTextFont", foreground="red", highlightbackground=self.app.bgc,
+                             highlightcolor=self.app.fgc, insertbackground=self.app.fgc, selectbackground="#c4c4c4",
+                             selectforeground=self.app.fgc, undo="1", width=970, wrap="word")
+        self.writelog("This is " + self.app.VERSION + " (ounaid@gmail.com), a GUI written for python 2.7 / Tk")
         self.writelog("All credits to Christoph Mayer for his excellent TDoA work : http://hcab14.blogspot.com")
         self.writelog("Thanks to Pierre (linkfanel) for his listing of available KiwiSDR nodes")
         self.writelog("Thanks to Marco (IS0KYB) for his SNR measurements listing of the KiwiSDR network")
@@ -138,9 +145,9 @@ class MainWindow(Frame):
 
         self.Text3 = Text(parent)  # IQ recs file size window
         self.Text3.place(relx=0.624, rely=0.7, relheight=0.18, relwidth=0.37)
-        self.Text3.configure(background="white", font="TkTextFont", foreground="black", highlightbackground=bgc,
-                             highlightcolor=fgc, insertbackground=fgc, selectbackground="#c4c4c4",
-                             selectforeground=fgc, undo="1", width=970, wrap="word")
+        self.Text3.configure(background="white", font="TkTextFont", foreground="black", highlightbackground=self.app.bgc,
+                             highlightcolor=self.app.fgc, insertbackground=self.app.fgc, selectbackground="#c4c4c4",
+                             selectforeground=self.app.fgc, undo="1", width=970, wrap="word")
 
         # -------------------------------------------------LOGGING AND MENUS--------------------------------------------
         menubar = Menu(self)
@@ -430,7 +437,7 @@ class MainWindow(Frame):
     def choosedfreq(self, ff):
         if ff.char in ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'):
             try:
-                frequency.trace("w", lambda name, index, mode, frequency=frequency: self.callback(frequency))
+                self.app.frequency.trace("w", lambda name, index, mode, frequency=self.app.frequency: self.callback(self.app.frequency))
                 return True
             except ValueError:
                 return False
@@ -440,13 +447,13 @@ class MainWindow(Frame):
     def set_iq(self, m):
         global lpcut, hpcut
         try:
-            if 5 < frequency.get() < 30000:
+            if 5 < self.app.frequency.get() < 30000:
                 self.writelog("Setting IQ bandwidth at " + m + " Hz       | " + str(
-                float(frequency.get()) - (float(m) / 2000)) + " | <---- " + str(float(frequency.get())) + " ----> | " + str(
-                float(frequency.get()) + (float(m) / 2000)) + " |")
+                float(self.app.frequency.get()) - (float(m) / 2000)) + " | <---- " + str(float(self.app.frequency.get())) + " ----> | " + str(
+                float(self.app.frequency.get()) + (float(m) / 2000)) + " |")
                 lpcut = hpcut = int(m) / 2
             else:
-                frequency.set(10000)
+                self.app.frequency.set(10000)
                 self.writelog("Error, frequency is too low or too high")
         except ValueError as ve:
             pass
@@ -516,7 +523,7 @@ class MainWindow(Frame):
         #  creating the .m file
         with open(os.path.join('TDoA') + os.sep + "proc_tdoa_" + varfile + ".m", "w") as g:
             g.write("## -*- octave -*-\n")
-            g.write("## This file was auto-generated by " + VERSION + "\n\n")
+            g.write("## This file was auto-generated by " + self.app.VERSION + "\n\n")
             g.write("function [tdoa,input]=proc_tdoa_" + varfile + "\n\n")
             for i in range(len(IQfiles)):
                 g.write("  input(" + str(i + 1) + ").fn    = fullfile('iq', '" + str(IQfiles[i]) + "');\n")  # newformat
@@ -546,7 +553,7 @@ class MainWindow(Frame):
             g.write("                     'lon', [ " + str(lon_min_map) + ":0.05:" + str(lon_max_map) + "],\n")
             g.write("                     'plotname', 'TDoA_")
             g.write(varfile + "',\n")
-            g.write("                     'title', '" + str(frequency) + " kHz " +
+            g.write("                     'title', '" + str(self.app.frequency) + " kHz " +
                     str(time.strftime('%Y%m%dT%H%MZ', time.gmtime())) + "'")
 
             if selectedlat == "" or selectedlon == "":
@@ -570,15 +577,15 @@ endfunction """)
         self.writelog(os.path.join('TDoA') + os.sep + "proc_tdoa_" + varfile + ".m file created")
         # backup of IQ, gnss_pos and .m file in a new directory named by the datetime process start and frequency
         time.sleep(0.5)
-        os.makedirs(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(frequency))
+        os.makedirs(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(self.app.frequency))
         for file in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
             copyfile(file, os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
-                frequency) + os.sep + file.rsplit(os.sep, 1)[1])
+                self.app.frequency) + os.sep + file.rsplit(os.sep, 1)[1])
         copyfile(os.path.join('TDoA') + os.sep + "proc_tdoa_" + varfile + ".m",
                  os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
-                     frequency) + os.sep + "proc_tdoa_" + varfile + ".m")
+                     self.app.frequency) + os.sep + "proc_tdoa_" + varfile + ".m")
         with open(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
-                frequency) + os.sep + "recompute.sh", "w") as recompute:
+                self.app.frequency) + os.sep + "recompute.sh", "w") as recompute:
             recompute.write("""#!/bin/sh
 ## This file is intended to copy back *.wav to iq directory and proc_tdoa_""" + varfile + """.m to TDoA directory
 ## and to open a file editor so you can modify .m file parameters.
@@ -589,7 +596,7 @@ $EDITOR proc_tdoa_""" + varfile + """.m
 octave-cli proc_tdoa_""" + varfile + """.m""")
             recompute.close()
             os.chmod(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
-                frequency) + os.sep + "recompute.sh", 0o777)
+                self.app.frequency) + os.sep + "recompute.sh", 0o777)
         self.writelog("Running Octave process now... please wait")
         time.sleep(0.5)
         OctaveProcessing(self).start()
