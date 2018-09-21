@@ -111,6 +111,10 @@ HMNZS_Irirangi (Navy NZL),-39.4613,175.6685
 ZLM (Taupo Radio NZL),-38.868,176.435
 HAARP (Gakona USA),62.3923,-145.1505
 CSY (Santa Maria Azores),36.9950,-25.169
+WI2XAJ_Chicago (Experimental station USA),41.8984,-88.2207
+WI2XAJ_New_York (Experimental station USA),41.1607,-74.0887
+WI2XNX (Experimental station USA),41.9262,-88.4997
+WH2XWU (Experimental station USA),41.4571,-86.8591
 Lashkar_Gah (Afghanistan),31.583,64.36
 Kondoz (Afghanistan),36.728,68.8725
 Jalalabad (Afghanistan),34.4415,70.4361
@@ -150,7 +154,7 @@ Rosario (Argentina),-32.9511,-60.6663
 Mendoza (Argentina),-32.8833,-68.8166
 Bahia_Blanca (Argentina),-38.74,-62.265
 Mar_del_Plata (Argentina),-38,-57.58
-Córdoba (Argentina),-31.4,-64.1823
+Cordoba (Argentina),-31.4,-64.1823
 Posadas (Argentina),-27.3578,-55.8851
 Buenos_Aires (Argentina),-34.6025,-58.3975
 Yerevan (Armenia),40.1812,44.5136
@@ -240,7 +244,7 @@ Juiz_de_Fora (Brazil),-21.77,-43.375
 Santa_Maria (Brazil),-29.6833,-53.8
 Joinville (Brazil),-26.32,-48.8399
 Juazeiro_do_Norte (Brazil),-7.21,-39.32
-Vitória (Brazil),-20.324,-40.366
+Vitoria (Brazil),-20.324,-40.366
 Joao_Pessoa (Brazil),-7.1011,-34.8761
 Campina_Grande (Brazil),-7.23,-35.88
 Natal (Brazil),-6.9838,-60.2699
@@ -628,8 +632,8 @@ Nicosia (Cyprus),35.1667,33.3666
 Brno (Czech Republic),49.2004,16.61
 Ostrava (Czech Republic),49.8304,18.25
 Prague (Czech Republic),50.0833,14.466
-Århus (Denmark),56.1572,10.2107
-København (Denmark),55.6786,12.5635
+Arhus (Denmark),56.1572,10.2107
+Copenhagen (Denmark),55.6786,12.5635
 Djibouti (Djibouti),11.595,43.148
 San_Pedro_de_Macoris (Dominican Republic),18.4504,-69.3
 La_Romana (Dominican Republic),18.417,-68.9666
@@ -645,7 +649,7 @@ Zagazig (Egypt),30.5833,31.5167
 Tanta (Egypt),30.7904,31
 Ismailia (Egypt),30.5903,32.26
 El_Mansura (Egypt),31.0504,31.38
-Damanhûr (Egypt),31.0504,30.47
+Damanhur (Egypt),31.0504,30.47
 Beni_Suef (Egypt),29.0804,31.09
 Qena (Egypt),26.1505,32.72
 Sohag (Egypt),26.5504,31.7
@@ -699,8 +703,8 @@ Braunschweig (Germany),52.25,10.5
 Augsburg (Germany),48.35,10.9
 Chemnitz (Germany),50.83,12.92
 Bonn (Germany),50.7205,7.08
-Münster (Germany),51.9704,7.62
-Düsseldorf (Germany),51.2204,6.78
+Munster (Germany),51.9704,7.62
+Dusseldorf (Germany),51.2204,6.78
 Mannheim (Germany),49.5004,8.47
 Freiburg (Germany),48.0004,7.8699
 Wiesbaden (Germany),50.0804,8.25
@@ -714,7 +718,7 @@ Leipzig (Germany),51.3354,12.41
 Rostock (Germany),54.0704,12.15
 Stuttgart (Germany),48.78,9.2
 Bremen (Germany),53.08,8.8
-Nürnberg (Germany),49.45,11.08
+Nurnberg (Germany),49.45,11.08
 Cologne (Germany),50.93,6.95
 Dresden (Germany),51.05,13.75
 Frankfurt (Germany),50.1,8.675
@@ -1374,9 +1378,9 @@ Kielce (Poland),50.8904,20.66
 Bialystok (Poland),53.1504,23.17
 Lublin (Poland),51.2504,22.5727
 Rzeszow (Poland),50.0705,22
-Lódz (Poland),51.775,19.4514
+Lodz (Poland),51.775,19.4514
 Gdansk (Poland),54.36,18.64
-Kraków (Poland),50.06,19.96
+Krakow (Poland),50.06,19.96
 Warsaw (Poland),52.25,21
 Braga (Portugal),41.555,-8.4213
 Porto (Portugal),41.15,-8.62
@@ -1540,7 +1544,7 @@ Jeju (South Korea),33.5101,126.5219
 Jeonju (South Korea),35.8314,127.1404
 Gunsan (South Korea),35.9818,126.716
 Mokpo (South Korea),34.8068,126.3958
-Puch'on (South Korea),37.4989,126.7831
+Puchon (South Korea),37.4989,126.7831
 Songnam (South Korea),37.4386,127.1378
 Goyang (South Korea),37.6527,126.8372
 Suwon (South Korea),37.2578,127.0109
@@ -1559,7 +1563,7 @@ San_Sebastián (Spain),43.3204,-1.98
 Alicante (Spain),38.3512,-0.4836
 Granada (Spain),37.165,-3.585
 Murcia (Spain),37.98,-1.13
-La_Coruña (Spain),43.33,-8.42
+La_Coruna (Spain),43.33,-8.42
 Pamplona (Spain),42.82,-1.65
 Valladolid (Spain),41.65,-4.75
 Palma (Spain),39.5743,2.6542
@@ -1585,11 +1589,11 @@ Niyala (Sudan),12.06,24.89
 Kassala (Sudan),15.46,36.39
 Khartoum (Sudan),15.5881,32.5342
 Paramaribo (Suriname),5.835,-55.167
-Göteborg (Sweden),57.75,12
-Malmö (Sweden),55.5833,13.0333
+Goteborg (Sweden),57.75,12
+Malmo (Sweden),55.5833,13.0333
 Stockholm (Sweden),59.3508,18.0973
 Basel (Switzerland),47.5804,7.59
-Zürich (Switzerland),47.38,8.55
+Zurich (Switzerland),47.38,8.55
 Geneva (Switzerland),46.21,6.14
 Al_Ladhiqiyah (Syria),35.54,35.78
 Douma (Syria),33.5833,36.4
@@ -1814,7 +1818,7 @@ Harrisburg (United States of America),40.2736,-76.8847
 San_Bernardino (United States of America),34.1204,-117.3
 Bridgeport (United States of America),41.18,-73.2
 Rochester (United States of America),43.1704,-77.6199
-St._Paul (United States of America),44.944,-93.085
+St_Paul (United States of America),44.944,-93.085
 Spokane (United States of America),47.67,-117.4199
 Vancouver (United States of America),45.6303,-122.64
 Tucson (United States of America),32.205,-110.89
@@ -1826,7 +1830,7 @@ Kansas_City (United States of America),39.1071,-94.6041
 Tulsa (United States of America),36.12,-95.93
 Shreveport (United States of America),32.5,-93.77
 Baton_Rouge (United States of America),30.4579,-91.1402
-Ft._Worth (United States of America),32.74,-97.34
+Ft_Worth (United States of America),32.74,-97.34
 Corpus_Christi (United States of America),27.7428,-97.4019
 Austin (United States of America),30.2669,-97.7428
 El_Paso (United States of America),31.78,-106.51
