@@ -171,8 +171,7 @@ class RunUpdate(threading.Thread):
         try:
             nodelist = requests.get("http://rx.linkfanel.net/kiwisdr_com.js")  # getting the full KiwiSDR node list
             json_data = json.loads(
-                nodelist.text[nodelist.text.find('['):].replace('},\n]\n;\n', '}]').replace('b0d5cc5738ee\",',
-                                                                                            'b0d5cc5738ee\"'))
+                nodelist.text[nodelist.text.find('['):].replace('},\n]\n;\n', '}]'))
             #json_data = json.loads(nodelist.text)  # when kiwisdr_com.js will be in real json format
             snrlist = requests.get("http://sibamanna.duckdns.org/snrmap_4bands.json")
             json_data2 = json.loads(snrlist.text)
