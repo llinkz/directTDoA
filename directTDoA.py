@@ -9,7 +9,7 @@ from PIL import Image, ImageTk
 from shutil import copyfile
 from tkColorChooser import askcolor
 
-VERSION = "directTDoA v3.00 by linkz"
+VERSION = "directTDoA v3.10 by linkz"
 
 
 class Restart:
@@ -172,7 +172,14 @@ class RunUpdate(threading.Thread):
             nodelist = requests.get("http://rx.linkfanel.net/kiwisdr_com.js")  # getting the full KiwiSDR node list
             json_data = json.loads(
                 nodelist.text[nodelist.text.find('['):].replace('},\n]\n;\n', '}]'))
-            #json_data = json.loads(nodelist.text)  # when kiwisdr_com.js will be in real json format
+            # Important info concerning UPDATE FAIL errors:
+            # Sometimes some nodes datas are incompletely returned to kiwisdr.com/public so below is a dirty way to
+            # bypass them, using their mac address.
+            # ATM mac should be manually found in http://rx.linkfanel.net/kiwisdr_com.js webpage source code, search
+            # using the line number returned by the update FAIL error text, will try to fix one day ....
+            # json_data = json.loads(nodelist.text[nodelist.text.find('['):].replace('},\n]\n;\n', '}]').replace('985dad7f54fc\",','985dad7f54fc\"'))
+
+            # json_data = json.loads(nodelist.text)  # when kiwisdr_com.js will be in real json format
             snrlist = requests.get("http://sibamanna.duckdns.org/snrmap_4bands.json")
             json_data2 = json.loads(snrlist.text)
             try:
@@ -187,7 +194,7 @@ class RunUpdate(threading.Thread):
             with codecs.open('directTDoA_server_list.db', 'w', encoding='utf8') as g:
                 g.write("[\n")
                 for i in range(len(json_data)):  # parse all nodes
-                    if 'fixes_min' in json_data[i] and 'GPS' in json_data[i]['sdr_hw']:  # parse only GPS nodes
+                    if '20 kHz' not in json_data[i]['sdr_hw'] and 'GPS' in json_data[i]['sdr_hw']:  # parse GPS nodes
                         for index, element in enumerate(json_data2['features']):  # check IS0KYB db
                             if json_data[i]['id'] in json.dumps(json_data2['features'][index]):
                                 if json_data[i]['tdoa_id'] == '':
@@ -324,17 +331,14 @@ class FillMapWithNodes(threading.Thread):
                 db_data = json.load(f)
                 for i in range(len(db_data)):
                     try:
-                        if (int(db_data[i]["users"])) / (int(db_data[i]["usersmax"])) == 0:  # OK slots available
-                            temp_snr_avg = (int(db_data[i]["snr1"]) + int(db_data[i]["snr2"]) + int(
+                        temp_snr_avg = (int(db_data[i]["snr1"]) + int(db_data[i]["snr2"]) + int(
                                 db_data[i]["snr3"]) + int(db_data[i]["snr4"])) / 4
-                            if db_data[i]["mac"] in white:    # favorite node color
+                        if db_data[i]["mac"] in white:    # favorite node color
                                 node_color = (self.color_variant(colorline[1], (int(temp_snr_avg) - 45) * 5))
-                            elif db_data[i]["mac"] in black:  # blacklist node color
+                        elif db_data[i]["mac"] in black:  # blacklist node color
                                 node_color = (self.color_variant(colorline[2], (int(temp_snr_avg) - 45) * 5))
-                            else:                             # standard node color
+                        else:                             # standard node color
                                 node_color = (self.color_variant(colorline[0], (int(temp_snr_avg) - 45) * 5))
-                        else:
-                            node_color = 'red'  # if no slots available, map point is always created red
                     except Exception as e:
                         pass
                     try:
@@ -570,46 +574,68 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         temp_noise_avg = (int(host.rsplit("$", 14)[11]) + int(host.rsplit("$", 14)[12]) + int(
             host.rsplit("$", 14)[13]) + int(host.rsplit("$", 14)[14])) / 4
         font_snr1 = font_snr2 = font_snr3 = font_snr4 = 'TkFixedFont 7'
-        if int(host.rsplit("$", 14)[4]) / int(host.rsplit("$", 14)[5]) == 0:  # node is available
-            # color gradiant below depending on SNR average
-            self.menu.add_command(
-                label="Add " + str(host).rsplit("$", 14)[2] + " for TDoA process [" + host.rsplit("$", 14)[
-                    6] + " GPS fix/min] [" + str(host.rsplit("$", 14)[4]) + "/" + str(
-                    host.rsplit("$", 14)[5]) + " users]",
-                background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
-                foreground=self.get_font_color((self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
-                command=self.populate)
-            self.menu.add_command(label=str(host.rsplit("$", 14)[3]).replace("_", " "), state=NORMAL,
-                                  background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
-                                  foreground=self.get_font_color(
-                                      (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))), command=None)
+        try:  # check if the node is answering
+            chktimeout = 1  # timeout of the node check
+            checkthenode = requests.get("http://" + str(host).rsplit("$", 14)[0] + "/status", timeout=chktimeout)
+            infonodes = checkthenode.text.split("\n")
             try:
-                self.menu.add_command(
+                if infonodes[6].rsplit("=", 2)[1] != infonodes[7].rsplit("=", 2)[1]:
+                    self.menu.add_command(
+                    label="Add " + str(host).rsplit("$", 14)[2] + " for TDoA process [" + infonodes[12].rsplit("=", 2)[
+                        1] + " GPS fix/min] [" + infonodes[6].rsplit("=", 2)[1] + "/" + infonodes[7].rsplit("=", 2)[
+                              1] + " users]",
+                    background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
+                    foreground=self.get_font_color((self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
+                    command=self.populate)
+                    self.menu.add_command(label=str(host.rsplit("$", 14)[3]).replace("_", " "), state=NORMAL,
+                                      background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
+                                      foreground=self.get_font_color(
+                                          (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))), command=None)
+                else:
+                    self.menu.add_command(label=str(host).rsplit("$", 14)[2] + " node has no available slots right now",
+                                          background=(self.color_variant("#FF0000", (int(temp_snr_avg) - 50) * 5)),
+                                          foreground=self.get_font_color(
+                                              (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
+                                          command=None)
+            except Exception as error:
+                #print "something wrong with this node"
+                # print error
+                if "not found" in infonodes[13]:
+                    self.menu.add_command(label=str(host).rsplit("$", 14)[2] + " node is not available. (proxy.kiwisdr.com error)",
+                                          background=(self.color_variant("#FF0000", (int(temp_snr_avg) - 50) * 5)),
+                                          foreground=self.get_font_color(
+                                              (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
+                                          command=None)
+
+        except requests.RequestException as reqerr:
+            try:
+                reqer = str(reqerr.message).replace("'", "").replace(",", "").replace(":", "").replace("))", "").rsplit(">", 2)[1]
+            except:
+                reqer = "unknown error"
+            self.menu.add_command(label=str(host).rsplit("$", 14)[2] + " node is not available. " + str(reqer),
+                                      background=(self.color_variant("#FF0000", (int(temp_snr_avg) - 50) * 5)),
+                                      foreground=self.get_font_color(
+                                          (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))), command=None)
+            self.menu.add_command(label=str(host.rsplit("$", 14)[3]).replace("_", " "), state=NORMAL,
+                                      background=(self.color_variant("#FF0000", (int(temp_snr_avg) - 50) * 5)),
+                                      foreground=self.get_font_color(
+                                          (self.color_variant("#FF0000", (int(temp_snr_avg) - 50) * 5))), command=None)
+        try:
+            self.menu.add_command(
                     label="Open \"" + str(host).rsplit("$", 14)[0] + "/f=" + str(frequency.get()) + "iqz8\" in browser",
                     state=NORMAL, background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
                     foreground=self.get_font_color((self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
                     command=self.openinbrowser)
-                if frequency.get() <= 2000:
+            if frequency.get() <= 2000:
                     font_snr1 = 'TkFixedFont 8 bold'
-                elif 2001 < frequency.get() <= 10000:
+            elif 2001 < frequency.get() <= 10000:
                     font_snr2 = 'TkFixedFont 8 bold'
-                elif 10000 < frequency.get() <= 20000:
+            elif 10000 < frequency.get() <= 20000:
                     font_snr3 = 'TkFixedFont 8 bold'
-                elif 20000 < frequency.get() <= 30000:
+            elif 20000 < frequency.get() <= 30000:
                     font_snr4 = 'TkFixedFont 8 bold'
-            except ValueError:
-                pass
-        else:  # node is busy
-            self.menu.add_command(label=str(host).rsplit("$", 14)[2] + " is busy, sorry. [" + host.rsplit("$", 14)[
-                6] + " GPS fix/min] [" + str(host.rsplit("$", 14)[4]) + "/" + str(host.rsplit("$", 14)[5]) + " users]",
-                                  background=(self.color_variant("#FF0000", (int(temp_snr_avg) - 50) * 5)),
-                                  foreground=self.get_font_color(
-                                      (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))), command=None)
-            self.menu.add_command(label=str(host.rsplit("$", 14)[3]).replace("_", " "), state=NORMAL,
-                                  background=(self.color_variant("#FF0000", (int(temp_snr_avg) - 50) * 5)),
-                                  foreground=self.get_font_color(
-                                      (self.color_variant("#FF0000", (int(temp_snr_avg) - 50) * 5))), command=None)
-
+        except ValueError:
+            pass
         self.menu.add_separator()
         self.menu.add_command(label="AVG SNR on 0-30 MHz: " + str(temp_snr_avg) + " dB - AVG Noise: " + str(
             temp_noise_avg) + " dBm (S" + str(self.convert_dbm_to_smeter(int(temp_noise_avg))) + ")",
@@ -928,7 +954,7 @@ class MainWindow(Frame):
         self.label02.configure(background="grey", font="TkFixedFont 7", anchor="w", fg=colorline[1], text="█ Favorite")
         self.label03 = Label(parent)
         self.label03.place(x=0, y=42, height=14, width=75)
-        self.label03.configure(background="grey", font="TkFixedFont 7", anchor="w", fg="red", text="█ Busy")
+        self.label03.configure(background="grey", font="TkFixedFont 7", anchor="w", fg=colorline[2], text="█ Blacklisted")
         self.label04 = Label(parent)
         self.label04.place(x=0, y=56, height=14, width=75)
         self.label04.configure(background="grey", font="TkFixedFont 7", anchor="w", fg="#001E00", text="█ no SNR data")

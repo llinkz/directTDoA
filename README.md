@@ -75,6 +75,8 @@ Install GNU Octave 4.4.0, in Terminal : `brew install octave`
 * v2.80: Listing update is now made from both linkfanel's (JSON) databases only (GPS enabled nodes list + SNR values) + adding regexp to create TDoA_id (parsing callsigns), IPs and node various coordinates format (version not released)
 * v2.90: Code clean-up + SNR values are now only from IS0KYB (JSON) database + count TDoA runs at start + adding a ./recompute.sh script to backup dir + directTDoA node db now in JSON format + add map legend + popup menu font color managed for more readibility + new maps
 * v3.00: More code clean-up and as the GUI has changed a lot recently, it's now entering the v.3xx version range
+* v3.10: Removed "20 kHz wide audio bandwidth mode" set KiwiSDRs from the node list, incompatible with TDoA at this time (2jan19) + reachability & GPS_good, fixes_min, user, users_max values are now dynamic when node is clicked on map (timeout/host not found/obsolete proxy data)
+
 
 ## TODO LIST
 * ultimateTDoA variant mode ? (c)Daniel Ekmann, to basically record all possible nodes at same time in order to post-compute TDoAs later with a dynamic .m file
