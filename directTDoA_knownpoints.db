@@ -19,6 +19,8 @@ Vernon (Main FAF TX site FRA),49.0951,1.5084
 3AC (Monaco Radio MCO),43.7319,7.4276
 DCF77_VLF (Mainflingen DEU),50.0154,9.008
 RIT (Severomorsk Northern Fleet RUS),69.0588,33.3266
+RMP (Yantarny Baltic Fleet RUS),54.8589,19.9418
+RCV (Sevastopol Black Sea Fleet RUS),44.5512,33.5616
 GYN2_VLF (Inskip GBR),53.8300,-2.8342
 MSF_VLF (Anthorn GBR),54.9111,-3.2793
 CKN (Esquimalt CAN),49.1087,-122.2423
@@ -68,6 +70,7 @@ PBC (Goeree Isl NLD),51.8073,3.8931
 OSN (Ruiselede BEL),51.0788,3.3355
 JWT (Stavanger NOR),58.9956,5.7144
 JWT (Helgelandsmoen-Oslo NOR),60.1116,10.2119
+JXU (Bodo NOR),67.2025,14.3622
 Frederikshavn (Danish navy DNK),57.4085,10.5159
 Aarhus (Danish navy DNK),56.1228,10.2068
 SVO (Olympia Radio Volakas GRC),37.6042,21.4885
@@ -115,6 +118,9 @@ WI2XAJ_Chicago (Experimental station USA),41.8984,-88.2207
 WI2XAJ_New_York (Experimental station USA),41.1607,-74.0887
 WI2XNX (Experimental station USA),41.9262,-88.4997
 WH2XWU (Experimental station USA),41.4571,-86.8591
+Kontainer (29B6 Kovylkino RUS),53.9837,43.8475
+PJK (Willemstad CUW),12.1718,-68.8658
+TBB (Lalahan TUR),39.9780,33.1342
 Lashkar_Gah (Afghanistan),31.583,64.36
 Kondoz (Afghanistan),36.728,68.8725
 Jalalabad (Afghanistan),34.4415,70.4361
