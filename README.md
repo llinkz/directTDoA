@@ -1,4 +1,4 @@
-# directTDoA v3.10
+# directTDoA v3.20
 
 This piece of software is JUST a GUI written for Python 2.7 designed to compute TDoA maps with GPS enabled KiwiSDR servers around the world using GNU Octave & the EXCELLENT work of Christoph Mayer @ https://github.com/hcab14/TDoA + his forked "kiwiclient" python stuff, original code by Dmitry Janushkevich @ https://github.com/dev-zzo/kiwiclient
 
@@ -76,6 +76,7 @@ Install GNU Octave 4.4.0, in Terminal : `brew install octave`
 * v2.90: Code clean-up + SNR values are now only from IS0KYB (JSON) database + count TDoA runs at start + adding a ./recompute.sh script to backup dir + directTDoA node db now in JSON format + add map legend + popup menu font color managed for more readibility + new maps
 * v3.00: More code clean-up and as the GUI has changed a lot recently, it's now entering the v.3xx version range
 * v3.10: Removed "20 kHz wide audio bandwidth mode" set KiwiSDRs from the node list, incompatible with TDoA at this time (2jan19) + reachability & GPS_good, fixes_min, user, users_max values are now dynamic when node is clicked on map (timeout/host not found/obsolete proxy data)
+* v3.20: Better management of clicked nodes (checking offline=yes/no + TDoA_ch>=1 + fixes_min>0) + default IQ rec BW in config file added + possibility to restart the IQ rec process + Marco/Pierre websites checked before update process start + current release version check menu added
 
 
 ## TODO LIST
