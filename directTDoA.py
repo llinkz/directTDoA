@@ -10,7 +10,7 @@ from shutil import copyfile
 from tkColorChooser import askcolor
 from datetime import datetime
 
-VERSION = "directTDoA v3.21"
+VERSION = "directTDoA v3.22"
 
 
 class Restart:
@@ -590,9 +590,9 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         if map_preset == 1 and map_manual == 0:
             pass
         else:
-            # no more popup when map boundaries are set
-            # tkMessageBox.showinfo("TDoA map boundaries :",
-            #                   message="LATITUDE RANGE: from " + str(lat_min_map) + "° to " + str(lat_max_map) + "°\nLONGITUDE RANGE: from " + str(lon_min_map) + "° to " + str(lon_max_map) + "°")
+            app.window2.label4.configure(
+                text="[LATITUDE] range: " + str(lat_min_map) + "° " + str(lat_max_map) + "°  [LONGITUDE] range: " + str(
+                    lon_min_map) + "° " + str(lon_max_map) + "°")
             mapboundaries_set = 1
             map_manual = 1
 
@@ -1075,6 +1075,10 @@ class MainWindow(Frame):
         self.label3.place(relx=0.54, rely=0.95, height=21, relwidth=0.3)
         self.label3.configure(background=bgc, font="TkFixedFont", foreground=fgc, width=214, text="", anchor="w")
 
+        self.label4 = Label(parent)  # Map boundaries information
+        self.label4.place(relx=0.2, rely=0.895, height=21, relwidth=0.55)
+        self.label4.configure(background=bgc, font="TkFixedFont", foreground=fgc, width=214, text="", anchor="w")
+
         self.Button5 = Button(parent)  # Restart GUI button
         self.Button5.place(relx=0.81, rely=0.94, height=24, relwidth=0.08)
         self.Button5.configure(activebackground=bgc, activeforeground=fgc, background="red", disabledforeground=dfgc,
@@ -1329,6 +1333,9 @@ class MainWindow(Frame):
             mapboundaries_set = 1
             map_preset = 1
             map_manual = 0
+            self.label4.configure(
+                text="[LATITUDE] range: " + str(lat_min_map) + "° " + str(lat_max_map) + "°  [LONGITUDE] range: " + str(
+                    lon_min_map) + "° " + str(lon_max_map) + "°")
         else:  # Reset the previous preset and permit the manual setting of map boundaries
             self.member1.deletePoint(sx0, sy0, "mappreset")
             mapboundaries_set = None
@@ -1543,9 +1550,9 @@ class MainWindow(Frame):
             g.write("                     'plotname', 'TDoA_")
             g.write(varfile + "',\n")
             g.write("                     'title', 'CF=" + frequency + " BW=" + str(currentbw) + " [" + str(
-                float(frequency) - (float(currentbw) / 2000)) + "<->" + str(
+                float(frequency) - (float(currentbw) / 2000)) + " <-> " + str(
                 float(frequency) + (float(currentbw) / 2000)) + "] - " + str(
-                datetime.utcnow().strftime('%b, %d %Y %H%MZ')) + "'")
+                datetime.utcnow().strftime('%b, %d %Y %H%Mz')) + "'")
 
             if selectedlat == "" or selectedlon == "":
                 g.write("\n                    );\n\n")
