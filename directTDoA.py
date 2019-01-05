@@ -1603,8 +1603,8 @@ endfunction """)
             recompute.write("""#!/bin/sh
 ## This file is intended to copy back *.wav to iq directory and proc_tdoa_""" + varfile + """.m to TDoA directory
 ## and to open a file editor so you can modify .m file parameters.
-/usr/bin/cp ./*.wav ../
-/usr/bin/cp proc_tdoa_""" + varfile + """.m ../../
+cp ./*.wav ../
+cp proc_tdoa_""" + varfile + """.m ../../
 cd ../..
 $EDITOR proc_tdoa_""" + varfile + """.m
 octave-cli proc_tdoa_""" + varfile + """.m""")
