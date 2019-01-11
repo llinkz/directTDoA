@@ -10,7 +10,7 @@ from shutil import copyfile
 from tkColorChooser import askcolor
 from datetime import datetime
 
-VERSION = "directTDoA v3.23"
+VERSION = "directTDoA v3.24"
 
 
 class Restart:
@@ -659,6 +659,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
                         background=(self.color_variant("#FF0000", (int(temp_snr_avg) - 50) * 5)),
                         foreground=self.get_font_color((self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
                         command=None)
+                    nodeok = "yes"
                 else:  # all ok for this node
                     self.menu.add_command(
                     label="Add " + str(host).rsplit("$", 14)[2] + " for TDoA process [" + infonodes[12].rsplit("=", 2)[
@@ -692,27 +693,25 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
                               background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
                               foreground=self.get_font_color(
                                   (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))), command=None)
-        try:
-            if nodeok == "yes":
-                try:
-                    self.menu.add_command(label="Open \"" + str(host).rsplit("$", 14)[0] + "/f=" + str(
-                        frequency.get()) + "iqz8\" in browser", state=NORMAL,
-                                          background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
-                                          foreground=self.get_font_color(
-                                              (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
-                                          command=self.openinbrowser)
-                    if frequency.get() <= 2000:
-                        font_snr1 = 'TkFixedFont 8 bold'
-                    elif 2001 < frequency.get() <= 10000:
-                        font_snr2 = 'TkFixedFont 8 bold'
-                    elif 10000 < frequency.get() <= 20000:
-                        font_snr3 = 'TkFixedFont 8 bold'
-                    elif 20000 < frequency.get() <= 30000:
-                        font_snr4 = 'TkFixedFont 8 bold'
-                except:
-                    pass
-        except ValueError:
-            pass
+
+        if nodeok == "yes":
+            try:
+                self.menu.add_command(
+                    label="Open \"" + str(host).rsplit("$", 14)[0] + "/f=" + str(frequency.get()) + "iqz8\" in browser",
+                    state=NORMAL, background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
+                    foreground=self.get_font_color((self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
+                    command=self.openinbrowser)
+                if frequency.get() <= 2000:
+                    font_snr1 = 'TkFixedFont 8 bold'
+                elif 2001 < frequency.get() <= 10000:
+                    font_snr2 = 'TkFixedFont 8 bold'
+                elif 10000 < frequency.get() <= 20000:
+                    font_snr3 = 'TkFixedFont 8 bold'
+                elif 20000 < frequency.get() <= 30000:
+                    font_snr4 = 'TkFixedFont 8 bold'
+            except:
+                pass
+
         self.menu.add_separator()
         self.menu.add_command(label="AVG SNR on 0-30 MHz: " + str(temp_snr_avg) + " dB - AVG Noise: " + str(
             temp_noise_avg) + " dBm (S" + str(self.convert_dbm_to_smeter(int(temp_noise_avg))) + ")",
@@ -1112,7 +1111,7 @@ class MainWindow(Frame):
         self.Text2.configure(background="black", font="TkTextFont", foreground="red", highlightbackground=bgc,
                              highlightcolor=fgc, insertbackground=fgc, selectbackground="#c4c4c4",
                              selectforeground=fgc, undo="1", width=970, wrap="word")
-        self.writelog("This is " + VERSION + " (ounaid@gmail.com), a GUI written for python 2.7 / Tk")
+        self.writelog("This is " + VERSION + ", a GUI written for python 2.7 / Tk")
         self.writelog("All credits to Christoph Mayer for his excellent TDoA work : http://hcab14.blogspot.com")
         self.writelog("Thanks to Pierre (linkfanel) for his listing of available KiwiSDR nodes")
         self.writelog("Thanks to Marco (IS0KYB) for his SNR measurements listing of the KiwiSDR network")
@@ -1255,7 +1254,7 @@ class MainWindow(Frame):
     1/ Hold Left-mouse button to move the World Map to your desired location
     2/ Enter the frequency, between 0 and 30000 (kHz)
     3/ Choose from the top bar menu a specific bandwidth for the IQ recordings if necessary
-    4/ Choose KiwiSDR nodes by left-click on them and select \"Use:\" command to add them to the list (min=3 max=6)
+    4/ Choose KiwiSDR nodes by left-click on them and select \"Add:\" command to add them to the list (min=3 max=6)
     5/ Hold Right-mouse button to drag a rec rectangle to set the TDoA computed map geographical boundaries 
        or select one of the presets from the top bar menu, you can cancel by drawing again by hand or choose RESET
     6/ Type some text in the bottom left box to search for a city or TX site to display on final TDoA map (if needed)
@@ -1282,15 +1281,16 @@ class MainWindow(Frame):
     You can compute again your IQ recordings, to do so, just run the ./recompute.sh script
     
     The World map is static, click UPDATE button to get an updated node list, only GPS enabled nodes are displayed
-    KiwiSDR node informations are now up-to-date when square is clicked on the map
+    KiwiSDR node informations are retrieved in real time when node square icon is clicked on the map
 
     Thanks to Christoph Mayer for the public release of his TDoA GNU-Octave scripts
     Thanks to John Seamons for including the GPS timestamps in IQ files
     Thanks to Dmitry Janushkevich for the original kiwirecorder project python scripts
     Thanks to Pierre Ynard (linkfanel) for the KiwiSDR network node listing used as source for GUI map update
     Thanks to Marco Cogoni (IS0KYB) for the KiwiSDR network SNR measurements listing used as source for GUI map update
+    And.. Thanks to all KiwiSDR hosts with GPS activated and decent RX on both HF & GPS freqs...
 
-    linkz
+    linkz (feedback/features request/help : contact me at ounaid at gmail dot com)
     """, width=1000, font="TkFixedFont 8", bg="white", anchor="center")
         w.pack()
 
@@ -1568,7 +1568,7 @@ class MainWindow(Frame):
             g.write("                     'title', 'CF=" + frequency + " BW=" + str(currentbw) + " [" + str(
                 float(frequency) - (float(currentbw) / 2000)) + " <-> " + str(
                 float(frequency) + (float(currentbw) / 2000)) + "] - " + str(
-                datetime.utcnow().strftime('%b, %d %Y %H%Mz')) + "'")
+                datetime.utcnow().strftime('%d %b %Y %H%Mz')) + "'")
 
             if selectedlat == "" or selectedlon == "":
                 g.write("\n                    );\n\n")

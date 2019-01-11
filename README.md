@@ -1,4 +1,4 @@
-# directTDoA v3.23
+# directTDoA v3.24
 
 This piece of software is JUST a GUI written for Python 2.7 designed to compute TDoA maps with GPS enabled KiwiSDR servers around the world using GNU Octave & the EXCELLENT work of Christoph Mayer @ https://github.com/hcab14/TDoA + his forked "kiwiclient" python stuff, original code by Dmitry Janushkevich @ https://github.com/dev-zzo/kiwiclient
 
@@ -80,6 +80,7 @@ Install GNU Octave 4.4.0, in Terminal : `brew install octave`
 * v3.21: the popup when map boundaries are set has been removed - adding mode informations in the TDoA map result title - minor bug fixes with the bandwidth default/current setting
 * v3.22: map boundaries informations back, as label..
 * v3.23: bug fixes with add/remove fav/black process..
+* v3.24: allowing the possibility to "Open" a node in browser, even if 0 GPS fixes were reported at instant T + minor date modification on TDoA output file title + minor text corrections
 
 
 ## TODO LIST
