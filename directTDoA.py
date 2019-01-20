@@ -732,13 +732,13 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
                     state=NORMAL, background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
                     foreground=self.get_font_color((self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
                     command=self.openinbrowser)
-                if frequency <= 2000:
+                if int(frequency) <= 2000:
                     font_snr1 = 'TkFixedFont 8 bold'
-                elif 2001 < frequency <= 10000:
+                elif 2001 < int(frequency) <= 10000:
                     font_snr2 = 'TkFixedFont 8 bold'
-                elif 10001 < frequency <= 20000:
+                elif 10001 < int(frequency) <= 20000:
                     font_snr3 = 'TkFixedFont 8 bold'
-                elif 20001 < frequency <= 30000:
+                elif 20001 < int(frequency) <= 30000:
                     font_snr4 = 'TkFixedFont 8 bold'
             except:
                 pass
