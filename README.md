@@ -1,4 +1,4 @@
-# directTDoA v3.24
+# directTDoA v4.00
 
 This piece of software is JUST a GUI written for Python 2.7 designed to compute TDoA maps with GPS enabled KiwiSDR servers around the world using GNU Octave & the EXCELLENT work of Christoph Mayer @ https://github.com/hcab14/TDoA + his forked "kiwiclient" python stuff, original code by Dmitry Janushkevich @ https://github.com/dev-zzo/kiwiclient
 
@@ -80,12 +80,9 @@ Install GNU Octave 4.4.0, in Terminal : `brew install octave`
 * v3.21: the popup when map boundaries are set has been removed - adding mode informations in the TDoA map result title - minor bug fixes with the bandwidth default/current setting
 * v3.22: map boundaries informations back, as label..
 * v3.23: bug fixes with add/remove fav/black process..
-* v3.24: allowing the possibility to "Open" a node in browser, even if 0 GPS fixes were reported at instant T + minor date modification on TDoA output file title + minor text corrections
-
+* v3.24: allowing the possibility to "Open" a node in browser even if 0 GPS fixes were reported at instant T + minor date modification on TDoA output file title + minor text corrections
+* v4.00: no more GUI restart after TDoA runs (node list is kept intact) + Listen/Demod mode added, **requires python modules _pygame_ (for all) + _scipy_ (for MacOS X), new file _KiwiSDRclient.py_ also required** + possibility to remove a single node from the list + purge button added + check version runned on software start + minor fixes on many routines
 
 ## TODO LIST
 * ultimateTDoA variant mode ? (c)Daniel Ekmann, to basically record all possible nodes at same time in order to post-compute TDoAs later with a dynamic .m file
-* securizing the node.db.bak in case of multiple faulty update processes
-* adding more error triggers in case of faulty update process or failed connections to node (bad password / node is busy)
 * compute mini-waterfall pictures on selected nodes if necessary (directly in python, not via jupyther notebook stuff)
-* merging a part of the directKiwi code to connect & get the audio stream from the selected nodes (faster than the webconnect to openwebrx interface)

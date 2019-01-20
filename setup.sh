@@ -1,5 +1,5 @@
 #!/bin/sh
-python -m pip install numpy pillow requests
+python -m pip install numpy pillow requests pygame scipy
 cd TDoA/kiwiclient
 mkoctfile read_kiwi_iq_wav.cc
 cd ../m

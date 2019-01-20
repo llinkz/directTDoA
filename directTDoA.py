@@ -10,7 +10,7 @@ from shutil import copyfile
 from tkColorChooser import askcolor
 from datetime import datetime
 
-VERSION = "directTDoA v3.24"
+VERSION = "directTDoA v4.00"
 
 
 class Restart:
@@ -54,27 +54,16 @@ class ReadKnownPointFile:
 
 
 class CheckFileSize(threading.Thread):
-    def __init__(self, parent=None):
+    def __init__(self):
         super(CheckFileSize, self).__init__()
-        self.parent = parent
-        self._stop_event = threading.Event()
 
     def run(self):
-        global t, checkfilesize
-        checkfilesize = 1
-        while t == 0:
-            time.sleep(0.5)  # file size measurement refresh rate
+        while True:
             for wavfiles in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
-                self.parent.writelog2(
-                    wavfiles.rsplit(os.sep, 1)[1] + " - " + str(os.path.getsize(wavfiles) / 1024) + "KB")
-            t = 0
-
-    def stop(self):
-        checkfilesize = 0
-        self._stop_event.set()
-
-    def stopped(self):
-        return self._stop_event.is_set()
+                app.window2.Text3.insert('end -1 lines', wavfiles.rsplit(os.sep, 1)[1] + " - " + str(os.path.getsize(wavfiles) / 1024) + "KB" + "\n")
+            app.window2.Text3.see('end')
+            time.sleep(0.5)
+            app.window2.Text3.delete("0.0", END)
 
 
 class ProcessFinished(threading.Thread):
@@ -83,7 +72,7 @@ class ProcessFinished(threading.Thread):
         self.parent = parent
 
     def run(self):
-        global tdoa_position, varfile
+        global tdoa_position, varfile, proc_pid
         llon = tdoa_position.rsplit(' ')[5]  # the longitude value returned by Octave process (without letters)
         llat = tdoa_position.rsplit(' ')[10] # the latitude value returned by Octave process (without letters)
 
@@ -117,12 +106,18 @@ class ProcessFinished(threading.Thread):
         tdoa_file.close()
         # last popup window shown at end of process
         finish = tkMessageBox.askyesno(title="TDoA process just finished.",
-                                       message="Most likely location coords are " + llat + "°" + sign1 + " " + llon + "°" + sign2 + "\n\nClick Yes to open \"Geohack\" webpage centered on most likely point found by the process\nClick No to open files directory and restart GUI")
-        if finish:  # opens a web browser with geohack url containing most likely point coordinates & restart GUI
+                                       message="Most likely location coords are " + llat + "°" + sign1 + " " + llon + "°" + sign2 + "\n\nClick Yes to open \"Geohack\" webpage centered on most likely point found by the process\nClick No to open files directory")
+        if finish:  # opens a web browser with geohack url containing most likely point coordinates
             webbrowser.open_new("https://tools.wmflabs.org/geohack/geohack.php?params=" + latstring + "_" + lonstring)
-        elif finish is False:  # opens directory that containing TDoA files & restart GUI
+        elif finish is False:  # opens directory that containing TDoA files
             webbrowser.open(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(frequency))
-        Restart().run()
+        app.window2.Button1.configure(state="normal", text="Start recording")
+        app.window2.Button2.configure(state="disabled")
+        app.window2.Button3.configure(state="normal")
+        app.window2.Button4.configure(state="normal")
+        for wavfiles in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
+            os.remove(wavfiles)
+        app.window2.Text3.delete("0.0", END)
 
 
 class ReadConfigFile:
@@ -144,9 +139,9 @@ class ReadConfigFile:
                 colorline = configline[13].replace("\n", "").split(',')  # GUI map colors
                 defaultbw = configline[15].replace("\n", "")  # default IQ rec bandwidth
             except:
-                copyfile("directTDoA.cfg", "directTDoA.bak")
+                copyfile("directTDoA.cfg", "directTDoA.cfg.bak")
                 sys.exit(
-                    "Oops, something is wrong with the directTDoA.cfg config file format\nIf you have just updated, make sure all the required lines are present.\nYou can keep your directTDoA.cfg file and add the missing lines manually in order to keep your settings intact.\nCheck https://raw.githubusercontent.com/llinkz/directTDoA/master/directTDoA.cfg for a sample.\nNote: a backup copy of your config file has been created as directTDoA.bak")
+                    "Oops, something is wrong with the directTDoA.cfg config file format\nIf you have just updated, make sure all the required lines are present.\nYou can keep your directTDoA.cfg file and add the missing lines manually in order to keep your settings intact.\nCheck https://raw.githubusercontent.com/llinkz/directTDoA/master/directTDoA.cfg for a sample.\nNote: a backup copy of your config file has been created as directTDoA.cfg.bak")
         c.close()
 
 
@@ -219,16 +214,14 @@ class RunUpdate(threading.Thread):
     def run(self):
         try:
             nodelist = requests.get("http://rx.linkfanel.net/kiwisdr_com.js")  # getting the full KiwiSDR node list
-            json_data = json.loads(
-                nodelist.text[nodelist.text.find('['):].replace('},\n]\n;\n', '}]'))
+            json_data = json.loads(nodelist.text[nodelist.text.find('['):].replace('},\n]\n;\n', '}]'))
             # Important info concerning UPDATE FAIL errors:
             # Sometimes some nodes datas are incompletely returned to kiwisdr.com/public so below is a dirty way to
             # bypass them, using their mac address.
             # ATM mac should be manually found in http://rx.linkfanel.net/kiwisdr_com.js webpage source code, search
             # using the line number returned by the update FAIL error text, will try to fix one day ....
             # json_data = json.loads(nodelist.text[nodelist.text.find('['):].replace('},\n]\n;\n', '}]').replace('985dad7f54fc\",','985dad7f54fc\"'))
-
-            # json_data = json.loads(nodelist.text)  # when kiwisdr_com.js will be in real json format
+            #json_data = json.loads(nodelist.text)  # when kiwisdr_com.js will be in real json format
             snrlist = requests.get("http://sibamanna.duckdns.org/snrmap_4bands.json")
             json_data2 = json.loads(snrlist.text)
             try:
@@ -242,7 +235,7 @@ class RunUpdate(threading.Thread):
                 os.remove('directTDoA_server_list.db')
             with codecs.open('directTDoA_server_list.db', 'w', encoding='utf8') as g:
                 g.write("[\n")
-                for i in range(len(json_data)):  # parse all nodes
+                for i in range(len(json_data)):  # parse all nodes from linkfanel website / json db
                     if '20 kHz' not in json_data[i]['sdr_hw'] and 'GPS' in json_data[i]['sdr_hw']:  # parse GPS nodes
                         for index, element in enumerate(json_data2['features']):  # check IS0KYB db
                             if json_data[i]['id'] in json.dumps(json_data2['features'][index]):
@@ -256,9 +249,7 @@ class RunUpdate(threading.Thread):
                                     except:
                                         pass
                                     try:
-                                        hamcallfield = re.search(
-                                            r"(.*)(\s|,|\/|^)([A-Za-z]{1,2}[0-9][A-Za-z]{1,3})(\s|,|\/|\@|\-)(.*)",
-                                            json_data[i]['name'])
+                                        hamcallfield = re.search(r"(.*)(\s|,|\/|^)([A-Za-z]{1,2}[0-9][A-Za-z]{1,3})(\s|,|\/|\@|\-)(.*)", json_data[i]['name'])
                                         node_id = hamcallfield.group(3).upper()
                                     except:
                                         pass
@@ -266,8 +257,7 @@ class RunUpdate(threading.Thread):
                                     node_id = json_data[i]['tdoa_id']
                                 try:
                                     gpsfield = re.search(
-                                        r"([-+]?[0-9]{1,2}(\.[0-9]*)?)(,| ) ?([-+]?[0-9]{1,3}(\.[0-9]*))?",
-                                        json_data[i]['gps'][1:-1])
+                                        r"([-+]?[0-9]{1,2}(\.[0-9]*)?)(,| ) ?([-+]?[0-9]{1,3}(\.[0-9]*))?", json_data[i]['gps'][1:-1])
                                     nodelat = gpsfield.group(1)
                                     nodelon = gpsfield.group(4)
                                 except:
@@ -350,25 +340,46 @@ class StartKiwiSDR(threading.Thread):
         self.parent = parent
 
     def run(self):
-        global hostlisting, namelisting, frequency, portlisting, lpcut, hpcut, proc2_pid
-        global parent, line, nbfile, IQfiles, t, varfile
+        global frequency, lpcut, hpcut, proc2_pid
+        global parent, line, IQfiles, varfile
         IQfiles = []
         line = []
-        nbfile = 1
-        t = 0
         proc2 = subprocess.Popen(
-            [sys.executable, 'kiwirecorder.py', '-s', str(hostlisting), '-p', str(portlisting), str(namelisting), '-f',
-             str(frequency), '-L', str(0 - lpcut), '-H', str(hpcut), '-m', 'iq', '-w'], stdout=PIPE, shell=False,
-            preexec_fn=os.setsid)
-        #proc2 = subprocess.Popen(
-        #    [sys.executable, 'kiwirecorder.py', '-s', str(hostlisting), '-p', str(portlisting), str(namelisting), '-f',
-        #     str(frequency), '-L', str(0 - lpcut), '-H', str(hpcut), '-m', 'iq', '-w'], stdout=PIPE, shell=False)
-        # commented out (debug on Windows OS)
+            [sys.executable, 'kiwirecorder.py', '-s', ','.join(str(p).rsplit('$')[0] for p in fulllist), '-p',
+             ','.join(str(p).rsplit('$')[1] for p in fulllist),
+             '--station=' + ','.join(str(p).rsplit('$')[3] for p in fulllist), '-f', str(frequency), '-L',
+             str(0 - lpcut), '-H', str(hpcut), '-m', 'iq', '-w'], stdout=PIPE, shell=False, preexec_fn=os.setsid)
         proc2_pid = proc2.pid
         self.parent.writelog("IQ Recordings in progress...please wait")
-        # full shell command displayed now
-        self.parent.writelog('kiwirecorder.py -s ' + str(hostlisting) + ' -p ' + str(portlisting) + ' ' + str(
-            namelisting) + ' -f ' + str(frequency) + ' -L ' + str(0 - lpcut) + ' -H ' + str(hpcut) + ' -m iq -w')
+        self.parent.writelog(
+            'Command line: kiwirecorder.py -s ' + ','.join(str(p).rsplit('$')[0] for p in fulllist) + ' -p ' + ','.join(
+                str(p).rsplit('$')[1] for p in fulllist) + ' -station=' + ','.join(
+                str(p).rsplit('$')[3] for p in fulllist) + ' -f ' + str(frequency) + ' -L ' + str(
+                0 - lpcut) + ' -H ' + str(hpcut) + ' -m iq -w')
+
+
+class StartKiwiSDRclient(threading.Thread):
+
+    def __init__(self, parent=None):
+        super(StartKiwiSDRclient, self).__init__()
+        self.parent = parent
+
+    def run(self):
+        global parent, kiwisdrclient_pid, server_host, server_port, frequency, listenmode, dd
+        try:
+            #  '-g', '1', '50', '0', '-100', '6', '1000'  <==== static AGC settings
+            #  1= AGC (on)  50=Manual Gain (dB) 0=Hang (off)  -100=Threshold (dB) 6=Slope (dB) 1000=Decay (ms)
+            #  -L and -H are demod filters settings, values are override by kiwiSDRclient.py (BW=3600Hz)
+            proc8 = subprocess.Popen(
+                [sys.executable, 'KiwiSDRclient.py', '-s', str(server_host), '-p', str(server_port), '-f',
+                 str(frequency), '-m', dd, '-L', '0', '-H', '5000', '-g', '1', '50', '0', '-100', '6', '1000'],
+                stdout=PIPE, shell=False)
+            kiwisdrclient_pid = proc8.pid
+            listenmode = "1"
+            app.window2.writelog("Starting Listen mode    [ " + server_host + " / " + frequency + " kHz / " + str(dd).upper() + " ]")
+        except:
+            print "error: unable to demodulate this node"
+            listenmode = "0"
 
 
 class FillMapWithNodes(threading.Thread):
@@ -472,14 +483,12 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
     def __init__(self, parent):
         Frame.__init__(self, parent=None)
         parent.geometry("1200x700+150+10")
-        global dx0, dy0, dx1, dy1
-        global serverlist, portlist, namelist, shortlist, dmap, host, white, black, mapfl, mapboundaries_set
+        global dx0, dy0, dx1, dy1, listenmode, fulllist
+        global dmap, host, white, black, mapfl, mapboundaries_set
         # host = Variable
-        serverlist = []
-        portlist = []
-        namelist = []
-        shortlist = []
+        fulllist = []
         ReadConfigFile().read_cfg()
+        listenmode = "0"
         mapboundaries_set = None
         self.x = self.y = 0
         # Create canvas and put image on it
@@ -501,9 +510,9 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         self.canvas.bind('<Configure>', self.show_image)  # canvas is resized
         self.canvas.bind('<ButtonPress-1>', self.move_from)  # map move
         self.canvas.bind('<B1-Motion>', self.move_to)  # map move
-        # self.canvas.bind_all('<MouseWheel>', self.wheel)  # Windows Zoom disabled in this version !
-        # self.canvas.bind('<Button-5>', self.wheel)  # Linux Zoom disabled in this version !
-        # self.canvas.bind('<Button-4>', self.wheel)  # Linux Zoom disabled in this version !
+        #self.canvas.bind_all('<MouseWheel>', self.wheel)  # Windows Zoom disabled in this version !
+        #self.canvas.bind('<Button-5>', self.wheel)  # Linux Zoom disabled in this version !
+        #self.canvas.bind('<Button-4>', self.wheel)  # Linux Zoom disabled in this version !
         self.canvas.bind("<ButtonPress-3>", self.on_button_press)  # red rectangle selection
         self.canvas.bind("<B3-Motion>", self.on_move_press)  # red rectangle selection
         self.canvas.bind("<ButtonRelease-3>", self.on_button_release)  # red rectangle selection
@@ -617,9 +626,10 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         FillMapWithNodes(self).deletePoint(n.rsplit(' (')[0])
 
     def onClick(self, event):  # host sub menus
-        global snrcheck, snrhost, host, white, black
+        global snrcheck, snrhost, host, white, black, listenmode, frequency
         host = self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0]
         self.menu = Menu(self, tearoff=0, fg="black", bg="grey", font='TkFixedFont 7')
+        self.menu2 = Menu(self.menu, tearoff=0, fg="black", bg="white", font='TkFixedFont 7')
         #  host.rsplit("$", 14)[#] <<
         #  0=host  1=id  2=short name  3=name  4=users  5=users max  6=GPS fix/min
         #  7=SNR 0-2 MHz  8=SNR 2-10 MHz  9=SNR 10-20 MHz  10=SNR 20-30 MHz
@@ -629,6 +639,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         temp_noise_avg = (int(host.rsplit("$", 14)[11]) + int(host.rsplit("$", 14)[12]) + int(
             host.rsplit("$", 14)[13]) + int(host.rsplit("$", 14)[14])) / 4
         font_snr1 = font_snr2 = font_snr3 = font_snr4 = 'TkFixedFont 7'
+        frequency = app.window2.Entry1.get()
         try:  # check if the node is answering
             chktimeout = 1  # timeout of the node check
             checkthenode = requests.get("http://" + str(host).rsplit("$", 14)[0] + "/status", timeout=chktimeout)
@@ -649,25 +660,43 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
                                           command=None)
                 elif infonodes[15].rsplit("=", 2)[1] <= "0":  # tdoa_ch=1 or more
                     self.menu.add_command(
-                        label=str(host).rsplit("$", 14)[2] + " node have no TDoA channels set in its configuration",
-                        background=(self.color_variant("#FF0000", (int(temp_snr_avg) - 50) * 5)),
-                        foreground=self.get_font_color((self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
-                        command=None)
-                elif infonodes[12].rsplit("=", 2)[1] == "0":  # fixes_min=0
-                    self.menu.add_command(
-                        label=str(host).rsplit("$", 14)[2] + " node have currently 0 GPS fixes per min ..wait a bit..",
+                        label=str(host).rsplit("$", 14)[2] + " node have no TDoA channels set in its configuration [" +
+                              infonodes[6].rsplit("=", 2)[1] + "/" + infonodes[7].rsplit("=", 2)[1] + " users]",
                         background=(self.color_variant("#FF0000", (int(temp_snr_avg) - 50) * 5)),
                         foreground=self.get_font_color((self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
                         command=None)
                     nodeok = "yes"
+                elif infonodes[12].rsplit("=", 2)[1] == "0":  # fixes_min=0
+                    self.menu.add_command(label=str(host).rsplit("$", 14)[
+                                                    2] + " node have currently 0 GPS fixes per min ..wait a bit.. [" +
+                                                infonodes[6].rsplit("=", 2)[1] + "/" + infonodes[7].rsplit("=", 2)[
+                                                    1] + " users]",
+                                          background=(self.color_variant("#FF0000", (int(temp_snr_avg) - 50) * 5)),
+                                          foreground=self.get_font_color(
+                                              (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
+                                          command=None)
+                    nodeok = "yes"
                 else:  # all ok for this node
-                    self.menu.add_command(
-                    label="Add " + str(host).rsplit("$", 14)[2] + " for TDoA process [" + infonodes[12].rsplit("=", 2)[
-                        1] + " GPS fix/min] [" + infonodes[6].rsplit("=", 2)[1] + "/" + infonodes[7].rsplit("=", 2)[
-                              1] + " users]",
-                    background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
-                    foreground=self.get_font_color((self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
-                    command=self.populate)
+                    matches = [el for el in fulllist if host.rsplit(':')[0] in el]
+                    if len(matches) != 1:
+                        self.menu.add_command(label="Add " + str(host).rsplit("$", 14)[2] + " for TDoA process [" +
+                                                    infonodes[12].rsplit("=", 2)[1] + " GPS fix/min] [" +
+                                                    infonodes[6].rsplit("=", 2)[1] + "/" + infonodes[7].rsplit("=", 2)[
+                                                        1] + " users]", background=(
+                            self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
+                                              foreground=self.get_font_color(
+                                                  (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
+                                              command=self.populate)
+
+                    else:
+                        self.menu.add_command(label="Remove " + str(host).rsplit("$", 14)[2] + " from TDoA process [" +
+                                                    infonodes[12].rsplit("=", 2)[1] + " GPS fix/min] [" +
+                                                    infonodes[6].rsplit("=", 2)[1] + "/" + infonodes[7].rsplit("=", 2)[
+                                                        1] + " users]", background=(
+                            self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
+                                              foreground=self.get_font_color(
+                                                  (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
+                                              command=self.depopulate)
                     nodeok = "yes"
             except Exception:
                 if "not found" in infonodes[13]:
@@ -680,7 +709,9 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
 
         except requests.RequestException as reqerr:
             try:  # trying to deal with requests exceptions texts...
-                reqer = str(reqerr.message).replace("'", "").replace(",", "").replace(":", "").replace("))", "").rsplit(">", 2)[1]
+                reqer = \
+                str(reqerr.message).replace("'", "").replace(",", "").replace(":", "").replace("))", "").rsplit(">", 2)[
+                    1]
             except:
                 reqer = str(reqerr.message).rsplit(":", 1)[1]
             self.menu.add_command(label=str(host).rsplit("$", 14)[2] + " node is not available. " + str(reqer),
@@ -697,20 +728,49 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         if nodeok == "yes":
             try:
                 self.menu.add_command(
-                    label="Open \"" + str(host).rsplit("$", 14)[0] + "/f=" + str(frequency.get()) + "iqz8\" in browser",
+                    label="Open \"" + str(host).rsplit("$", 14)[0] + "/f=" + str(frequency) + "iqz8\" in browser",
                     state=NORMAL, background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
                     foreground=self.get_font_color((self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
                     command=self.openinbrowser)
-                if frequency.get() <= 2000:
+                if frequency <= 2000:
                     font_snr1 = 'TkFixedFont 8 bold'
-                elif 2001 < frequency.get() <= 10000:
+                elif 2001 < frequency <= 10000:
                     font_snr2 = 'TkFixedFont 8 bold'
-                elif 10000 < frequency.get() <= 20000:
+                elif 10001 < frequency <= 20000:
                     font_snr3 = 'TkFixedFont 8 bold'
-                elif 20000 < frequency.get() <= 30000:
+                elif 20001 < frequency <= 30000:
                     font_snr4 = 'TkFixedFont 8 bold'
             except:
                 pass
+
+        if nodeok == "yes" and listenmode == "0" and app.window2.Entry1.get() != "":
+            self.menu.add_cascade(
+                label="Listen using " + str(host).rsplit("$", 14)[0],
+                state=NORMAL, background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
+                foreground=self.get_font_color((self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
+                menu=self.menu2)
+            self.menu2.add_command(label="USB",
+                                   background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
+                                   foreground=self.get_font_color(
+                                       (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
+                                   command=lambda *args: self.listenmode("usb"))
+            self.menu2.add_command(label="LSB",
+                                   background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
+                                   foreground=self.get_font_color(
+                                       (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
+                                   command=lambda *args: self.listenmode("lsb"))
+            self.menu2.add_command(label="AM",
+                                   background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
+                                   foreground=self.get_font_color(
+                                       (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
+                                   command=lambda *args: self.listenmode("am"))
+
+        if listenmode == "1":
+            self.menu.add_command(
+                label="Stop Listen Mode",
+                state=NORMAL, background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
+                foreground=self.get_font_color((self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
+                command=self.stoplistenmode)
 
         self.menu.add_separator()
         self.menu.add_command(label="AVG SNR on 0-30 MHz: " + str(temp_snr_avg) + " dB - AVG Noise: " + str(
@@ -767,7 +827,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
 
         self.menu.post(event.x_root, event.y_root)
 
-    def get_font_color (self, ff):  # adapting the font color regarding background luminosity
+    def get_font_color(self, ff):  # adapting the font color regarding background luminosity
         # stackoverflow.com/questions/946544/good-text-foreground-color-for-a-given-background-color/946734#946734
         rgb_hex = [ff[x:x + 2] for x in [1, 3, 5]]
         if int(rgb_hex[0], 16)*0.299 + int(rgb_hex[1], 16)*0.587 + int(rgb_hex[2], 16)*0.114 > 186:
@@ -777,7 +837,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         # if (red*0.299 + green*0.587 + blue*0.114) > 186 use #000000 else use #ffffff
         pass
 
-    def convert_dbm_to_smeter (self, dbm):
+    def convert_dbm_to_smeter(self, dbm):
         dBm_values = [-121, -115, -109, -103, -97, -91, -85, -79, -73, -63, -53, -43, -33, -23, -13, -3]
         if dbm != 0:
             return next(x[0] for x in enumerate(dBm_values) if x[1] > dbm)
@@ -905,29 +965,49 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         Restart().run()
 
     def openinbrowser(self):
-        if frequency.get() != 10000:
-            url = "http://" + str(host).rsplit("$", 14)[0] + "/?f=" + str(frequency.get()) + "iqz8"
+        if frequency != 10000:
+            url = "http://" + str(host).rsplit("$", 14)[0] + "/?f=" + str(frequency) + "iqz8"
             webbrowser.open_new(url)
         else:
             url = "http://" + str(host).rsplit("$", 14)[0]
             webbrowser.open_new(url)
 
+    def listenmode(self, d):
+        global server_host, server_port, frequency, listenmode, kiwisdrclient_pid, dd
+        server_host = str(host).rsplit("$", 14)[0].rsplit(":", 2)[0]
+        server_port = str(host).rsplit("$", 14)[0].rsplit(":", 2)[1]
+        frequency = app.window2.Entry1.get()
+        dd = d
+        if listenmode == "0":
+            StartKiwiSDRclient(self).start()
+        else:
+            os.kill(kiwisdrclient_pid, signal.SIGTERM)
+            StartKiwiSDRclient(self).start()
+
+    def stoplistenmode(self):
+        global listenmode, kiwisdrclient_pid
+        os.kill(kiwisdrclient_pid, signal.SIGTERM)
+        listenmode = "0"
+        app.window2.writelog("Stopping Listen mode")
+
     def populate(self):
-        global full_list, serverlist, portlist, namelist, shortlist
-        if len(serverlist) < 6:
-            if host.rsplit(':')[0] not in serverlist:
-                serverlist.append(host.rsplit(':')[0])  # host
-                portlist.append(host.rsplit(':')[1].rsplit('$')[0])  # port
-                namelist.append(host.rsplit('$')[1])  # id
-                shortlist.append(host.rsplit('$')[2])  # short name
-                app.title(VERSION + " - Selected nodes : " + str(shortlist).replace("[", "").replace("'", "").replace("]", "").replace(",", " +"))
-                full_list = str(serverlist).replace("[", "").replace("'", "").replace("]", "").replace(",", " +")
-            else:
-                tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ",
-                                      message=str(host.rsplit(':')[0]) + " is already in the server list !")
+        if len(fulllist) < 6:
+            fulllist.append(
+                host.rsplit(':')[0] + "$" + host.rsplit(':')[1].rsplit('$')[0] + "$" + host.rsplit('$')[1] + "$" +
+                host.rsplit('$')[2].replace("/", ""))
+            app.title(VERSION + " - Selected nodes : " + ' + '.join(str(p).rsplit('$')[3] for p in fulllist))
         else:
             tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ",
                                   message="[[[maximum server limit reached]]]")
+
+    def depopulate(self):
+        fulllist.remove(
+            host.rsplit(':')[0] + "$" + host.rsplit(':')[1].rsplit('$')[0] + "$" + host.rsplit('$')[1] + "$" +
+            host.rsplit('$')[2].replace("/", ""))
+        if len(fulllist) != 0:
+            app.title(VERSION + " - Selected nodes : " + ' + '.join(str(p).rsplit('$')[3] for p in fulllist))
+        else:
+            app.title(VERSION)
 
     def scroll_y(self, *args, **kwargs):
         self.canvas.yview(*args, **kwargs)  # scroll vertically
@@ -956,7 +1036,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         # Respond to Linux (event.num) or Windows (event.delta) wheel event
         if event.num == 5 or event.delta == -120:  # scroll down
             i = min(self.width, self.height)
-            if int(i * self.imscale) < 600:
+            if int(i * self.imscale) < 2000:
                 return  # block zoom if image is less than 600 pixels
             self.imscale /= self.delta
             scale /= self.delta
@@ -1012,7 +1092,7 @@ class MainWindow(Frame):
             tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ", message="oops no node db found, Click OK to run an update now")
             CheckUpdate().run()
         ReadKnownPointFile().run()
-        global frequency, checkfilesize
+        global frequency
         global line, i, bgc, fgc, dfgc, lpcut, hpcut, currentbw
         global latmin, latmax, lonmin, lonmax, bbox1, lat_min_map, lat_max_map, lon_min_map, lon_max_map
         global selectedlat, selectedlon, selectedcity, map_preset, map_manual, rec_in_progress
@@ -1051,36 +1131,26 @@ class MainWindow(Frame):
         self.label04 = Label(parent)
         self.label04.place(x=0, y=56, height=14, width=75)
         self.label04.configure(background="grey", font="TkFixedFont 7", anchor="w", fg="#001E00", text="█ no SNR data")
-
-        numeric_entry_only = (self.register(self.numeric_only), '%S')
-        self.Entry1 = Entry(parent, textvariable=frequency, validate='key', vcmd=numeric_entry_only)  # frequency box
+        self.Entry1 = Entry(parent, textvariable=frequency)
         self.Entry1.place(relx=0.06, rely=0.892, height=24, relwidth=0.1)
         self.Entry1.configure(background="white", disabledforeground=dfgc, font="TkFixedFont", foreground=fgc,
                               insertbackground=fgc, width=214)
-        #self.Entry1.bind('<FocusIn>', self.clickfreq)
-        #self.Entry1.bind('<Leave>', self.choosedfreq)
-        self.Entry1.bind('<KeyPress>', self.choosedfreq)
-
         self.label1 = Label(parent)
         self.label1.place(relx=0.01, rely=0.895)
         self.label1.configure(background=bgc, font="TkFixedFont", foreground=fgc, text="Freq:")
         self.label2 = Label(parent)
         self.label2.place(relx=0.162, rely=0.895)
         self.label2.configure(background=bgc, font="TkFixedFont", foreground=fgc, text="kHz")
-
         self.Button1 = Button(parent)  # Start recording button
         self.Button1.place(relx=0.77, rely=0.89, height=24, relwidth=0.10)
         self.Button1.configure(activebackground=bgc, activeforeground=fgc, background=bgc, disabledforeground=dfgc,
                                foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
                                text="Start recording", command=self.clickstart, state="normal")
-
         self.Button2 = Button(parent)  # Stop & Start TDoA button
         self.Button2.place(relx=0.88, rely=0.89, height=24, relwidth=0.1)
         self.Button2.configure(activebackground=bgc, activeforeground=fgc, background=bgc, disabledforeground=dfgc,
                                foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
                                text="Start TDoA proc", command=self.clickstop, state="disabled")
-
-        #  2nd part of buttons
         self.Choice = Entry(parent)
         self.Choice.place(relx=0.01, rely=0.95, height=21, relwidth=0.18)
         self.Choice.insert(0, "TDoA map city/site search here")
@@ -1089,23 +1159,24 @@ class MainWindow(Frame):
         self.label3 = Label(parent)  # Known point
         self.label3.place(relx=0.54, rely=0.95, height=21, relwidth=0.3)
         self.label3.configure(background=bgc, font="TkFixedFont", foreground=fgc, width=214, text="", anchor="w")
-
         self.label4 = Label(parent)  # Map boundaries information
         self.label4.place(relx=0.2, rely=0.895, height=21, relwidth=0.55)
         self.label4.configure(background=bgc, font="TkFixedFont", foreground=fgc, width=214, text="", anchor="w")
-
         self.Button5 = Button(parent)  # Restart GUI button
         self.Button5.place(relx=0.81, rely=0.94, height=24, relwidth=0.08)
         self.Button5.configure(activebackground=bgc, activeforeground=fgc, background="red", disabledforeground=dfgc,
                                foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
                                text="Restart GUI", command=Restart().run, state="normal")
-
         self.Button3 = Button(parent)  # Update button
         self.Button3.place(relx=0.90, rely=0.94, height=24, relwidth=0.08)
         self.Button3.configure(activebackground=bgc, activeforeground=fgc, background=bgc, disabledforeground=dfgc,
                                foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
                                text="update map", command=self.runupdate, state="normal")
-
+        self.Button4 = Button(parent)  # Purge node list button
+        self.Button4.place(relx=0.72, rely=0.94, height=24, relwidth=0.08)
+        self.Button4.configure(activebackground=bgc, activeforeground=fgc, background="orange", disabledforeground=dfgc,
+                               foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
+                               text="Purge Nodes", command=self.purgenode, state="normal")
         self.Text2 = Text(parent)  # Console window
         self.Text2.place(relx=0.005, rely=0.7, relheight=0.18, relwidth=0.6)
         self.Text2.configure(background="black", font="TkTextFont", foreground="red", highlightbackground=bgc,
@@ -1122,7 +1193,6 @@ class MainWindow(Frame):
         vsb2 = Scrollbar(parent, orient="vertical", command=self.Text2.yview)  # adding scrollbar to console
         vsb2.place(relx=0.6, rely=0.7, relheight=0.18, relwidth=0.02)
         self.Text2.configure(yscrollcommand=vsb2.set)
-
         self.Text3 = Text(parent)  # IQ recs file size window
         self.Text3.place(relx=0.624, rely=0.7, relheight=0.18, relwidth=0.37)
         self.Text3.configure(background="white", font="TkTextFont", foreground="black", highlightbackground=bgc,
@@ -1140,7 +1210,6 @@ class MainWindow(Frame):
         submenu1 = Menu(filemenu, tearoff=0)
         submenu2 = Menu(filemenu, tearoff=0)
         submenu3 = Menu(filemenu, tearoff=0)
-        submenu4 = Menu(filemenu3, tearoff=0)
         filemenu.add_cascade(label='Default map', menu=submenu1, underline=0)
         submenu1.add_command(label="Browse maps folder", command=self.choose_map)
         filemenu.add_cascade(label='Map Filters', menu=submenu2, underline=0)
@@ -1154,8 +1223,7 @@ class MainWindow(Frame):
         submenu3.add_command(label="Favorite node color", command=lambda *args: self.color_change(1))
         submenu3.add_command(label="Blacklisted node color", command=lambda *args: self.color_change(2))
         submenu3.add_command(label="Known map point color", command=lambda *args: self.color_change(3))
-
-        menubar.add_cascade(label="Map Presets",menu=filemenu2)
+        menubar.add_cascade(label="Map Presets", menu=filemenu2)
         filemenu2.add_command(label="Europe", command=lambda *args: self.map_preset(0))
         filemenu2.add_command(label="Africa", command=lambda *args: self.map_preset(1))
         filemenu2.add_command(label="Middle-East", command=lambda *args: self.map_preset(2))
@@ -1169,10 +1237,8 @@ class MainWindow(Frame):
         filemenu2.add_command(label="West Russia", command=lambda *args: self.map_preset(10))
         filemenu2.add_command(label="East Russia", command=lambda *args: self.map_preset(11))
         filemenu2.add_command(label="USA", command=lambda *args: self.map_preset(12))
-        filemenu2.add_command(label="World (use with caution)",command=lambda *args: self.map_preset(13))
+        filemenu2.add_command(label="World (use with caution)", command=lambda *args: self.map_preset(13))
         # next map boundaries presets come here, keep preset "20" for reset
-        #
-        #
         filemenu2.add_command(label="--- RESET ---", command=lambda *args: self.map_preset(20))
         filemenu3.add_command(label="Set Default BW", command=self.set_bw)
         menubar.add_cascade(label="IQ bandwidth", menu=filemenu3)
@@ -1180,7 +1246,6 @@ class MainWindow(Frame):
                  '600', '500', '400', '300', '200', '100', '50']
         for bwlist in iqset:
             filemenu3.add_command(label=bwlist + " Hz", command=lambda bwlist=bwlist: self.set_iq(bwlist))
-
         menubar.add_cascade(label="?", menu=filemenu4)
         filemenu4.add_command(label="Help", command=self.help)
         filemenu4.add_command(label="About", command=self.about)
@@ -1190,6 +1255,10 @@ class MainWindow(Frame):
         self.Choice.bind('<FocusIn>', self.resetcity)
         self.Choice.bind('<KeyRelease>', self.on_keyrelease)
         self.Entry1.delete(0, 'end')
+        self.checkversion()
+        for wavfiles in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
+            os.remove(wavfiles)
+        CheckFileSize().start()
 
     def on_keyrelease(self, event):
         value = event.widget.get()
@@ -1211,16 +1280,19 @@ class MainWindow(Frame):
 
     def on_select(self, event):  # KNOWN POINT SELECTION
         global selectedlat, selectedlon, selectedcity
-        if event.widget.get(event.widget.curselection()) == " ":
-            tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ", message="Type something in the left box to search for a point")
-        else:
-            self.label3.configure(text="LAT: " + str(
-                my_info2[my_info1.index(event.widget.get(event.widget.curselection()))]) + " LON: " + str(
-                my_info3[my_info1.index(event.widget.get(event.widget.curselection()))]))
-            selectedlat = str(my_info2[my_info1.index(event.widget.get(event.widget.curselection()))])
-            selectedlon = str(my_info3[my_info1.index(event.widget.get(event.widget.curselection()))])
-            selectedcity = event.widget.get(event.widget.curselection())
-            self.member1.create_point(selectedlat, selectedlon, selectedcity)
+        try:
+            if event.widget.get(event.widget.curselection()) == " ":
+                tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ", message="Type something in the left box to search for a point before clicking here")
+            else:
+                self.label3.configure(text="LAT: " + str(
+                    my_info2[my_info1.index(event.widget.get(event.widget.curselection()))]) + " LON: " + str(
+                    my_info3[my_info1.index(event.widget.get(event.widget.curselection()))]))
+                selectedlat = str(my_info2[my_info1.index(event.widget.get(event.widget.curselection()))])
+                selectedlon = str(my_info3[my_info1.index(event.widget.get(event.widget.curselection()))])
+                selectedcity = event.widget.get(event.widget.curselection())
+                self.member1.create_point(selectedlat, selectedlon, selectedcity)
+        except:
+            pass
 
     def resetcity(self, my_info1):
         global selectedlat, selectedlon, selectedcity
@@ -1237,16 +1309,6 @@ class MainWindow(Frame):
         time.sleep(0.01)
         self.Text2.see('end')
 
-    def writelog2(self, msg):  # the Checkfile log text feed
-        global t, checkfilesize
-        if t == 0 and checkfilesize == 1:
-            self.Text3.delete("0.0", END)
-            t = 1
-        if checkfilesize == 1:
-            self.Text3.insert('end -1 lines', msg + "\n")
-            time.sleep(0.01)
-            self.Text2.see('end')
-
     @staticmethod
     def help():
         master = Tk()
@@ -1255,14 +1317,15 @@ class MainWindow(Frame):
     2/ Enter the frequency, between 0 and 30000 (kHz)
     3/ Choose from the top bar menu a specific bandwidth for the IQ recordings if necessary
     4/ Choose KiwiSDR nodes by left-click on them and select \"Add:\" command to add them to the list (min=3 max=6)
-    5/ Hold Right-mouse button to drag a rec rectangle to set the TDoA computed map geographical boundaries 
+    5/ You can remove undesired nodes from the list by using the \"Remove:\" command
+    6/ Hold Right-mouse button to drag a rec rectangle to set the TDoA computed map geographical boundaries 
        or select one of the presets from the top bar menu, you can cancel by drawing again by hand or choose RESET
-    6/ Type some text in the bottom left box to search for a city or TX site to display on final TDoA map (if needed)
-    7/ Click Start Recording button and wait for some seconds (Recorded IQ files size are displayed in the white window)
-    8/ Click Start TDoA button and WAIT until the TDoA process stops! (it may take some CPU process time!)
-    9/ Calculated TDoA map is automatically displayed as 'Figure1' ghostscript pop-up window and it will close itself
-    10/ A PDF file will be created automaticaly, it takes time, so wait for the final popup window
-    11/ All TDoA process files (wav/m/pdf) will be automaticaly saved in a subdirectory of TDoA/iq/
+    7/ Type some text in the bottom left box to search for a city or TX site to display on final TDoA map (if needed)
+    8/ Click Start Recording button and wait for some seconds (Recorded IQ files size are displayed in the white window)
+    9/ Click Start TDoA button and WAIT until the TDoA process stops! (it may take some CPU process time!)
+    10/ Calculated TDoA map is automatically displayed as 'Figure1' ghostscript pop-up window and it will close itself
+    11/ A PDF file will be created automaticaly, it takes time, so wait for the final popup window
+    12/ All TDoA process files (wav/m/pdf) will be automaticaly saved in a subdirectory of TDoA/iq/
     """, width=1000, font="TkFixedFont 8", bg="white", anchor="center")
         w.pack()
 
@@ -1270,7 +1333,7 @@ class MainWindow(Frame):
     def about():  # About menu
         master = Tk()
         w = Message(master, text="""
-    Welcome to directTDoA !
+    Welcome to """ + VERSION + """
 
     I've decided to write that python GUI in order to compute the TDoA stuff faster & easier.
     Please note that I have no credits in all the GNU Octave calculation process (TDoA/m/*.m files).
@@ -1290,7 +1353,9 @@ class MainWindow(Frame):
     Thanks to Marco Cogoni (IS0KYB) for the KiwiSDR network SNR measurements listing used as source for GUI map update
     And.. Thanks to all KiwiSDR hosts with GPS activated and decent RX on both HF & GPS freqs...
 
-    linkz (feedback/features request/help : contact me at ounaid at gmail dot com)
+    linkz 
+    
+    feedback, features request or help : contact me at ounaid at gmail dot com or IRC freenode #wunclub / #priyom
     """, width=1000, font="TkFixedFont 8", bg="white", anchor="center")
         w.pack()
 
@@ -1409,40 +1474,36 @@ class MainWindow(Frame):
         self.Button1.configure(state="disabled")
         self.Button2.configure(state="disabled")
         self.Button3.configure(state="disabled")
+        self.Button4.configure(state="disabled")
         CheckUpdate(self).start()  # start the update thread
 
-    # ---------------------------------------------------MAIN-----------------------------------------------------------
-
-    def numeric_only(self, S):
-        freq_typed = re.match(r"\d+(.\d+)?$", S)
-        return freq_typed is not None
-
-    def callback(self, frequency):
-        pass
-
-    def choosedfreq(self, ff):
-        if ff.char in ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'):
-            try:
-                frequency.trace("w", lambda name, index, mode, frequency=frequency: self.callback(frequency))
-                return True
-            except ValueError:
-                return False
+    def purgenode(self):  # if Purge node list button is pushed
+        global fulllist
+        if len(fulllist) != 0:
+            fulllist = []
+            app.title(VERSION)
+            self.writelog("The full node listing has been erased.")
         else:
-            pass
+            self.writelog("The node listing is already empty.")
+
+    # ---------------------------------------------------MAIN-----------------------------------------------------------
 
     def set_iq(self, m):
         global lpcut, hpcut, currentbw
         try:
-            if 5 < frequency.get() < 30000:
+            if 5 < int(self.Entry1.get()) < 30000:
                 self.writelog("Setting IQ bandwidth at " + m + " Hz       | " + str(
-                float(frequency.get()) - (float(m) / 2000)) + " | <---- " + str(float(frequency.get())) + " ----> | " + str(
-                float(frequency.get()) + (float(m) / 2000)) + " |")
-                lpcut = hpcut = int(m) / 2
+                    float(self.Entry1.get()) - (float(m) / 2000)) + " | <---- " + str(
+                    float(self.Entry1.get())) + " ----> | " + str(
+                    float(self.Entry1.get()) + (float(m) / 2000)) + " |")
                 currentbw = m
+                lpcut = hpcut = int(m) / 2
             else:
-                frequency.set(10000)
                 self.writelog("Error, frequency is too low or too high")
         except ValueError as ve:
+            currentbw = m
+            lpcut = hpcut = int(m) / 2
+            self.writelog("Setting IQ bandwidth at " + m + " Hz")
             pass
 
     def set_bw(self):
@@ -1451,7 +1512,7 @@ class MainWindow(Frame):
             SaveConfigFile().save_cfg("defaultbw", currentbw)
             Restart().run()
         except:
-            self.writelog("Enter a frequency and choose one BW before saving the selected one as the default value!")
+            pass
 
     def checkversion(self):
         try:
@@ -1460,7 +1521,7 @@ class MainWindow(Frame):
             if str(gitsrctext[0][2:]) != VERSION:
                 tkMessageBox.showinfo(title="UPDATE INFORMATION", message=str(gitsrctext[0][2:]) + " has been released !\n\nCheck https://github.com/llinkz/directTDoA for change log & update.\n\nI hope you enjoy this software\n\n73 from linkz")
             else:
-                tkMessageBox.showinfo(title="UPDATE INFORMATION", message=str(gitsrctext[0][2:]) + " is the latest released version.\n\nI hope you enjoy this software\n\n73 from linkz")
+                pass
         except:
             print "Unable to verify version information. Sorry."
             pass
@@ -1473,12 +1534,13 @@ class MainWindow(Frame):
     #     snrfreq = str(snrfreq)
 
     def clickstart(self):
-        global namelist, namelisting, frequency, hostlisting, latmin, latmax, lonmin, lonmax, lpcut, hpcut
-        global serverlist, portlist, portlisting, starttime, x1, x2, y1, y2, mapboundaries_set, rec_in_progress
+        global frequency, latmin, latmax, lonmin, lonmax, lpcut, hpcut
+        global starttime, x1, x2, y1, y2, mapboundaries_set, rec_in_progress
 
         if rec_in_progress == 1:
-            CheckFileSize(self).stop()
+            self.Text3.delete("0.0", END)
             os.kill(proc2_pid, signal.SIGTERM)
+            time.sleep(0.5)
 
         if mapboundaries_set is None:
             tkMessageBox.showinfo("WARNING",
@@ -1488,49 +1550,39 @@ class MainWindow(Frame):
             lonmax = str(((bbox2[2] - 1910) * 180) / 1910).rsplit('.')[0]  # LONGITUDE MAX
             latmax = str(0 - ((bbox2[1] - 990) / 11)).rsplit('.')[0]  # LATITUDE MAX
             latmin = str(20 - ((bbox2[3] - 990) / 11)).rsplit('.')[0]  # LATITUDE MIN
-            namelisting = hostlisting = portlisting = ""
-            for i in range(len(serverlist)):
-                namelisting = namelisting + shortlist[i].replace('/', '') + ','
-            namelisting = "--station=" + namelisting[:-1]
-            for i in range(len(serverlist)):
-                hostlisting = hostlisting + serverlist[i] + ','
-            hostlisting = hostlisting[:-1]
-            for i in range(len(portlist)):
-                portlisting = portlisting + portlist[i] + ','
-            portlisting = portlisting[:-1]
+
             starttime = str(time.strftime('%Y%m%dT%H%M%S'))
             if self.Entry1.get() == '' or float(self.Entry1.get()) < 0 or float(self.Entry1.get()) > 30000:
                 self.writelog("ERROR: Please check the frequency !")
-            elif len(namelist) < 3:  # debug
+            elif len(fulllist) < 3:  # debug
                 self.writelog("ERROR: Select at least 3 nodes for TDoA processing !")
             else:
                 frequency = str(float(self.Entry1.get()))
                 self.Button1.configure(text="Restart recording")
                 self.Button2.configure(state="normal")
                 self.Button3.configure(state='disabled')
+                self.Button4.configure(state='disabled')
                 for wavfiles in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
                     os.remove(wavfiles)
                 time.sleep(0.2)
+                self.Text3.delete("0.0", END)
                 StartKiwiSDR(self).start()
-                CheckFileSize(self).start()
                 rec_in_progress = 1
 
     def clickstop(self):
         global IQfiles, frequency, varfile, selectedlat, selectedlon, currentbw
-        global selectedcity, starttime, latmin, latmax, lonmin, lonmax, nbfile, proc2_pid
-        global lat_min_map, lat_max_map, lon_min_map, lon_max_map, checkfilesize
-        checkfilesize = 0
-        CheckFileSize(self).stop()
+        global selectedcity, starttime, latmin, latmax, lonmin, lonmax, proc2_pid
+        global lat_min_map, lat_max_map, lon_min_map, lon_max_map, rec_in_progress
+        rec_in_progress = 0
         os.kill(proc2_pid, signal.SIGTERM)
         for file in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
             IQfiles.append(os.path.split(file)[1])
         firstfile = IQfiles[0]
         varfile = str(firstfile.split("_", 2)[1].split("_", 1)[0])
-        for i in range(len(IQfiles)):
-            nbfile = len(IQfiles)
         self.writelog("IQ Recordings stopped...")
         self.Button1.configure(state='disabled')
         self.Button2.configure(state="disabled")
+        app.window2.Text3.delete("0.0", END)
 
         #  creating the .m file
         with open(os.path.join('TDoA') + os.sep + "proc_tdoa_" + varfile + ".m", "w") as g:
@@ -1625,7 +1677,14 @@ class MainW(Tk, object):
         self.window2 = MainWindow(self)
 
 
+def on_closing():
+    if tkMessageBox.askokcancel("Quit", "Do you want to quit?"):
+        os.kill(os.getpid(), signal.SIGTERM)
+        app.destroy()
+
+
 if __name__ == '__main__':
     app = MainW()
     app.title(VERSION)
+    app.protocol("WM_DELETE_WINDOW", on_closing)
     app.mainloop()
