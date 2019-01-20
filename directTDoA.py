@@ -240,7 +240,7 @@ class RunUpdate(threading.Thread):
                         for index, element in enumerate(json_data2['features']):  # check IS0KYB db
                             if json_data[i]['id'] in json.dumps(json_data2['features'][index]):
                                 if json_data[i]['tdoa_id'] == '':
-                                    node_id = json_data[i]['url'].split('//', 1)[1].split(':', 1)[0].replace(".", "").replace("-", "")
+                                    node_id = json_data[i]['url'].split('//', 1)[1].split(':', 1)[0].replace(".", "").replace("-", "").replace("proxykiwisdrcom", "").replace("ddnsnet", "")
                                     try:
                                         ipfield = re.search(
                                             r'\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))\b',
