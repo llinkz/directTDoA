@@ -725,7 +725,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
                               foreground=self.get_font_color(
                                   (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))), command=None)
 
-        if nodeok == "yes":
+        if nodeok == "yes" and frequency != "":
             try:
                 self.menu.add_command(
                     label="Open \"" + str(host).rsplit("$", 14)[0] + "/f=" + str(frequency) + "iqz8\" in browser",
