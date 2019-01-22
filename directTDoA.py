@@ -394,7 +394,7 @@ class FillMapWithNodes(threading.Thread):
             with open('directTDoA_server_list.db') as f:
                 db_data = json.load(f)
                 nodecount = len(db_data)
-                for i in range(len(db_data)):
+                for i in range(nodecount):
                     try:
                         temp_snr_avg = (int(db_data[i]["snr1"]) + int(db_data[i]["snr2"]) + int(
                                 db_data[i]["snr3"]) + int(db_data[i]["snr4"])) / 4
@@ -644,8 +644,9 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
             chktimeout = 1  # timeout of the node check
             checkthenode = requests.get("http://" + str(host).rsplit("$", 14)[0] + "/status", timeout=chktimeout)
             infonodes = checkthenode.text.split("\n")
-            try:
-                nodeok = "no"
+            try:  # node filtering
+                permit_web = "no"
+                is_gps_ok = "no"
                 if infonodes[6].rsplit("=", 2)[1] == infonodes[7].rsplit("=", 2)[1]:  # users Vs. users_max
                     self.menu.add_command(label=str(host).rsplit("$", 14)[2] + " node have no available slots",
                                           background=(self.color_variant("#FF0000", (int(temp_snr_avg) - 50) * 5)),
@@ -665,7 +666,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
                         background=(self.color_variant("#FF0000", (int(temp_snr_avg) - 50) * 5)),
                         foreground=self.get_font_color((self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
                         command=None)
-                    nodeok = "yes"
+                    permit_web = "yes"
                 elif infonodes[12].rsplit("=", 2)[1] == "0":  # fixes_min=0
                     self.menu.add_command(label=str(host).rsplit("$", 14)[
                                                     2] + " node have currently 0 GPS fixes per min ..wait a bit.. [" +
@@ -675,29 +676,31 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
                                           foreground=self.get_font_color(
                                               (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
                                           command=None)
-                    nodeok = "yes"
+                    permit_web = "yes"
                 else:  # all ok for this node
-                    matches = [el for el in fulllist if host.rsplit(':')[0] in el]
-                    if len(matches) != 1:
-                        self.menu.add_command(label="Add " + str(host).rsplit("$", 14)[2] + " for TDoA process [" +
+                    permit_web = "yes"
+                    is_gps_ok = "yes"
+                matches = [el for el in fulllist if host.rsplit(':')[0] in el]
+                if len(matches) != 1 and is_gps_ok == "yes":
+                    self.menu.add_command(label="Add " + str(host).rsplit("$", 14)[2] + " for TDoA process [" +
                                                     infonodes[12].rsplit("=", 2)[1] + " GPS fix/min] [" +
                                                     infonodes[6].rsplit("=", 2)[1] + "/" + infonodes[7].rsplit("=", 2)[
                                                         1] + " users]", background=(
-                            self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
+                        self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
                                               foreground=self.get_font_color(
                                                   (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
                                               command=self.populate)
 
-                    else:
-                        self.menu.add_command(label="Remove " + str(host).rsplit("$", 14)[2] + " from TDoA process [" +
+                elif len(matches) == 1:
+                    self.menu.add_command(label="Remove " + str(host).rsplit("$", 14)[2] + " from TDoA process [" +
                                                     infonodes[12].rsplit("=", 2)[1] + " GPS fix/min] [" +
                                                     infonodes[6].rsplit("=", 2)[1] + "/" + infonodes[7].rsplit("=", 2)[
                                                         1] + " users]", background=(
-                            self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
+                        self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
                                               foreground=self.get_font_color(
                                                   (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
                                               command=self.depopulate)
-                    nodeok = "yes"
+
             except Exception:
                 if "not found" in infonodes[13]:
                     self.menu.add_command(
@@ -705,7 +708,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
                         background=(self.color_variant("#FF0000", (int(temp_snr_avg) - 50) * 5)),
                         foreground=self.get_font_color((self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
                         command=None)
-                    nodeok = "no"
+                    permit_web = "no"
 
         except requests.RequestException as reqerr:
             try:  # trying to deal with requests exceptions texts...
@@ -718,14 +721,14 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
                                       background=(self.color_variant("#FF0000", (int(temp_snr_avg) - 50) * 5)),
                                       foreground=self.get_font_color(
                                           (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))), command=None)
-            nodeok = "no"
+            permit_web = "no"
 
         self.menu.add_command(label=str(host.rsplit("$", 14)[3]).replace("_", " "), state=NORMAL,
                               background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
                               foreground=self.get_font_color(
                                   (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))), command=None)
 
-        if nodeok == "yes" and frequency != "" and 5 < int(frequency) < 30000:
+        if permit_web == "yes" and frequency != "" and 5 < int(frequency) < 30000:
             try:
                 self.menu.add_command(
                     label="Open \"" + str(host).rsplit("$", 14)[0] + "/f=" + str(frequency) + "iqz8\" in browser",
@@ -743,7 +746,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
             except:
                 pass
 
-        if nodeok == "yes" and listenmode == "0" and frequency != "" and 5 < int(frequency) < 30000:
+        if permit_web == "yes" and listenmode == "0" and frequency != "" and 5 < int(frequency) < 30000:
             self.menu.add_cascade(
                 label="Listen using " + str(host).rsplit("$", 14)[0],
                 state=NORMAL, background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
@@ -1594,12 +1597,12 @@ class MainWindow(Frame):
             g.write("""
   input = tdoa_read_data(input);
 
-  ## 200 Hz high-pass filter
-  b = fir1(1024, 500/12000, 'high');
+  ## 200 Hz high-pass filter (removed in directTDoA v4.00)
+#  b = fir1(1024, 500/12000, 'high');
   n = length(input);
-  for i=1:n
-    input(i).z      = filter(b,1,input(i).z)(512:end);
-  end
+#  for i=1:n
+#    input(i).z      = filter(b,1,input(i).z)(512:end);
+#  end
 
   tdoa  = tdoa_compute_lags(input, struct('dt',     12000,            # 1-second cross-correlation intervals
                                           'range',  0.005,            # peak search range is +-5 ms
