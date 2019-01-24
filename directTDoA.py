@@ -728,25 +728,25 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
                               foreground=self.get_font_color(
                                   (self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))), command=None)
 
-        if permit_web == "yes" and frequency != "" and 5 < int(frequency) < 30000:
+        if permit_web == "yes" and frequency != "" and 5 < float(frequency) < 30000:
             try:
                 self.menu.add_command(
                     label="Open \"" + str(host).rsplit("$", 14)[0] + "/f=" + str(frequency) + "iqz8\" in browser",
                     state=NORMAL, background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
                     foreground=self.get_font_color((self.color_variant("#FFFF00", (int(temp_snr_avg) - 50) * 5))),
                     command=self.openinbrowser)
-                if int(frequency) <= 2000:
+                if float(frequency) <= 2000:
                     font_snr1 = 'TkFixedFont 8 bold'
-                elif 2001 < int(frequency) <= 10000:
+                elif 2001 < float(frequency) <= 10000:
                     font_snr2 = 'TkFixedFont 8 bold'
-                elif 10001 < int(frequency) <= 20000:
+                elif 10001 < float(frequency) <= 20000:
                     font_snr3 = 'TkFixedFont 8 bold'
-                elif 20001 < int(frequency) <= 30000:
+                elif 20001 < float(frequency) <= 30000:
                     font_snr4 = 'TkFixedFont 8 bold'
             except:
                 pass
 
-        if permit_web == "yes" and listenmode == "0" and frequency != "" and 5 < int(frequency) < 30000:
+        if permit_web == "yes" and listenmode == "0" and frequency != "" and 5 < float(frequency) < 30000:
             self.menu.add_cascade(
                 label="Listen using " + str(host).rsplit("$", 14)[0],
                 state=NORMAL, background=(self.color_variant(colorline[0], (int(temp_snr_avg) - 50) * 5)),
