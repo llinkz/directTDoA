@@ -10,7 +10,7 @@ from shutil import copyfile
 from tkColorChooser import askcolor
 from datetime import datetime
 
-VERSION = "directTDoA v4.00"
+VERSION = "directTDoA v4.10"
 
 
 class Restart:
@@ -18,18 +18,15 @@ class Restart:
     @staticmethod
     def run():
         global proc_pid, proc2_pid
-        try:  # ...to kill octave
-            os.killpg(os.getpgid(proc_pid), signal.SIGKILL)
-            # os.kill(proc_pid, signal.SIGKILL)
+        try:  # to kill octave-cli process if exists
+            os.kill(proc_pid, signal.SIGTERM)
         except:
             pass
-        try:  # to kill kiwirecorder.py
-            os.killpg(os.getpgid(proc2_pid), signal.SIGKILL)
-            # os.kill(proc2_pid, signal.SIGKILL)
+        try:  # to kill kiwirecorder.py process if exists
+            os.kill(proc2_pid, signal.SIGTERM)
         except:
             pass
-        # restart directTDoA.py
-        os.execv(sys.executable, [sys.executable] + sys.argv)
+        os.execv(sys.executable, [sys.executable] + sys.argv)  # restart directTDoA.py
 
 
 class ReadKnownPointFile:
@@ -72,7 +69,7 @@ class ProcessFinished(threading.Thread):
         self.parent = parent
 
     def run(self):
-        global tdoa_position, varfile, proc_pid
+        global tdoa_position, varfile, proc_pid, tdoa_in_progress
         llon = tdoa_position.rsplit(' ')[5]  # the longitude value returned by Octave process (without letters)
         llat = tdoa_position.rsplit(' ')[10] # the latitude value returned by Octave process (without letters)
 
@@ -118,6 +115,7 @@ class ProcessFinished(threading.Thread):
         for wavfiles in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
             os.remove(wavfiles)
         app.window2.Text3.delete("0.0", END)
+        tdoa_in_progress = 0
 
 
 class ReadConfigFile:
@@ -299,7 +297,7 @@ class OctaveProcessing(threading.Thread):
         if platform.system() == "Linux" or platform.system() == "Darwin":
             exec_octave = 'octave'
         proc = subprocess.Popen([exec_octave, tdoa_filename], cwd=os.path.join('TDoA'), stderr=subprocess.STDOUT,
-                                stdout=subprocess.PIPE, shell=False , preexec_fn=os.setsid)
+                                stdout=subprocess.PIPE, shell=False, preexec_fn=os.setsid)
         proc_pid = proc.pid
         logfile = open(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
             frequency) + os.sep + "TDoA_" + varfile + "_log.txt", 'w')
@@ -485,7 +483,6 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         parent.geometry("1200x700+150+10")
         global dx0, dy0, dx1, dy1, listenmode, fulllist
         global dmap, host, white, black, mapfl, mapboundaries_set
-        # host = Variable
         fulllist = []
         ReadConfigFile().read_cfg()
         listenmode = "0"
@@ -1098,7 +1095,7 @@ class MainWindow(Frame):
         global frequency
         global line, i, bgc, fgc, dfgc, lpcut, hpcut, currentbw
         global latmin, latmax, lonmin, lonmax, bbox1, lat_min_map, lat_max_map, lon_min_map, lon_max_map
-        global selectedlat, selectedlon, selectedcity, map_preset, map_manual, rec_in_progress
+        global selectedlat, selectedlon, selectedcity, map_preset, map_manual, rec_in_progress, tdoa_in_progress
         frequency = DoubleVar(self, 10000.0)
         bgc = '#d9d9d9'  # GUI background color
         fgc = '#000000'  # GUI foreground color
@@ -1115,6 +1112,7 @@ class MainWindow(Frame):
         map_preset = 0
         map_manual = 0
         rec_in_progress = 0
+        tdoa_in_progress = 0
         self.label0 = Label(parent)
         self.label0.place(relx=0, rely=0.69, relheight=0.4, relwidth=1)
         self.label0.configure(background=bgc, foreground=fgc, width=214)
@@ -1127,10 +1125,10 @@ class MainWindow(Frame):
         self.label01.configure(background="grey", font="TkFixedFont 7", anchor="w", fg=colorline[0], text="█ Standard")
         self.label02 = Label(parent)
         self.label02.place(x=0, y=28, height=14, width=75)
-        self.label02.configure(background="grey", font="TkFixedFont 7", anchor="w", fg=colorline[1], text="█ Favorite")
+        self.label02.configure(background="grey", font="TkFixedFont 7", anchor="w", fg=colorline[1], text="█ Favorites")
         self.label03 = Label(parent)
         self.label03.place(x=0, y=42, height=14, width=75)
-        self.label03.configure(background="grey", font="TkFixedFont 7", anchor="w", fg=colorline[2], text="█ Blacklisted")
+        self.label03.configure(background="grey", font="TkFixedFont 7", anchor="w", fg=colorline[2], text="█ Blacklist")
         self.label04 = Label(parent)
         self.label04.place(x=0, y=56, height=14, width=75)
         self.label04.configure(background="grey", font="TkFixedFont 7", anchor="w", fg="#001E00", text="█ no SNR data")
@@ -1521,7 +1519,7 @@ class MainWindow(Frame):
         try:
             checkver = requests.get('https://raw.githubusercontent.com/llinkz/directTDoA/master/README.md', timeout=2)
             gitsrctext = checkver.text.split("\n")
-            if str(gitsrctext[0][2:]) != VERSION:
+            if float(gitsrctext[0][2:].split("v", 1)[1]) > float(VERSION.split("v", 1)[1]):
                 tkMessageBox.showinfo(title="UPDATE INFORMATION", message=str(gitsrctext[0][2:]) + " has been released !\n\nCheck https://github.com/llinkz/directTDoA for change log & update.\n\nI hope you enjoy this software\n\n73 from linkz")
             else:
                 pass
@@ -1540,54 +1538,78 @@ class MainWindow(Frame):
         global frequency, latmin, latmax, lonmin, lonmax, lpcut, hpcut
         global starttime, x1, x2, y1, y2, mapboundaries_set, rec_in_progress
 
-        if rec_in_progress == 1:
-            self.Text3.delete("0.0", END)
-            os.kill(proc2_pid, signal.SIGTERM)
+        if rec_in_progress == 1:  # stop rec process
+            os.kill(proc2_pid, signal.SIGTERM)  # kills the kiwirecorder.py process
             time.sleep(0.5)
+            rec_in_progress = 0
+            self.Button1.configure(text="Start recording")
+            self.Button4.configure(state="normal")
+            self.create_m_file()
+            self.writelog("IQ Recordings manually stopped... files has been saved in " + str(
+                os.sep + os.path.join('TDoA', 'iq') + os.sep + starttime) + "_F" + str(frequency) + str(
+                os.sep))
 
-        if mapboundaries_set is None:
-            tkMessageBox.showinfo("WARNING",
-                                  message="Set TDoA map Geographical boundaries, right click and draw red rectangle or select one of presets via the top bar menu.")
-        else:
-            lonmin = str((((bbox2[0] - 1910) * 180) / 1910)).rsplit('.')[0]  # LONGITUDE MIN
-            lonmax = str(((bbox2[2] - 1910) * 180) / 1910).rsplit('.')[0]  # LONGITUDE MAX
-            latmax = str(0 - ((bbox2[1] - 990) / 11)).rsplit('.')[0]  # LATITUDE MAX
-            latmin = str(20 - ((bbox2[3] - 990) / 11)).rsplit('.')[0]  # LATITUDE MIN
-
-            starttime = str(time.strftime('%Y%m%dT%H%M%S'))
-            if self.Entry1.get() == '' or float(self.Entry1.get()) < 0 or float(self.Entry1.get()) > 30000:
-                self.writelog("ERROR: Please check the frequency !")
-            elif len(fulllist) < 3:  # debug
-                self.writelog("ERROR: Select at least 3 nodes for TDoA processing !")
+        else:  # start rec process
+            if mapboundaries_set is None:
+                tkMessageBox.showinfo("WARNING",
+                                      message="Set TDoA map Geographical boundaries, right click and draw red rectangle or select one of presets via the top bar menu.")
             else:
-                frequency = str(float(self.Entry1.get()))
-                self.Button1.configure(text="Restart recording")
-                self.Button2.configure(state="normal")
-                self.Button3.configure(state='disabled')
-                self.Button4.configure(state='disabled')
-                for wavfiles in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
-                    os.remove(wavfiles)
-                time.sleep(0.2)
-                self.Text3.delete("0.0", END)
-                StartKiwiSDR(self).start()
-                rec_in_progress = 1
+                lonmin = str((((bbox2[0] - 1910) * 180) / 1910)).rsplit('.')[0]  # LONGITUDE MIN
+                lonmax = str(((bbox2[2] - 1910) * 180) / 1910).rsplit('.')[0]  # LONGITUDE MAX
+                latmax = str(0 - ((bbox2[1] - 990) / 11)).rsplit('.')[0]  # LATITUDE MAX
+                latmin = str(20 - ((bbox2[3] - 990) / 11)).rsplit('.')[0]  # LATITUDE MIN
+
+                starttime = str(time.strftime('%Y%m%dT%H%M%S'))
+                if self.Entry1.get() == '' or float(self.Entry1.get()) < 0 or float(self.Entry1.get()) > 30000:
+                    self.writelog("ERROR: Please check the frequency !")
+                elif len(fulllist) < 3:  # debug
+                    self.writelog("ERROR: Select at least 3 nodes for TDoA processing !")
+                else:
+                    frequency = str(float(self.Entry1.get()))
+                    self.Button1.configure(text="Stop recording")
+                    self.Button2.configure(text="Start TDoA proc", state="normal")
+                    self.Button3.configure(state="disabled")
+                    self.Button4.configure(state="disabled")
+                    for wavfiles in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
+                        os.remove(wavfiles)
+                    time.sleep(0.2)
+                    self.Text3.delete("0.0", END)
+                    StartKiwiSDR(self).start()
+                    rec_in_progress = 1
 
     def clickstop(self):
+        global proc_pid, proc2_pid, rec_in_progress, tdoa_in_progress
+        if tdoa_in_progress == 1:  # Abort TDoA process
+            self.Button1.configure(text="Start recording", state="normal")
+            self.Button2.configure(text="", state="disabled")
+            self.Button4.configure(state="normal")
+            os.kill(proc_pid, signal.SIGTERM)  # kills the octave process
+            self.writelog("Octave process has been aborted...")
+            for wavfiles in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
+                os.remove(wavfiles)
+            tdoa_in_progress = 0
+
+        else:  # Start TDoA process
+            tdoa_in_progress = 1
+            os.kill(proc2_pid, signal.SIGTERM)  # kills the kiwirecorder.py process
+            self.writelog("IQ Recordings were stopped...")
+            self.Button1.configure(text="", state="disabled")
+            self.Button2.configure(text="Abort TDoA proc")
+            if rec_in_progress == 1:
+                self.create_m_file()
+            self.writelog("Now running Octave process... please wait...")
+            time.sleep(0.5)
+            rec_in_progress = 0
+            OctaveProcessing(self).start()
+
+    def create_m_file(self):
         global IQfiles, frequency, varfile, selectedlat, selectedlon, currentbw
-        global selectedcity, starttime, latmin, latmax, lonmin, lonmax, proc2_pid
-        global lat_min_map, lat_max_map, lon_min_map, lon_max_map, rec_in_progress
-        rec_in_progress = 0
-        os.kill(proc2_pid, signal.SIGTERM)
+        global selectedcity, starttime, latmin, latmax, lonmin, lonmax
+        global lat_min_map, lat_max_map, lon_min_map, lon_max_map
         for file in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
             IQfiles.append(os.path.split(file)[1])
         firstfile = IQfiles[0]
         varfile = str(firstfile.split("_", 2)[1].split("_", 1)[0])
-        self.writelog("IQ Recordings stopped...")
-        self.Button1.configure(state='disabled')
-        self.Button2.configure(state="disabled")
-        app.window2.Text3.delete("0.0", END)
-
-        #  creating the .m file
         with open(os.path.join('TDoA') + os.sep + "proc_tdoa_" + varfile + ".m", "w") as g:
             g.write("## -*- octave -*-\n")
             g.write("## This file was auto-generated by " + VERSION + "\n\n")
@@ -1626,7 +1648,9 @@ class MainWindow(Frame):
                 datetime.utcnow().strftime('%d %b %Y %H%Mz')) + "'")
 
             if selectedlat == "" or selectedlon == "":
-                g.write("\n                    );\n\n")
+                g.write(",\n                     'known_location', struct('coord', [0 0],\n")
+                g.write("                                              \'name\',  \'" "\')\n")
+                g.write("                    );\n\n\n")
                 g.write("  tdoa = tdoa_plot_map(input, tdoa, plot_info);\n")
                 g.write("\ndisp(\"finished\");\n")
                 g.write("endfunction\n")
@@ -1666,9 +1690,6 @@ octave-cli proc_tdoa_""" + varfile + """.m""")
             recompute.close()
             os.chmod(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
                 frequency) + os.sep + "recompute.sh", 0o777)
-        self.writelog("Running Octave process now... please wait")
-        time.sleep(0.5)
-        OctaveProcessing(self).start()
 
 
 class MainW(Tk, object):
@@ -1681,7 +1702,16 @@ class MainW(Tk, object):
 
 
 def on_closing():
+    global proc_pid, proc2_pid
     if tkMessageBox.askokcancel("Quit", "Do you want to quit?"):
+        try:  # to kill octave
+            os.kill(proc_pid, signal.SIGTERM)
+        except:
+            pass
+        try:  # to kill kiwirecorder.py
+            os.kill(proc2_pid, signal.SIGTERM)
+        except:
+            pass
         os.kill(os.getpid(), signal.SIGTERM)
         app.destroy()
 

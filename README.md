@@ -82,6 +82,7 @@ Install GNU Octave 4.4.0, in Terminal : `brew install octave`
 * v3.23: bug fixes with add/remove fav/black process..
 * v3.24: allowing the possibility to "Open" a node in browser even if 0 GPS fixes were reported at instant T + minor date modification on TDoA output file title + minor text corrections
 * v4.00: no more GUI restart after TDoA runs (node list is kept intact) + Listen/Demod mode added, **requires python modules _pygame_ (for all) + _scipy_ (for MacOS X), new file _KiwiSDRclient.py_ also required** + possibility to remove a single node from the list + purge button added + check version runned on software start + minor fixes on many routines
+* v4.10: "Restart Rec" is now "Stop Rec" instead (it saves IQ files and generate .m file only) + added "Abort TDoA" routine so you can stop a previewed bad result octave process w/o having to restart full GUI + minor mods on checkversion(), float(frequency) and restart/close GUI + 200Hz high pass filter block commented out and empty known point block added in proc.m files
 
 ## TODO LIST
 * ultimateTDoA variant mode ? (c)Daniel Ekmann, to basically record all possible nodes at same time in order to post-compute TDoAs later with a dynamic .m file
