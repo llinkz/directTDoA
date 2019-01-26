@@ -1592,10 +1592,10 @@ class MainWindow(Frame):
         else:  # Start TDoA process
             tdoa_in_progress = 1
             os.kill(proc2_pid, signal.SIGTERM)  # kills the kiwirecorder.py process
-            self.writelog("IQ Recordings were stopped...")
             self.Button1.configure(text="", state="disabled")
             self.Button2.configure(text="Abort TDoA proc")
             if rec_in_progress == 1:
+                self.writelog("IQ Recordings were stopped...")
                 self.create_m_file()
             self.writelog("Now running Octave process... please wait...")
             time.sleep(0.5)
