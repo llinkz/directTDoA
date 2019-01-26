@@ -297,7 +297,7 @@ class OctaveProcessing(threading.Thread):
         if platform.system() == "Linux" or platform.system() == "Darwin":
             exec_octave = 'octave'
         proc = subprocess.Popen([exec_octave, tdoa_filename], cwd=os.path.join('TDoA'), stderr=subprocess.STDOUT,
-                                stdout=subprocess.PIPE, shell=False, preexec_fn=os.setsid)
+                                stdout=subprocess.PIPE, shell=False , preexec_fn=os.setsid)
         proc_pid = proc.pid
         logfile = open(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
             frequency) + os.sep + "TDoA_" + varfile + "_log.txt", 'w')
@@ -483,6 +483,7 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         parent.geometry("1200x700+150+10")
         global dx0, dy0, dx1, dy1, listenmode, fulllist
         global dmap, host, white, black, mapfl, mapboundaries_set
+        # host = Variable
         fulllist = []
         ReadConfigFile().read_cfg()
         listenmode = "0"
@@ -1125,10 +1126,10 @@ class MainWindow(Frame):
         self.label01.configure(background="grey", font="TkFixedFont 7", anchor="w", fg=colorline[0], text="█ Standard")
         self.label02 = Label(parent)
         self.label02.place(x=0, y=28, height=14, width=75)
-        self.label02.configure(background="grey", font="TkFixedFont 7", anchor="w", fg=colorline[1], text="█ Favorites")
+        self.label02.configure(background="grey", font="TkFixedFont 7", anchor="w", fg=colorline[1], text="█ Favorite")
         self.label03 = Label(parent)
         self.label03.place(x=0, y=42, height=14, width=75)
-        self.label03.configure(background="grey", font="TkFixedFont 7", anchor="w", fg=colorline[2], text="█ Blacklist")
+        self.label03.configure(background="grey", font="TkFixedFont 7", anchor="w", fg=colorline[2], text="█ Blacklisted")
         self.label04 = Label(parent)
         self.label04.place(x=0, y=56, height=14, width=75)
         self.label04.configure(background="grey", font="TkFixedFont 7", anchor="w", fg="#001E00", text="█ no SNR data")
@@ -1519,7 +1520,7 @@ class MainWindow(Frame):
         try:
             checkver = requests.get('https://raw.githubusercontent.com/llinkz/directTDoA/master/README.md', timeout=2)
             gitsrctext = checkver.text.split("\n")
-            if float(gitsrctext[0][2:].split("v", 1)[1]) > float(VERSION.split("v", 1)[1]):
+            if float(gitsrctext[0][2:].split("v", 1)[1]) > float(VERSION.split("v", 1)[1][:4]):
                 tkMessageBox.showinfo(title="UPDATE INFORMATION", message=str(gitsrctext[0][2:]) + " has been released !\n\nCheck https://github.com/llinkz/directTDoA for change log & update.\n\nI hope you enjoy this software\n\n73 from linkz")
             else:
                 pass
@@ -1592,10 +1593,10 @@ class MainWindow(Frame):
         else:  # Start TDoA process
             tdoa_in_progress = 1
             os.kill(proc2_pid, signal.SIGTERM)  # kills the kiwirecorder.py process
+            self.writelog("IQ Recordings were stopped...")
             self.Button1.configure(text="", state="disabled")
             self.Button2.configure(text="Abort TDoA proc")
             if rec_in_progress == 1:
-                self.writelog("IQ Recordings were stopped...")
                 self.create_m_file()
             self.writelog("Now running Octave process... please wait...")
             time.sleep(0.5)
@@ -1690,6 +1691,7 @@ octave-cli proc_tdoa_""" + varfile + """.m""")
             recompute.close()
             os.chmod(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
                 frequency) + os.sep + "recompute.sh", 0o777)
+
 
 
 class MainW(Tk, object):
