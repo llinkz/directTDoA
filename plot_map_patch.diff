@@ -1,0 +1,27 @@
+--- tdoa_plot_map.m	2019-01-27 16:07:58.178832305 +0000
++++ tdoa_plot_map.m	2019-01-27 16:09:26.803909752 +0000
+@@ -69,11 +69,11 @@
+ 
+   set(colorbar(),'XLabel', '\chi^2/ndf')
+   printf('tdoa_plot_map_combined %.2f sec\n', toc());
+-
++  global mlp
+   ha = axes('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0  1],'Box','off','Visible','off','Units','normalized', 'clipping' , 'off');
+-  text(0.5, 0.98,  plot_info.title, 'fontweight', 'bold', 'horizontalalignment', 'center', 'fontsize', 15);
++  text(0.5, 0.98,  strcat(plot_info.title, mlp), 'fontweight', 'bold', 'horizontalalignment', 'center', 'fontsize', 15);
+ 
+-  print('-dpng','-S900,600', fullfile('png', sprintf('%s.png', plot_info.plotname)));
++##  print('-dpng','-S900,600', fullfile('png', sprintf('%s.png', plot_info.plotname))); nopng patch for directTDoA
+   print('-dpdf','-S900,600', fullfile('pdf', sprintf('%s.pdf', plot_info.plotname)));
+ endfunction
+ 
+@@ -100,7 +100,8 @@
+     [_m,  _i] = min(h);
+     [_mm, _j] = min(_m);
+     _i = _i(_j);
+-    printf('most likely position: lon = %.2f deg  lat = %.2f deg\n', plot_info.lon(_j), plot_info.lat(_i));
++    printf('most likely position: lat = %.2f deg  lon = %.2f deg\n', plot_info.lat(_i), plot_info.lon(_j));
++    global mlp=cstrcat(sprintf(' - [lat %.2f lon %.2f]', plot_info.lat(_i), plot_info.lon(_j)));
+   end
+ end
+ 

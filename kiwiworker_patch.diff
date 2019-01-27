@@ -1,0 +1,25 @@
+--- kiwiworker.py	2019-01-26 13:55:08.000000000 +0000
++++ kiwiworker.py	2019-01-26 14:13:46.210486003 +0000
+@@ -26,7 +26,7 @@
+                 self._recorder.connect(self._options.server_host, self._options.server_port)
+             except:
+                 print "Failed to connect, sleeping and reconnecting"
+-                self._sleep(15)
++                self._sleep(3)
+                 continue
+ 
+             try:
+@@ -35,11 +35,10 @@
+                     self._recorder.run()
+             except KiwiTooBusyError:
+                 print "Server %s:%d too busy now" % (self._options.server_host, self._options.server_port)
+-                self._sleep(15)
++                self._sleep(3)
+                 continue
+             except Exception as e:
+-                traceback.print_exc()
+-                break
++                continue
+ 
+         self._run_event.clear()   # tell all other threads to stop
+         # hangs for some reason
