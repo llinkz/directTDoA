@@ -10,7 +10,7 @@ from shutil import copyfile
 from tkColorChooser import askcolor
 from datetime import datetime
 
-VERSION = "directTDoA v4.10"
+VERSION = "directTDoA v4.20"
 
 
 class Restart:
@@ -70,8 +70,8 @@ class ProcessFinished(threading.Thread):
 
     def run(self):
         global tdoa_position, varfile, proc_pid, tdoa_in_progress
-        llon = tdoa_position.rsplit(' ')[5]  # the longitude value returned by Octave process (without letters)
-        llat = tdoa_position.rsplit(' ')[10] # the latitude value returned by Octave process (without letters)
+        llon = tdoa_position.rsplit(' ')[10]  # the longitude value returned by Octave process (without letters)
+        llat = tdoa_position.rsplit(' ')[5] # the latitude value returned by Octave process (without letters)
 
         if "-" in llat:  # adding the latitude letter "N" or "S"
             sign1 = "S"
@@ -94,20 +94,14 @@ class ProcessFinished(threading.Thread):
         latstring = str(int(deg1)) + "_" + str(int(mnt1)) + "_" + str(int(sec1)) + "_" + sign1  # geohack url lat arg
         lonstring = str(int(deg2)) + "_" + str(int(mnt2)) + "_" + str(int(sec2)) + "_" + sign2  # geohack url lon arg
         #  backup the .pdf file and saving most likely coords as text in previously created /iq/... dir
-        copyfile(os.path.join('TDoA', 'pdf') + os.sep + "TDoA_" + varfile + ".pdf",
-                 os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
-                     frequency) + os.sep + "TDoA_" + varfile + ".pdf")
+        #copyfile(os.path.join('TDoA', 'pdf') + os.sep + "TDoA_" + varfile + ".pdf",
+        #         os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
+        #             frequency) + os.sep + "TDoA_" + varfile + ".pdf")
         with open(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
                 frequency) + os.sep + "TDoA_" + varfile + "_found " + llat + sign1 + " " + llon + sign2, 'w') as tdoa_file:
             tdoa_file.write("https://tools.wmflabs.org/geohack/geohack.php?params=" + latstring + "_" + lonstring)
         tdoa_file.close()
-        # last popup window shown at end of process
-        finish = tkMessageBox.askyesno(title="TDoA process just finished.",
-                                       message="Most likely location coords are " + llat + "°" + sign1 + " " + llon + "°" + sign2 + "\n\nClick Yes to open \"Geohack\" webpage centered on most likely point found by the process\nClick No to open files directory")
-        if finish:  # opens a web browser with geohack url containing most likely point coordinates
-            webbrowser.open_new("https://tools.wmflabs.org/geohack/geohack.php?params=" + latstring + "_" + lonstring)
-        elif finish is False:  # opens directory that containing TDoA files
-            webbrowser.open(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(frequency))
+        webbrowser.open(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(frequency))
         app.window2.Button1.configure(state="normal", text="Start recording")
         app.window2.Button2.configure(state="disabled")
         app.window2.Button3.configure(state="normal")
@@ -119,7 +113,6 @@ class ProcessFinished(threading.Thread):
 
 
 class ReadConfigFile:
-
     def read_cfg(self):
         global dx0, dy0, dx1, dy1, dmap, mapfl, gpsfl, white, black, colorline, defaultbw
         with open('directTDoA.cfg', "r") as c:
@@ -144,7 +137,6 @@ class ReadConfigFile:
 
 
 class SaveConfigFile:
-
     def save_cfg(self, field, input):
         global dmap, mapfl, gpsfl, white, black, colorline, defaultbw
         with open('directTDoA.cfg', "w") as u:
@@ -332,7 +324,6 @@ class SnrProcessing(threading.Thread):  # work in progress
 
 
 class StartKiwiSDR(threading.Thread):
-
     def __init__(self, parent=None):
         super(StartKiwiSDR, self).__init__()
         self.parent = parent
@@ -342,22 +333,34 @@ class StartKiwiSDR(threading.Thread):
         global parent, line, IQfiles, varfile
         IQfiles = []
         line = []
-        proc2 = subprocess.Popen(
+        if (ultimate.get()) is 1:
+            proc2 = subprocess.Popen(
+                [sys.executable, 'kiwirecorder.py', '-s', ','.join(str(p).rsplit('$')[0] for p in ultimatelist), '-p',
+                 ','.join(str(p).rsplit('$')[1] for p in ultimatelist),
+                 '--station=' + ','.join(str(p).rsplit('$')[3] for p in ultimatelist), '-f', str(frequency), '-L',
+                 str(0 - lpcut), '-H', str(hpcut), '-m', 'iq', '-w'], stdout=PIPE, shell=False, preexec_fn=os.setsid)
+            self.parent.writelog("ultimateTDoA IQ Recordings in progress...please wait")
+            self.parent.writelog('Command line: kiwirecorder.py -s ' + ','.join(
+                str(p).rsplit('$')[0] for p in ultimatelist) + ' -p ' + ','.join(
+                str(p).rsplit('$')[1] for p in ultimatelist) + ' -station=' + ','.join(
+                str(p).rsplit('$')[3] for p in ultimatelist) + ' -f ' + str(frequency) + ' -L ' + str(
+                0 - lpcut) + ' -H ' + str(hpcut) + ' -m iq -w')
+        else:
+            proc2 = subprocess.Popen(
             [sys.executable, 'kiwirecorder.py', '-s', ','.join(str(p).rsplit('$')[0] for p in fulllist), '-p',
              ','.join(str(p).rsplit('$')[1] for p in fulllist),
              '--station=' + ','.join(str(p).rsplit('$')[3] for p in fulllist), '-f', str(frequency), '-L',
              str(0 - lpcut), '-H', str(hpcut), '-m', 'iq', '-w'], stdout=PIPE, shell=False, preexec_fn=os.setsid)
-        proc2_pid = proc2.pid
-        self.parent.writelog("IQ Recordings in progress...please wait")
-        self.parent.writelog(
+            self.parent.writelog("IQ Recordings in progress...please wait")
+            self.parent.writelog(
             'Command line: kiwirecorder.py -s ' + ','.join(str(p).rsplit('$')[0] for p in fulllist) + ' -p ' + ','.join(
                 str(p).rsplit('$')[1] for p in fulllist) + ' -station=' + ','.join(
                 str(p).rsplit('$')[3] for p in fulllist) + ' -f ' + str(frequency) + ' -L ' + str(
                 0 - lpcut) + ' -H ' + str(hpcut) + ' -m iq -w')
+        proc2_pid = proc2.pid
 
 
 class StartKiwiSDRclient(threading.Thread):
-
     def __init__(self, parent=None):
         super(StartKiwiSDRclient, self).__init__()
         self.parent = parent
@@ -381,7 +384,6 @@ class StartKiwiSDRclient(threading.Thread):
 
 
 class FillMapWithNodes(threading.Thread):
-
     def __init__(self, parent=None):
         super(FillMapWithNodes, self).__init__()
         self.parent = parent
@@ -482,9 +484,10 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
         Frame.__init__(self, parent=None)
         parent.geometry("1200x700+150+10")
         global dx0, dy0, dx1, dy1, listenmode, fulllist
-        global dmap, host, white, black, mapfl, mapboundaries_set
+        global dmap, host, white, black, mapfl, mapboundaries_set, ultimate, ultimatelist
         # host = Variable
         fulllist = []
+        ultimatelist = []
         ReadConfigFile().read_cfg()
         listenmode = "0"
         mapboundaries_set = None
@@ -594,14 +597,46 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
 
     def on_button_release(self, event):
         global mapboundaries_set, map_preset, map_manual, lon_min_map, lon_max_map, lat_min_map, lat_max_map
-        if map_preset == 1 and map_manual == 0:
-            pass
+        global ultimatelist, ultimatefav, white
+        if (ultimate.get()) is 1:  # ultimateTDoA mode
+            ultimatelist = []
+            if os.path.isfile('directTDoA_server_list.db') is True:
+                with open('directTDoA_server_list.db') as f:
+                    db_data2 = json.load(f)
+                    nodecount2 = len(db_data2)
+                    for y in range(nodecount2):
+                        if ultimatefav.get() == 1:
+                            if (int(lat_min_map) < int(float(db_data2[y]["lat"])) < int(lat_max_map)) and (
+                                    int(lon_min_map) < int(float(db_data2[y]["lon"])) < int(lon_max_map)) and \
+                                    db_data2[y]["mac"] in white:
+                                ultimatelist.append(
+                                    db_data2[y]["url"].rsplit(':')[0] + "$" + db_data2[y]["url"].rsplit(':')[1] + "$" +
+                                    db_data2[y]["mac"] + "$" + db_data2[y]["id"].replace("/", ""))
+                        else:
+                            if (int(lat_min_map) < int(float(db_data2[y]["lat"])) < int(lat_max_map)) and (
+                                    int(lon_min_map) < int(float(db_data2[y]["lon"])) < int(lon_max_map)):
+                                ultimatelist.append(
+                                    db_data2[y]["url"].rsplit(':')[0] + "$" + db_data2[y]["url"].rsplit(':')[1] + "$" +
+                                    db_data2[y]["mac"] + "$" + db_data2[y]["id"].replace("/", ""))
+                    app.title(
+                        VERSION + " - ultimateTDoA nodes : " + ' + '.join(str(p).rsplit('$')[3] for p in ultimatelist))
+                    if len(ultimatelist) != 0:
+                        app.window2.writelog("ultimateTDoA listing contains " + str(len(ultimatelist)) + " nodes")
+                    app.window2.label4.configure(text="[LATITUDE] range: " + str(lat_min_map) + "° " + str(
+                        lat_max_map) + "°  [LONGITUDE] range: " + str(lon_min_map) + "° " + str(lon_max_map) + "°")
+            if len(ultimatelist) == 0:
+                app.window2.writelog("No node location found within this area, Please retry..")
+                app.title(VERSION)
+                ultimatelist = []
+
         else:
-            app.window2.label4.configure(
-                text="[LATITUDE] range: " + str(lat_min_map) + "° " + str(lat_max_map) + "°  [LONGITUDE] range: " + str(
-                    lon_min_map) + "° " + str(lon_max_map) + "°")
-            mapboundaries_set = 1
-            map_manual = 1
+            if map_preset == 1 and map_manual == 0:
+                pass
+            else:
+                app.window2.label4.configure(text="[LATITUDE] range: " + str(lat_min_map) + "° " + str(
+                    lat_max_map) + "°  [LONGITUDE] range: " + str(lon_min_map) + "° " + str(lon_max_map) + "°")
+                mapboundaries_set = 1
+                map_manual = 1
 
     def create_point(self, y, x, n):  # map known point creation process, works only when self.imscale = 1.0
         global currentcity, selectedcity
@@ -1094,10 +1129,12 @@ class MainWindow(Frame):
             CheckUpdate().run()
         ReadKnownPointFile().run()
         global frequency
-        global line, i, bgc, fgc, dfgc, lpcut, hpcut, currentbw
+        global line, i, bgc, fgc, dfgc, lpcut, hpcut, currentbw, ultimate, ultimatefav
         global latmin, latmax, lonmin, lonmax, bbox1, lat_min_map, lat_max_map, lon_min_map, lon_max_map
         global selectedlat, selectedlon, selectedcity, map_preset, map_manual, rec_in_progress, tdoa_in_progress
         frequency = DoubleVar(self, 10000.0)
+        ultimate = IntVar(self)
+        ultimatefav = IntVar(self)
         bgc = '#d9d9d9'  # GUI background color
         fgc = '#000000'  # GUI foreground color
         dfgc = '#a3a3a3'  # GUI (disabled) foreground color
@@ -1116,42 +1153,42 @@ class MainWindow(Frame):
         tdoa_in_progress = 0
         self.label0 = Label(parent)
         self.label0.place(relx=0, rely=0.69, relheight=0.4, relwidth=1)
-        self.label0.configure(background=bgc, foreground=fgc, width=214)
+        self.label0.configure(bg=bgc, fg=fgc, width=214)
         # top left map legend
         self.label00 = Label(parent)
         self.label00.place(x=0, y=0, height=14, width=75)
-        self.label00.configure(background="grey", font="TkFixedFont 7", anchor="w", fg="black", text="Legend:")
+        self.label00.configure(bg="grey", font="TkFixedFont 7", anchor="w", fg="black", text="Legend:")
         self.label01 = Label(parent)
         self.label01.place(x=0, y=14, height=14, width=75)
-        self.label01.configure(background="grey", font="TkFixedFont 7", anchor="w", fg=colorline[0], text="█ Standard")
+        self.label01.configure(bg="grey", font="TkFixedFont 7", anchor="w", fg=colorline[0], text="█ Standard")
         self.label02 = Label(parent)
         self.label02.place(x=0, y=28, height=14, width=75)
-        self.label02.configure(background="grey", font="TkFixedFont 7", anchor="w", fg=colorline[1], text="█ Favorite")
+        self.label02.configure(bg="grey", font="TkFixedFont 7", anchor="w", fg=colorline[1], text="█ Favorite")
         self.label03 = Label(parent)
         self.label03.place(x=0, y=42, height=14, width=75)
-        self.label03.configure(background="grey", font="TkFixedFont 7", anchor="w", fg=colorline[2], text="█ Blacklisted")
+        self.label03.configure(bg="grey", font="TkFixedFont 7", anchor="w", fg=colorline[2], text="█ Blacklisted")
         self.label04 = Label(parent)
         self.label04.place(x=0, y=56, height=14, width=75)
-        self.label04.configure(background="grey", font="TkFixedFont 7", anchor="w", fg="#001E00", text="█ no SNR data")
+        self.label04.configure(bg="grey", font="TkFixedFont 7", anchor="w", fg="#001E00", text="█ no SNR data")
         self.Entry1 = Entry(parent, textvariable=frequency)
         self.Entry1.place(relx=0.06, rely=0.892, height=24, relwidth=0.1)
-        self.Entry1.configure(background="white", disabledforeground=dfgc, font="TkFixedFont", foreground=fgc,
+        self.Entry1.configure(bg="white", disabledforeground=dfgc, font="TkFixedFont", fg=fgc,
                               insertbackground=fgc, width=214)
         self.label1 = Label(parent)
         self.label1.place(relx=0.01, rely=0.895)
-        self.label1.configure(background=bgc, font="TkFixedFont", foreground=fgc, text="Freq:")
+        self.label1.configure(bg=bgc, font="TkFixedFont", fg=fgc, text="Freq:")
         self.label2 = Label(parent)
         self.label2.place(relx=0.162, rely=0.895)
-        self.label2.configure(background=bgc, font="TkFixedFont", foreground=fgc, text="kHz")
+        self.label2.configure(bg=bgc, font="TkFixedFont", fg=fgc, text="kHz")
         self.Button1 = Button(parent)  # Start recording button
         self.Button1.place(relx=0.77, rely=0.89, height=24, relwidth=0.10)
-        self.Button1.configure(activebackground=bgc, activeforeground=fgc, background=bgc, disabledforeground=dfgc,
-                               foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
+        self.Button1.configure(activebackground=bgc, activeforeground=fgc, bg=bgc, disabledforeground=dfgc,
+                               fg=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
                                text="Start recording", command=self.clickstart, state="normal")
         self.Button2 = Button(parent)  # Stop & Start TDoA button
         self.Button2.place(relx=0.88, rely=0.89, height=24, relwidth=0.1)
-        self.Button2.configure(activebackground=bgc, activeforeground=fgc, background=bgc, disabledforeground=dfgc,
-                               foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
+        self.Button2.configure(activebackground=bgc, activeforeground=fgc, bg=bgc, disabledforeground=dfgc,
+                               fg=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
                                text="Start TDoA proc", command=self.clickstop, state="disabled")
         self.Choice = Entry(parent)
         self.Choice.place(relx=0.01, rely=0.95, height=21, relwidth=0.18)
@@ -1160,28 +1197,36 @@ class MainWindow(Frame):
         self.ListBox.place(relx=0.2, rely=0.95, height=21, relwidth=0.3)
         self.label3 = Label(parent)  # Known point
         self.label3.place(relx=0.54, rely=0.95, height=21, relwidth=0.3)
-        self.label3.configure(background=bgc, font="TkFixedFont", foreground=fgc, width=214, text="", anchor="w")
+        self.label3.configure(bg=bgc, font="TkFixedFont", fg=fgc, width=214, text="", anchor="w")
         self.label4 = Label(parent)  # Map boundaries information
         self.label4.place(relx=0.2, rely=0.895, height=21, relwidth=0.55)
-        self.label4.configure(background=bgc, font="TkFixedFont", foreground=fgc, width=214, text="", anchor="w")
+        self.label4.configure(bg=bgc, font="TkFixedFont", fg=fgc, width=214, text="", anchor="w")
+        self.Checkbutton1 = Checkbutton(parent)  # ultimateTDoA check box
+        self.Checkbutton1.place(relx=0.55, rely=0.895, height=21, relwidth=0.11)
+        self.Checkbutton1.configure(bg=bgc, font="TkFixedFont 8", fg=fgc, width=214,
+                                    text="ultimateTDoA mode", anchor="w", variable=ultimate, command=self.checkboxcheck)
+        self.Checkbutton2 = Checkbutton(parent)  # ultimateTDoA favorite nodes
+        self.Checkbutton2.place(relx=0.66, rely=0.895, height=21, relwidth=0.08)
+        self.Checkbutton2.configure(bg=bgc, font="TkFixedFont 8", fg=fgc, width=214, state="disabled",
+                                    text="favorites only", anchor="w", variable=ultimatefav)
         self.Button5 = Button(parent)  # Restart GUI button
         self.Button5.place(relx=0.81, rely=0.94, height=24, relwidth=0.08)
-        self.Button5.configure(activebackground=bgc, activeforeground=fgc, background="red", disabledforeground=dfgc,
-                               foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
+        self.Button5.configure(activebackground=bgc, activeforeground=fgc, bg="red", disabledforeground=dfgc,
+                               fg=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
                                text="Restart GUI", command=Restart().run, state="normal")
         self.Button3 = Button(parent)  # Update button
         self.Button3.place(relx=0.90, rely=0.94, height=24, relwidth=0.08)
-        self.Button3.configure(activebackground=bgc, activeforeground=fgc, background=bgc, disabledforeground=dfgc,
-                               foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
+        self.Button3.configure(activebackground=bgc, activeforeground=fgc, bg=bgc, disabledforeground=dfgc,
+                               fg=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
                                text="update map", command=self.runupdate, state="normal")
         self.Button4 = Button(parent)  # Purge node list button
         self.Button4.place(relx=0.72, rely=0.94, height=24, relwidth=0.08)
-        self.Button4.configure(activebackground=bgc, activeforeground=fgc, background="orange", disabledforeground=dfgc,
-                               foreground=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
+        self.Button4.configure(activebackground=bgc, activeforeground=fgc, bg="orange", disabledforeground=dfgc,
+                               fg=fgc, highlightbackground=bgc, highlightcolor=fgc, pady="0",
                                text="Purge Nodes", command=self.purgenode, state="normal")
         self.Text2 = Text(parent)  # Console window
         self.Text2.place(relx=0.005, rely=0.7, relheight=0.18, relwidth=0.6)
-        self.Text2.configure(background="black", font="TkTextFont", foreground="red", highlightbackground=bgc,
+        self.Text2.configure(bg="black", font="TkTextFont", fg="red", highlightbackground=bgc,
                              highlightcolor=fgc, insertbackground=fgc, selectbackground="#c4c4c4",
                              selectforeground=fgc, undo="1", width=970, wrap="word")
         self.writelog("This is " + VERSION + ", a GUI written for python 2.7 / Tk")
@@ -1197,7 +1242,7 @@ class MainWindow(Frame):
         self.Text2.configure(yscrollcommand=vsb2.set)
         self.Text3 = Text(parent)  # IQ recs file size window
         self.Text3.place(relx=0.624, rely=0.7, relheight=0.18, relwidth=0.37)
-        self.Text3.configure(background="white", font="TkTextFont", foreground="black", highlightbackground=bgc,
+        self.Text3.configure(bg="white", font="TkTextFont", fg="black", highlightbackground=bgc,
                              highlightcolor=fgc, insertbackground=fgc, selectbackground="#c4c4c4",
                              selectforeground=fgc, undo="1", width=970, wrap="word")
 
@@ -1261,6 +1306,12 @@ class MainWindow(Frame):
         for wavfiles in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
             os.remove(wavfiles)
         CheckFileSize().start()
+
+    def checkboxcheck(self):
+        if ultimate.get() == 1:
+            self.Checkbutton2.configure(state="normal")
+        if ultimate.get() == 0:
+            self.Checkbutton2.configure(state="disabled")
 
     def on_keyrelease(self, event):
         value = event.widget.get()
@@ -1361,7 +1412,7 @@ class MainWindow(Frame):
     """, width=1000, font="TkFixedFont 8", bg="white", anchor="center")
         w.pack()
 
-    def map_preset(self, pmap):  # save config menu
+    def map_preset(self, pmap):
         global mapboundaries_set, lon_min_map, lon_max_map, lat_min_map, lat_max_map, sx0, sx1, sy0, sy1, mappreset
         global map_preset, map_manual
         if map_preset == 1:
@@ -1479,14 +1530,13 @@ class MainWindow(Frame):
         self.Button4.configure(state="disabled")
         CheckUpdate(self).start()  # start the update thread
 
-    def purgenode(self):  # if Purge node list button is pushed
-        global fulllist
-        if len(fulllist) != 0:
-            fulllist = []
-            app.title(VERSION)
-            self.writelog("The full node listing has been erased.")
-        else:
-            self.writelog("The node listing is already empty.")
+    def purgenode(self):  # when Purge node list button is pushed
+        global fulllist, ultimatelist
+        ultimatelist = []
+        fulllist = []
+        app.title(VERSION)
+        self.writelog("The full node listing has been erased.")
+
 
     # ---------------------------------------------------MAIN-----------------------------------------------------------
 
@@ -1545,13 +1595,20 @@ class MainWindow(Frame):
             rec_in_progress = 0
             self.Button1.configure(text="Start recording")
             self.Button4.configure(state="normal")
+            if (ultimate.get()) is 1:
+                self.Button2.configure(text="", state="disabled")
             self.create_m_file()
             self.writelog("IQ Recordings manually stopped... files has been saved in " + str(
                 os.sep + os.path.join('TDoA', 'iq') + os.sep + starttime) + "_F" + str(frequency) + str(
                 os.sep))
+            if (ultimate.get()) is 1:
+                try:
+                    webbrowser.open(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(frequency))
+                except ValueError as e:
+                    print e
 
         else:  # start rec process
-            if mapboundaries_set is None:
+            if (ultimate.get()) is 0 and mapboundaries_set is None:
                 tkMessageBox.showinfo("WARNING",
                                       message="Set TDoA map Geographical boundaries, right click and draw red rectangle or select one of presets via the top bar menu.")
             else:
@@ -1563,12 +1620,15 @@ class MainWindow(Frame):
                 starttime = str(time.strftime('%Y%m%dT%H%M%S'))
                 if self.Entry1.get() == '' or float(self.Entry1.get()) < 0 or float(self.Entry1.get()) > 30000:
                     self.writelog("ERROR: Please check the frequency !")
-                elif len(fulllist) < 3:  # debug
+                elif (ultimate.get()) is 0 and len(fulllist) < 3:  # debug
                     self.writelog("ERROR: Select at least 3 nodes for TDoA processing !")
+                elif (ultimate.get()) is 1 and len(ultimatelist) == 0:
+                    self.writelog("ERROR: ultimateTDoA listing is empty !")
                 else:
                     frequency = str(float(self.Entry1.get()))
                     self.Button1.configure(text="Stop recording")
-                    self.Button2.configure(text="Start TDoA proc", state="normal")
+                    if (ultimate.get()) is 0:
+                        self.Button2.configure(text="Start TDoA proc", state="normal")
                     self.Button3.configure(state="disabled")
                     self.Button4.configure(state="disabled")
                     for wavfiles in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
@@ -1593,7 +1653,6 @@ class MainWindow(Frame):
         else:  # Start TDoA process
             tdoa_in_progress = 1
             os.kill(proc2_pid, signal.SIGTERM)  # kills the kiwirecorder.py process
-            self.writelog("IQ Recordings were stopped...")
             self.Button1.configure(text="", state="disabled")
             self.Button2.configure(text="Abort TDoA proc")
             if rec_in_progress == 1:
@@ -1611,13 +1670,142 @@ class MainWindow(Frame):
             IQfiles.append(os.path.split(file)[1])
         firstfile = IQfiles[0]
         varfile = str(firstfile.split("_", 2)[1].split("_", 1)[0])
-        with open(os.path.join('TDoA') + os.sep + "proc_tdoa_" + varfile + ".m", "w") as g:
-            g.write("## -*- octave -*-\n")
-            g.write("## This file was auto-generated by " + VERSION + "\n\n")
-            g.write("function [tdoa,input]=proc_tdoa_" + varfile + "\n\n")
-            for i in range(len(IQfiles)):
-                g.write("  input(" + str(i + 1) + ").fn    = fullfile('iq', '" + str(IQfiles[i]) + "');\n")  # newformat
-            g.write("""
+
+        if (ultimate.get()) is 1:  # generate proc_tdoa_frequency.empty + compute_ultimate.sh---------------------------
+            with open(os.path.join('TDoA') + os.sep + "proc_tdoa_" + varfile + ".m", "w") as g:
+                g.write("## -*- octave -*-\n")
+                g.write("## This file was auto-generated by " + VERSION + "\n\n")
+                g.write("function [tdoa,input]=proc_tdoa_" + varfile + "\n\n")
+                g.write("""  # nodes
+  
+  input = tdoa_read_data(input);
+
+  ## 200 Hz high-pass filter (removed in directTDoA v4.00)
+  #  b = fir1(1024, 500/12000, 'high');
+  n = length(input);
+  #  for i=1:n
+  #    input(i).z      = filter(b,1,input(i).z)(512:end);
+  #  end
+
+  tdoa  = tdoa_compute_lags(input, struct('dt',     12000,            # 1-second cross-correlation intervals
+                                          'range',  0.005,            # peak search range is +-5 ms
+                                          'dk',    [-2:2],            # use 5 points for peak fitting
+                                          'fn', @tdoa_peak_fn_pol2fit # fit a pol2 to the peak
+                                          ));
+  for i=1:n
+    for j=i+1:n
+      tdoa(i,j).lags_filter = ones(size(tdoa(i,j).gpssec))==1;
+    end
+  end
+
+  plot_info = struct('lat', [ """)
+                g.write(str(lat_min_map) + ":0.05:" + str(lat_max_map) + "],\n")
+                g.write("                     'lon', [ " + str(lon_min_map) + ":0.05:" + str(lon_max_map) + "],\n")
+                g.write("                     'plotname', 'TDoA_")
+                g.write(varfile + "',\n")
+                g.write("                     'title', 'CF=" + frequency + " BW=" + str(currentbw) + " [" + str(
+                    float(frequency) - (float(currentbw) / 2000)) + " <-> " + str(
+                    float(frequency) + (float(currentbw) / 2000)) + "] - " + str(
+                    datetime.utcnow().strftime('%d %b %Y %H%Mz')) + "'")
+
+                if selectedlat == "" or selectedlon == "":
+                    g.write(",\n                     'known_location', struct('coord', [0 0],\n")
+                    g.write("                                              \'name\',  \'" "\')\n")
+                    g.write("                    );\n\n\n")
+                    g.write("  tdoa = tdoa_plot_map(input, tdoa, plot_info);\n")
+                    g.write("\nsystem(\"cp pdf" + os.sep + "TDoA_" + str(varfile) + ".pdf iq" + os.sep + str(starttime) + "_F" + str(frequency) + os.sep + "TDoA_" + str(varfile) + "_`date -u +%d%b%Y_%H%M%Sz`.pdf\")")
+                    g.write("\ndisp(\"finished\");\n")
+                    g.write("endfunction\n")
+                else:
+                    g.write(
+                        ",\n                     'known_location', struct('coord', [" + str(selectedlat) + " " + str(
+                            selectedlon) + "],\n")
+                    g.write("                                              \'name\',  \'" + str(
+                        selectedcity.rsplit(' (')[0]).replace('_', ' ') + "\')\n")
+                    g.write("""                    );\n
+
+  tdoa = tdoa_plot_map(input, tdoa, plot_info);
+
+system("cp pdf""" + os.sep + """TDoA_""" + str(varfile) + """.pdf iq""" + os.sep + str(starttime) + """_F""" + str(frequency) + os.sep + """TDoA_""" + str(varfile) + """_`date -u +%d%b%Y_%H%M%Sz`.pdf")
+disp("finished");
+endfunction """)
+
+            g.close()
+            self.writelog(os.path.join('TDoA') + os.sep + "proc_tdoa_" + varfile + ".empty file created")
+            # backup of IQ, gnss_pos and .m file in a new directory named by the datetime process start and frequency
+            time.sleep(0.5)
+            os.makedirs(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(frequency))
+            for file in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
+                copyfile(file, os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
+                    frequency) + os.sep + file.rsplit(os.sep, 1)[1])
+            copyfile(os.path.join('TDoA') + os.sep + "proc_tdoa_" + varfile + ".m",
+                     os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
+                         frequency) + os.sep + "proc_tdoa_" + varfile + ".empty")
+            with open(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
+                    frequency) + os.sep + "compute_ultimate.sh", "w") as recompute:
+                recompute.write("""#!/bin/sh
+## This file is intended to copy back *.wav to iq directory
+## and to open a node list selection script so you can choose which nodes you want to use to create .m file and run TDoA
+cp ./*.wav ../
+echo "### ultimateTDoA dynamic octave file process started..."
+echo " "
+declare -a FILELIST
+declare -a NODELIST
+declare PROCFILE
+declare TEMPFILE
+
+for e in *.empty; do 
+    TEMPFILE=$e
+done
+PROCFILE="${TEMPFILE/empty/m}"
+cp $TEMPFILE $PROCFILE
+
+for f in *.wav; do 
+    FILELIST[${#FILELIST[@]}+1]=$(echo "$f");
+done
+
+for ((g=1;g<=${#FILELIST[@]};g++)); do
+	printf '%s %sKB\\n' "$g - ${FILELIST[g]}" "`du -k ${FILELIST[g]} |cut -f1`"
+done
+echo " "
+echo "Enter node numbers you want to include in the TDoA process (min=3 max=6), separate them with a comma (ctrl+c to exit)"
+read nodeschoice
+
+nodes=$(echo $nodeschoice | tr "," "\\n")
+for node in $nodes; do
+	NODELIST[${#NODELIST[@]}+1]=$(echo "${FILELIST[node]}");
+done
+
+if [[ ("${#NODELIST[@]}" -gt 2) && ("${#NODELIST[@]}" -lt 7 ) ]]; then
+	i="${#NODELIST[@]}"
+	for ((h=1;h<=${#NODELIST[@]};h++)); do	
+		sed -i '/\  # nodes/a \ \ input('$i').fn    = fullfile('\\''iq'\\'', '\\'''${NODELIST[h]}''\\'');' $PROCFILE
+		((i--))
+	done
+else
+	echo "ERROR: process aborted, please choose between 3 and 6 nodes !"
+	sleep 2
+	exit
+fi
+
+read -n1 -p "Do you want to edit $PROCFILE file before running octave process ? [y,n] " next 
+case $next in  
+  y|Y) $EDITOR $PROCFILE && cp $PROCFILE ../../ && cd ../.. && octave-cli $PROCFILE ;;
+  n|N) cp $PROCFILE ../../ && cd ../.. && octave-cli $PROCFILE ;;
+  *) exit ;;
+esac""")
+                recompute.close()
+                os.chmod(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
+                    frequency) + os.sep + "compute_ultimate.sh", 0o777)
+
+        else:  # create standard TDoA mode files -----------------------------------------------------------------------
+            with open(os.path.join('TDoA') + os.sep + "proc_tdoa_" + varfile + ".m", "w") as g:
+                g.write("## -*- octave -*-\n")
+                g.write("## This file was auto-generated by " + VERSION + "\n\n")
+                g.write("function [tdoa,input]=proc_tdoa_" + varfile + "\n\n")
+                for i in range(len(IQfiles)):
+                    g.write("  input(" + str(i + 1) + ").fn    = fullfile('iq', '" + str(IQfiles[i]) + "');\n")
+                g.write("""
   input = tdoa_read_data(input);
 
   ## 200 Hz high-pass filter (removed in directTDoA v4.00)
@@ -1639,48 +1827,50 @@ class MainWindow(Frame):
   end
 
   plot_info = struct('lat', [ """)
-            g.write(str(lat_min_map) + ":0.05:" + str(lat_max_map) + "],\n")
-            g.write("                     'lon', [ " + str(lon_min_map) + ":0.05:" + str(lon_max_map) + "],\n")
-            g.write("                     'plotname', 'TDoA_")
-            g.write(varfile + "',\n")
-            g.write("                     'title', 'CF=" + frequency + " BW=" + str(currentbw) + " [" + str(
-                float(frequency) - (float(currentbw) / 2000)) + " <-> " + str(
-                float(frequency) + (float(currentbw) / 2000)) + "] - " + str(
-                datetime.utcnow().strftime('%d %b %Y %H%Mz')) + "'")
+                g.write(str(lat_min_map) + ":0.05:" + str(lat_max_map) + "],\n")
+                g.write("                     'lon', [ " + str(lon_min_map) + ":0.05:" + str(lon_max_map) + "],\n")
+                g.write("                     'plotname', 'TDoA_")
+                g.write(varfile + "',\n")
+                g.write("                     'title', 'CF=" + frequency + " BW=" + str(currentbw) + " [" + str(
+                    float(frequency) - (float(currentbw) / 2000)) + " <-> " + str(
+                    float(frequency) + (float(currentbw) / 2000)) + "] - " + str(
+                    datetime.utcnow().strftime('%d %b %Y %H%Mz')) + "'")
 
-            if selectedlat == "" or selectedlon == "":
-                g.write(",\n                     'known_location', struct('coord', [0 0],\n")
-                g.write("                                              \'name\',  \'" "\')\n")
-                g.write("                    );\n\n\n")
-                g.write("  tdoa = tdoa_plot_map(input, tdoa, plot_info);\n")
-                g.write("\ndisp(\"finished\");\n")
-                g.write("endfunction\n")
-            else:
-                g.write(",\n                     'known_location', struct('coord', [" + str(selectedlat) + " " + str(
-                    selectedlon) + "],\n")
-                g.write("                                              \'name\',  \'" + str(
-                    selectedcity.rsplit(' (')[0]).replace('_', ' ') + "\')\n")
-                g.write("""                    );\n
+                if selectedlat == "" or selectedlon == "":
+                    g.write(",\n                     'known_location', struct('coord', [0 0],\n")
+                    g.write("                                              \'name\',  \'" "\')\n")
+                    g.write("                    );\n\n\n")
+                    g.write("  tdoa = tdoa_plot_map(input, tdoa, plot_info);\n")
+                    g.write("\nsystem(\"cp pdf" + os.sep + "TDoA_" + str(varfile) + ".pdf iq" + os.sep + str(starttime) + "_F" + str(frequency) + os.sep + "TDoA_" + str(varfile) + "_`date -u +%d%b%Y_%H%M%Sz`.pdf\")")
+                    g.write("\ndisp(\"finished\");\n")
+                    g.write("endfunction\n")
+                else:
+                    g.write(",\n                     'known_location', struct('coord', [" + str(selectedlat) + " " + str(
+                        selectedlon) + "],\n")
+                    g.write("                                              \'name\',  \'" + str(
+                        selectedcity.rsplit(' (')[0]).replace('_', ' ') + "\')\n")
+                    g.write("""                    );\n
 
   tdoa = tdoa_plot_map(input, tdoa, plot_info);
 
+system("cp pdf""" + os.sep + """TDoA_""" + str(varfile) + """.pdf iq""" + os.sep + str(starttime) + """_F""" + str(frequency) + os.sep + """TDoA_""" + str(varfile) + """_`date -u +%d%b%Y_%H%M%Sz`.pdf")
 disp("finished");
 endfunction """)
 
-        g.close()
-        self.writelog(os.path.join('TDoA') + os.sep + "proc_tdoa_" + varfile + ".m file created")
-        # backup of IQ, gnss_pos and .m file in a new directory named by the datetime process start and frequency
-        time.sleep(0.5)
-        os.makedirs(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(frequency))
-        for file in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
-            copyfile(file, os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
-                frequency) + os.sep + file.rsplit(os.sep, 1)[1])
-        copyfile(os.path.join('TDoA') + os.sep + "proc_tdoa_" + varfile + ".m",
-                 os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
-                     frequency) + os.sep + "proc_tdoa_" + varfile + ".m")
-        with open(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
-                frequency) + os.sep + "recompute.sh", "w") as recompute:
-            recompute.write("""#!/bin/sh
+            g.close()
+            self.writelog(os.path.join('TDoA') + os.sep + "proc_tdoa_" + varfile + ".m file created")
+            # backup of IQ, gnss_pos and .m file in a new directory named by the datetime process start and frequency
+            time.sleep(0.5)
+            os.makedirs(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(frequency))
+            for file in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
+                copyfile(file, os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
+                    frequency) + os.sep + file.rsplit(os.sep, 1)[1])
+            copyfile(os.path.join('TDoA') + os.sep + "proc_tdoa_" + varfile + ".m",
+                     os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
+                         frequency) + os.sep + "proc_tdoa_" + varfile + ".m")
+            with open(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
+                    frequency) + os.sep + "recompute.sh", "w") as recompute:
+                recompute.write("""#!/bin/sh
 ## This file is intended to copy back *.wav to iq directory and proc_tdoa_""" + varfile + """.m to TDoA directory
 ## and to open a file editor so you can modify .m file parameters.
 cp ./*.wav ../
@@ -1688,9 +1878,9 @@ cp proc_tdoa_""" + varfile + """.m ../../
 cd ../..
 $EDITOR proc_tdoa_""" + varfile + """.m
 octave-cli proc_tdoa_""" + varfile + """.m""")
-            recompute.close()
-            os.chmod(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
-                frequency) + os.sep + "recompute.sh", 0o777)
+                recompute.close()
+                os.chmod(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
+                    frequency) + os.sep + "recompute.sh", 0o777)
 
 
 

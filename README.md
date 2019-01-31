@@ -1,4 +1,4 @@
-# directTDoA v4.10
+# directTDoA v4.20
 
 This piece of software is JUST a GUI written for Python 2.7 designed to compute TDoA maps with GPS enabled KiwiSDR servers around the world using GNU Octave & the EXCELLENT work of Christoph Mayer @ https://github.com/hcab14/TDoA + his forked "kiwiclient" python stuff, original code by Dmitry Janushkevich @ https://github.com/dev-zzo/kiwiclient
 
@@ -9,17 +9,17 @@ Thanks to Marco Cogoni (IS0KYB) for allowing me the use of his SNR measurements 
 
 ## INSTALL AND RUN (on LINUX) Thanks Daniel E. for the install procedure
 
-Install python 2.7.xx
+Install python 2.7
 
 Install python-pip (search for the right package for your distro)
 
-Install GNU octave 4.4.0 (stable version)
+Install GNU octave
 
 `git clone --recursive https://github.com/llinkz/directTDoA`
 
 `cd directTDoA`
 
-`./setup.sh` (this script will install python modules, compile the necessary .oct file and apply the patch to bypass the .png file creation)
+`./setup.sh` (this script will install python modules, compile the necessary .oct file and apply some files patchs)
 
 `./directTDoA.py` (note: check the shebang if it fails on your system. On my Archlinux it should be "#!/usr/bin/python2" for example)
 
@@ -32,7 +32,7 @@ Install Homebrew, in terminal : `/usr/bin/ruby -e "$(curl -fsSL https://raw.gith
 
 Install Python 2.7, in terminal : `brew install python@2`
 
-Install GNU Octave 4.4.0, in Terminal : `brew install octave`
+Install GNU Octave in Terminal : `brew install octave`
 
 `git clone --recursive https://github.com/llinkz/directTDoA`
 
@@ -83,7 +83,9 @@ Install GNU Octave 4.4.0, in Terminal : `brew install octave`
 * v3.24: allowing the possibility to "Open" a node in browser even if 0 GPS fixes were reported at instant T + minor date modification on TDoA output file title + minor text corrections
 * v4.00: no more GUI restart after TDoA runs (node list is kept intact) + Listen/Demod mode added, **requires python modules _pygame_ (for all) + _scipy_ (for MacOS X), new file _KiwiSDRclient.py_ also required** + possibility to remove a single node from the list + purge button added + check version runned on software start + minor fixes on many routines
 * v4.10: "Restart Rec" is now "Stop Rec" instead (it saves IQ files and generate .m file only) + added "Abort TDoA" routine so you can stop a previewed bad result octave process w/o having to restart full GUI + minor mods on checkversion(), float(frequency) and restart/close GUI + 200Hz high pass filter block commented out and empty known point block added in proc.m files
+* v4.18: early ultimateTDoA mode dev, adding a necessary patch for TDoA/kiwiclient/kiwiworker.py to bypass returned errors causing full IQ recording process freezes (KiwiBadPasswordError & KiwiDownError) **to apply run: _patch -i kiwiworker_patch.diff ./TDoA/kiwiclient/kiwiworker.py_**
+* v4.19: adding another patch for TDoA/m/tdoa_plot_map.m to display the 'most likely position' string in the final pdf title + exchanging lon and lat values position for better reading - **Note: that patch already contains the nopng patch previously released**
+* v4.20: introducing new **ultimateTDoA** mode (massive IQ recordings without octave run from the GUI), nodes selection using the same way as defining TDoA map boundaries, all IQ files saved and compute_ultimate.sh dynamic bash script created in same ./TDoA/iq/subdirectory + recomputed pdf files now containing a timestamp so you'll keep all of them (instead of overwriting the only ./TDoA/pdf one)
 
 ## TODO LIST
-* ultimateTDoA variant mode ? (c)Daniel Ekmann, to basically record all possible nodes at same time in order to post-compute TDoAs later with a dynamic .m file
 * compute mini-waterfall pictures on selected nodes if necessary (directly in python, not via jupyther notebook stuff)
