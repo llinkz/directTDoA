@@ -17,7 +17,7 @@ FTA_VLF (Ste Assise FRA),48.5446,2.5794
 HWN (Rosnay FRA),46.7131,1.2453
 Vernon (Main FAF TX site FRA),49.0951,1.5084
 3AC (Monaco Radio MCO),43.7319,7.4276
-DCF77_VLF (Mainflingen DEU),50.0154,9.008
+DCF77 (VLF Mainflingen DEU),50.0154,9.008
 RIT (Severomorsk Northern Fleet RUS),69.0588,33.3266
 RMP (Yantarny Baltic Fleet RUS),54.8589,19.9418
 RCV (Sevastopol Black Sea Fleet RUS),44.5512,33.5616
@@ -30,7 +30,7 @@ VDD (Debert CAN),45.4216,-63.5594
 Cardiff (CFB Edmonton Military CAN),53.7852,-113.5390
 Point_Petre (CFB Trenton Military CAN),43.8434,-77.1475
 Matsui (NRS Aldergrove CAN),49.1076,-122.2443
-Newport_Corner (NRS Halifax  CAN),44.9672,-63.9821
+CFH (NRS Newport_Corner CAN),44.9672,-63.9821
 CTA (Palhais POR),38.6035,-9.0315
 TBO (Izimir TUR),38.4649,27.4665
 BPC_VLF (Shangqiu CHN),34.4565,115.8369
@@ -101,9 +101,9 @@ DHFCS_St_Eval (St Eval GBR),50.4786,-5.0004
 DHFCS_Crimond (Crimond GBR),57.6111,-1.8835
 Amici_di_ITALCABLE (Viareggio ITA),43.9141,10.2956
 ZhUOZ (UVB-76 UZB-76 MDZhB Buzzer RUS),60.3112,30.2782
-JORN_Radar1 (Longreach AUS),-23.6580,144.1454
-JORN_Radar2 (Leonora AUS),-28.3173,122.8434
-JORN_Radar3 (Harts Range R&D site AUS),-22.9675,134.4479
+JORN_Longreach (Longreach AUS),-23.6580,144.1454
+JORN_Leonora (Leonora AUS),-28.3173,122.8434
+JORN_Harts_Range (Harts Range R&D site AUS),-22.9675,134.4479
 JMSDF_Ichihara (JJF Ichihara JAP),35.4460,140.1821
 JMSDF_Mutsu (JJF2 Mutsu JAP),41.1938,141.2855
 JMSDF_Kushira (JJF6 Kushira JAP),31.4603,130.9189
