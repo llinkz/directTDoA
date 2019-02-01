@@ -4,10 +4,7 @@
 import array, codecs, logging, os, struct, sys, time, traceback, copy, threading, os
 from optparse import OptionParser
 
-<<<<<<< HEAD
 sys.path.append('./TDoA/kiwiclient')
-=======
->>>>>>> Add files via upload
 import kiwiclient
 from kiwiworker import KiwiWorker
 
@@ -104,11 +101,7 @@ class KiwiSoundRecorder(kiwiclient.KiwiSDRStream):
             return '%s_%d%s_%s.wav' % (ts, int(self._freq * 1000), station, self._options.modulation)
 
     def _update_wav_header(self):
-<<<<<<< HEAD
         with open("./TDoA/iq/" + self._get_output_filename(), 'r+b') as fp:
-=======
-        with open("../iq/" + self._get_output_filename(), 'r+b') as fp:
->>>>>>> Add files via upload
             fp.seek(0, os.SEEK_END)
             filesize = fp.tell()
             fp.seek(0, os.SEEK_SET)
@@ -125,17 +118,10 @@ class KiwiSoundRecorder(kiwiclient.KiwiSDRStream):
             self._start_ts = now
             self._start_time = time.time()
             # Write a static WAV header
-<<<<<<< HEAD
             with open("./TDoA/iq/" + self._get_output_filename(), 'wb') as fp:
                 _write_wav_header(fp, 100, int(self._sample_rate), self._num_channels, self._options.is_kiwi_wav)
             print "\nStarted a new file: %s" % (self._get_output_filename())
         with open("./TDoA/iq/" + self._get_output_filename(), 'ab') as fp:
-=======
-            with open("../iq/" + self._get_output_filename(), 'wb') as fp:
-                _write_wav_header(fp, 100, int(self._sample_rate), self._num_channels, self._options.is_kiwi_wav)
-            print "\nStarted a new file: %s" % (self._get_output_filename())
-        with open("../iq/" + self._get_output_filename(), 'ab') as fp:
->>>>>>> Add files via upload
             if self._options.is_kiwi_wav:
                 gps = args[0]
                 logging.info('%s: last_gps_solution=%d gpssec=(%d,%d)' % (self._get_output_filename(), gps['last_gps_solution'], gps['gpssec'], gps['gpsnsec']));
@@ -147,13 +133,8 @@ class KiwiSoundRecorder(kiwiclient.KiwiSDRStream):
         self._update_wav_header()
 
     def _on_gnss_position(self, pos):
-<<<<<<< HEAD
         if os.path.isdir('./TDoA/gnss_pos'):
             pos_filename = './TDoA/gnss_pos/'+self._options.station+'.txt'
-=======
-        if os.path.isdir('../gnss_pos'):
-            pos_filename = '../gnss_pos/'+self._options.station+'.txt'
->>>>>>> Add files via upload
             with open(pos_filename, 'w') as f:
                 f.write("d.%s = struct('coord', [%f,%f], 'host', '%s', 'port', %d);\n"
                         % (self._options.station,
