@@ -1174,6 +1174,7 @@ class MainWindow(Frame):
         self.Entry1.place(relx=0.06, rely=0.892, height=24, relwidth=0.1)
         self.Entry1.configure(bg="white", disabledforeground=dfgc, font="TkFixedFont", fg=fgc,
                               insertbackground=fgc, width=214)
+        self.Entry1.bind('<Control-a>', self.ctrla)
         self.label1 = Label(parent)
         self.label1.place(relx=0.01, rely=0.895)
         self.label1.configure(bg=bgc, font="TkFixedFont", fg=fgc, text="Freq:")
@@ -1306,6 +1307,11 @@ class MainWindow(Frame):
         for wavfiles in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
             os.remove(wavfiles)
         CheckFileSize().start()
+
+    def ctrla(self, event):
+        event.widget.select_range(0, 'end')
+        event.widget.icursor('end')
+        return 'break'
 
     def checkboxcheck(self):
         if ultimate.get() == 1:
