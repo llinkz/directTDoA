@@ -1518,7 +1518,7 @@ class MainWindow(Frame):
         mapname = tkFileDialog.askopenfilename(initialdir="maps")
         if not mapname or not mapname.lower().endswith(('.png', '.jpg', '.jpeg')):
             tkMessageBox.showinfo("", message="Error, select png/jpg/jpeg files only.\n Loading default map now.")
-            mapname = "maps/directTDoA_map_grayscale_dark.jpg"
+            mapname = "maps/directTDoA_map_grayscale_with_sea.jpg"
         ReadConfigFile().read_cfg()
         SaveConfigFile().save_cfg("mapc", "maps/" + os.path.split(mapname)[1])
         Restart().run()
