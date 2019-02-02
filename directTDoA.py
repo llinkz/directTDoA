@@ -618,8 +618,8 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
                                 ultimatelist.append(
                                     db_data2[y]["url"].rsplit(':')[0] + "$" + db_data2[y]["url"].rsplit(':')[1] + "$" +
                                     db_data2[y]["mac"] + "$" + db_data2[y]["id"].replace("/", ""))
-                    app.title(
-                        VERSION + " - ultimateTDoA nodes : " + ' + '.join(str(p).rsplit('$')[3] for p in ultimatelist))
+                    app.title(VERSION + " - ultimateTDoA nodes [" + str(len(ultimatelist)) + "] : " + '/'.join(
+                        str(p).rsplit('$')[3] for p in ultimatelist))
                     if len(ultimatelist) != 0:
                         app.window2.writelog("ultimateTDoA listing contains " + str(len(ultimatelist)) + " nodes")
                     app.window2.label4.configure(text="[LATITUDE] range: " + str(lat_min_map) + "° " + str(
@@ -1031,7 +1031,8 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
             fulllist.append(
                 host.rsplit(':')[0] + "$" + host.rsplit(':')[1].rsplit('$')[0] + "$" + host.rsplit('$')[1] + "$" +
                 host.rsplit('$')[2].replace("/", ""))
-            app.title(VERSION + " - Selected nodes : " + ' + '.join(str(p).rsplit('$')[3] for p in fulllist))
+            app.title(VERSION + " - Selected nodes [" + str(len(fulllist)) + "] : " + '/'.join(
+                str(p).rsplit('$')[3] for p in fulllist))
         else:
             tkMessageBox.showinfo(title="  ¯\_(ツ)_/¯ ",
                                   message="[[[maximum server limit reached]]]")
@@ -1041,7 +1042,8 @@ class ZoomAdvanced(Frame):  # src stackoverflow.com/questions/41656176/tkinter-c
             host.rsplit(':')[0] + "$" + host.rsplit(':')[1].rsplit('$')[0] + "$" + host.rsplit('$')[1] + "$" +
             host.rsplit('$')[2].replace("/", ""))
         if len(fulllist) != 0:
-            app.title(VERSION + " - Selected nodes : " + ' + '.join(str(p).rsplit('$')[3] for p in fulllist))
+            app.title(VERSION + " - Selected nodes [" + str(len(fulllist)) + "] : " + '/'.join(
+                str(p).rsplit('$')[3] for p in fulllist))
         else:
             app.title(VERSION)
 
