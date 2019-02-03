@@ -60,7 +60,7 @@ class CheckFileSize(threading.Thread):
                 try:
                     app.window2.Text3.insert('end -1 lines', wavfiles.rsplit(os.sep, 1)[1] + " - " + str(os.path.getsize(wavfiles) / 1024) + "KB" + "\n")
                 except:
-                    app.window2.Text3.insert('end -1 lines' "oops..file deleted" + "\n")
+                    app.window2.Text3.insert('end -1 lines', "\n")
             app.window2.Text3.see('end')
             time.sleep(0.5)
             app.window2.Text3.delete("0.0", END)
