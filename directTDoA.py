@@ -57,7 +57,10 @@ class CheckFileSize(threading.Thread):
     def run(self):
         while True:
             for wavfiles in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
-                app.window2.Text3.insert('end -1 lines', wavfiles.rsplit(os.sep, 1)[1] + " - " + str(os.path.getsize(wavfiles) / 1024) + "KB" + "\n")
+                try:
+                    app.window2.Text3.insert('end -1 lines', wavfiles.rsplit(os.sep, 1)[1] + " - " + str(os.path.getsize(wavfiles) / 1024) + "KB" + "\n")
+                except:
+                    app.window2.Text3.insert('end -1 lines' "oops..file deleted" + "\n")
             app.window2.Text3.see('end')
             time.sleep(0.5)
             app.window2.Text3.delete("0.0", END)
@@ -1751,7 +1754,7 @@ endfunction """)
                          frequency) + os.sep + "proc_tdoa_" + varfile + ".empty")
             with open(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
                     frequency) + os.sep + "compute_ultimate.sh", "w") as recompute:
-                recompute.write("""#!/bin/sh
+                recompute.write("""#!/bin/bash
 ## This file is intended to copy back *.wav to iq directory
 ## and to open a node list selection script so you can choose which nodes you want to use to create .m file and run TDoA
 cp ./*.wav ../
@@ -1878,7 +1881,7 @@ endfunction """)
                          frequency) + os.sep + "proc_tdoa_" + varfile + ".m")
             with open(os.path.join('TDoA', 'iq') + os.sep + starttime + "_F" + str(
                     frequency) + os.sep + "recompute.sh", "w") as recompute:
-                recompute.write("""#!/bin/sh
+                recompute.write("""#!/bin/bash
 ## This file is intended to copy back *.wav to iq directory and proc_tdoa_""" + varfile + """.m to TDoA directory
 ## and to open a file editor so you can modify .m file parameters.
 cp ./*.wav ../
