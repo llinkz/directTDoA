@@ -2,6 +2,20 @@
 
 This piece of software is JUST a GUI written for Python 2.7 designed to compute TDoA maps with GPS enabled KiwiSDR servers around the world using GNU Octave & the EXCELLENT work of Christoph Mayer @ https://github.com/hcab14/TDoA + his forked "kiwiclient" python stuff, original code by Dmitry Janushkevich @ https://github.com/dev-zzo/kiwiclient
 
+The software can work into 2 different modes:
+
+Normal mode (restricted from 3 to 6 selected nodes):
+select a map area (with right mouse button)
+select nodes with (left mouse button) then click "Add"
+set frequency, bandwidth and start recording IQs
+stop IQs recordings (files auto-saved) or click directly on "Start TDoA process"
+wait.. wait and wait..
+
+Ultimate mode (no limitations of node numbers):
+select a map area, all nodes within the area are selected and will be used (if they're available at time t)
+set frequency, bandwidth and start recording IQs
+stop IQs recordings and play later with compute_ultimate.sh
+
 Thanks to Pierre Ynard (linkfanel) for the listing of available KiwiSDR nodes used as source for the TDoA map update process (http://rx.linkfanel.net)
 
 Thanks to Marco Cogoni (IS0KYB) for allowing me the use of his SNR measurements of the KiwiSDR network (http://sibamanna.duckdns.org/sdr_map.html)
@@ -9,11 +23,16 @@ Thanks to Marco Cogoni (IS0KYB) for allowing me the use of his SNR measurements 
 
 ## INSTALL AND RUN (on LINUX) Thanks Daniel E. for the install procedure
 
-Install python 2.7
+Install python 2.7.xx
 
 Install python-pip (search for the right package for your distro)
 
 Install GNU octave
+note: Octave "signal" package is necessary (and you have to install it yourself on some octave versions)
+
+`octave-cli` then `pkg install -forge control` then `pkg install -forge signal` (you need gcc-fortran for this)
+
+`pkg load signal` (optional)
 
 `git clone --recursive https://github.com/llinkz/directTDoA`
 
@@ -30,9 +49,14 @@ Install GNU octave
 
 Install Homebrew, in terminal : `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
 
-Install Python 2.7, in terminal : `brew install python@2`
+Install Python 2.7.xx in terminal : `brew install python@2`
 
-Install GNU Octave in Terminal : `brew install octave`
+Install GNU Octave in Terminal : `brew install octave` 
+note: Octave "signal" package is necessary (and you have to install it yourself on some octave versions)
+
+`octave-cli` then `pkg install -forge control` then `pkg install -forge signal` (you need gcc-fortran for this)
+
+`pkg load signal` (optional)
 
 `git clone --recursive https://github.com/llinkz/directTDoA`
 
