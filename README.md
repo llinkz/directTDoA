@@ -4,7 +4,7 @@ This piece of software is JUST a GUI written for Python 2.7 designed to compute 
 
 The software can work into 2 different modes:
 
-Normal mode (restricted from 3 to 6 selected nodes):
+```Normal mode (restricted from 3 to 6 selected nodes):
 select a map area (with right mouse button)
 select nodes with (left mouse button) then click "Add"
 set frequency, bandwidth and start recording IQs
@@ -15,6 +15,7 @@ Ultimate mode (no limitations of node numbers):
 select a map area, all nodes within the area are selected and will be used (if they're available at time t)
 set frequency, bandwidth and start recording IQs
 stop IQs recordings and play later with compute_ultimate.sh
+```
 
 Thanks to Pierre Ynard (linkfanel) for the listing of available KiwiSDR nodes used as source for the TDoA map update process (http://rx.linkfanel.net)
 
