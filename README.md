@@ -78,7 +78,7 @@ Install GNU Octave in Terminal : `brew install octave`
 * v4.19: adding another patch for TDoA/m/tdoa_plot_map.m to display the 'most likely position' string in the final pdf title + exchanging lon and lat values position for better reading - **Note: that patch already contains the nopng patch previously released**
 * v4.20: introducing new **ultimateTDoA** mode (massive IQ recordings without octave run from the GUI), nodes selection using the same way as defining TDoA map boundaries, all IQ files saved and compute_ultimate.sh dynamic bash script created in same ./TDoA/iq/subdirectory + recomputed pdf files now containing a timestamp so you'll keep all of them (instead of overwriting the only ./TDoA/pdf one)
 * v5.00: big code optimization + adding waterfall/SNR measurement + removing Marco website source + keyboard shortcuts + filter/color/icon/add rem fav/blk changes w/o restart - better precision on map (coordinates with decimals) + highlight on selected nodes + plot_iq.py script (plotting IQ spectrograms w/o GPS ticks) + GUI colors management
-         + mapbox.com world maps in final results + trim_iq.py script to modify the recorded IQ files
+         + mapbox.com world maps in final results + trim_iq.py script to modify the recorded IQ files + Sorcerer TCP client for ALE auto-detect & auto-compute TDoAs
 ## Thanks
 * Christoph Mayer @ https://github.com/hcab14/TDoA for the main TDoA code, excellent work and thanks for the public release !
 * John Seamons, KiwiSDR developper @ https://github.com/jks-prv

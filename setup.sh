@@ -4,8 +4,8 @@ sudo python -m pip install --upgrade pip
 python -m pip install Pillow requests matplotlib numpy future
 echo "2/3 Compilating TDoA binaries and installing packages for GNU Octave"
 cd TDoA/src
-patch -i json_save_patch.diff json_save_cc.cc
-rm -f json_save_patch.diff
+patch -i ../../json_save_patch.diff json_save_cc.cc
+rm -f ../../json_save_patch.diff
 mkoctfile json_save_cc.cc
 mkoctfile read_kiwi_iq_wav.cc
 mv json_save_cc.oct read_kiwi_iq_wav.oct ../oct
