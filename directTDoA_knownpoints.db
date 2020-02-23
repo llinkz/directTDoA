@@ -2,6 +2,7 @@
 ## LAT/LON in decimal format with minus (-) symbol for West & South, don't forget the _ for spaces in the first field and keep the " , , " entry please
 ## Name|Names_with_spaces|Callsign (country|details|whatever|notimportant),LAT,LON     
  , , 
+Junglinster (BCE Site, LUX),49.7191,6.2644
 FUG (Saissac, FRA),43.3904,2.099861
 FUX (La Reunion FRA),-20.9101,55.5844
 FUJ (Noumea NCL),-22.3054,166.4548
@@ -15,24 +16,26 @@ FUE_VLF (Kerlouan FRA),48.6342,-4.3506
 HWU_VLF (Rosnay FRA),46.7131,1.2452
 FTA_VLF (Ste Assise FRA),48.5446,2.5794
 HWN (Rosnay FRA),46.7131,1.2453
-Vernon (Main FAF TX site FRA),49.0951,1.5084
+Vernon (Main MIL TX site FRA),49.0951,1.5084
 3AC (Monaco Radio MCO),43.7319,7.4276
 DCF77 (VLF Mainflingen DEU),50.0154,9.008
 RIT (Severomorsk Northern Fleet RUS),69.0588,33.3266
 RMP (Yantarny Baltic Fleet RUS),54.8589,19.9418
-RCV (Sevastopol Black Sea Fleet RUS),44.5512,33.5616
+RCV (Sevastopol Black Sea Fleet RUS),44.6010,33.5929
+Savolenka (RUS),54.7109,35.3777
 GYN2_VLF (Inskip GBR),53.8300,-2.8342
 MSF_VLF (Anthorn GBR),54.9111,-3.2793
 CKN (Esquimalt CAN),49.1087,-122.2423
 CHU (Ottawa CAN),45.2948,-75.7578
 CYQX (Gander Radio CAN),48.9660,-54.6727
-VDD (Debert CAN),45.4216,-63.5594
-Cardiff (CFB Edmonton Military CAN),53.7852,-113.5390
-Point_Petre (CFB Trenton Military CAN),43.8434,-77.1475
-Matsui (NRS Aldergrove CAN),49.1076,-122.2443
-CFH (NRS Newport_Corner CAN),44.9672,-63.9821
+Debert (VDD MACS Debert CAN),45.4216,-63.5594
+Cardiff (CFB MACS Edmonton Military CAN),53.7852,-113.5390
+Point_Petre (CFB MACS Trenton Military CAN),43.8434,-77.1475
+Matsqui (NRS MARCOM Aldergrove CAN),49.1076,-122.2443
+Halifax (CFH NRS MARCOM Newport_Corner CAN),44.9672,-63.9821
 CTA (Palhais POR),38.6035,-9.0315
 TBO (Izimir TUR),38.4649,27.4665
+TBB (Lalahan TUR),39.9780,33.1342
 BPC_VLF (Shangqiu CHN),34.4565,115.8369
 NSY_VLF (Niscemi ITA),37.1256,14.4364
 TBB_VLF (Bafa TUR),37.4127,27.3233
@@ -44,6 +47,7 @@ NDT (NRTF Totsuka JAP),35.3980,139.5017
 NPN (NRTF Guam USA),13.5871,144.8425
 NSS (NRTF Davidsonville USA),38.9667,-76.6830
 NPM (NRTF Lualualei USA),21.4276,-158.1563
+NAS (NRTF Jacksonville USA),30.1951,-81.6947
 NMC (CAMSPAC Point Reyes USA),37.925,-122.733
 NMN (CAMSLANT Chesapeake USA),36.7284,-76.0098
 NMF (COMMSTA Boston USA),41.7156,-70.5016
@@ -53,10 +57,11 @@ AFRTS_Barrigada (Barrigada Guam USA),13.4782,144.8377
 HFGCS_Lajes (PLA Terceira Azores),38.7111,-27.1507
 HFGCS_Andrews (ADW Andrews USA),38.9667,-76.6830
 HFGCS_Ascension (HAW Georgetown IOT),-7.9173,-14.3895
-HFGCS_Croughton (CRO Croughton GBR),52.0039,-1.3603
+HFGCS_Croughton (CRO Badford St John GBR),52.0039,-1.3603
 HFGCS_Diego_Garcia (JDG Diego Garcia IOT),-7.4299,72.4425
 HFGCS_Elmendorf (AED Anchorage USA),61.2478,-149.7225
 HFGCS_Guam (GUA Guam USA),13.5871,144.8425
+HFGCS_Salinas (JNR Salinas PRI),18.0045,-66.2790
 KEA5 (New York Radio Riverhead USA),40.8818,-72.6373
 HFDL_San_Francisco (H01 KNK9 Dixon USA),38.38,-121.7594
 HFDL_Molokai (H02 KXH6 Molokai USA),21.1844,-157.1869
@@ -65,12 +70,16 @@ HFDL_Auckland (H05 ZKG32 Wiroa Island AUS),-37.0155,174.8110
 HFDL_Hat_Yai (H06 Hat Yai THA),6.937,100.3885
 SAQ (Grimeton SWE),57.1131,12.3972
 EBA (Madrid SPA),40.4770,-3.1970
+E?? (Almatriche SPA),28.0867,-15.4567
 PBB (Den Helder NLD),52.9192,4.7436
 PBC (Goeree Isl NLD),51.8073,3.8931
 OSN (Ruiselede BEL),51.0788,3.3355
+Oostende_Radio (Middelkerke BEL),51.1824,2.8076
 JWT (Stavanger NOR),58.9956,5.7144
 JWT (Helgelandsmoen-Oslo NOR),60.1116,10.2119
 JXU (Bodo NOR),67.2025,14.3622
+J?? (Aukra NOR),62.8418,6.7933
+J?? (Andoeya NOR),69.1274,15.6381
 Frederikshavn (Danish navy DNK),57.4085,10.5159
 Aarhus (Danish navy DNK),56.1228,10.2068
 SVO (Olympia Radio Volakas GRC),37.6042,21.4885
@@ -93,14 +102,12 @@ WWV (Fort Collins USA),40.6797,-105.0425
 EIP (Shannon Volmet IRL),52.7447,-8.9269
 DHFCS_Ascension (Georgetown IOT),-7.9173,-14.3895
 DHFCS_Akrotiri (Akrotiri CYP),34.6140,32.9369
-DHFCS_Falklands (Mount Pleasant FLK),-51.8464,-58.4521
-DHFCS_Forest_Moor (Menwith Hill GBR),54.0060,-1.7249
+DHFCS_Falklands (Mount Pleasant FLK),-51.8106,-58.2949
 DHFCS_Inskip (Inskip GBR),53.8255,-2.8345
-DHFCS_Croughton (Croughton GBR),52.0039,-1.3603
 DHFCS_St_Eval (St Eval GBR),50.4786,-5.0004
 DHFCS_Crimond (Crimond GBR),57.6111,-1.8835
 Amici_di_ITALCABLE (Viareggio ITA),43.9141,10.2956
-ZhUOZ (UVB-76 UZB-76 MDZhB Buzzer RUS),60.3112,30.2782
+ZhUOZ (UVB-76 UZB-76 MDZhB Buzzer RUS),55.3268,36.8086
 JORN_Longreach (Longreach AUS),-23.6580,144.1454
 JORN_Leonora (Leonora AUS),-28.3173,122.8434
 JORN_Harts_Range (Harts Range R&D site AUS),-22.9675,134.4479
@@ -114,13 +121,18 @@ HMNZS_Irirangi (Navy NZL),-39.4613,175.6685
 ZLM (Taupo Radio NZL),-38.868,176.435
 HAARP (Gakona USA),62.3923,-145.1505
 CSY (Santa Maria Azores),36.9950,-25.169
-WI2XAJ_Chicago (Experimental station USA),41.8984,-88.2207
-WI2XAJ_New_York (Experimental station USA),41.1607,-74.0887
-WI2XNX (Experimental station USA),41.9262,-88.4997
-WH2XWU (Experimental station USA),41.4571,-86.8591
+WI2XAJ_Chicago (Toggle Communications LLC USA),41.8984,-88.2207
+WI2XAJ_New_York (Toggle Communications LLC USA),41.1607,-74.0887
+WI2XNX (10Band LLC USA),41.9262,-88.4997
+WH2XWU (County Information Services LLC USA),41.4571,-86.8591
 Kontainer (29B6 Kovylkino RUS),53.9837,43.8475
+Kontainer2 (29B6 Shadym RUS),53.8836,43.9931
 PJK (Willemstad CUW),12.1718,-68.8658
-TBB (Lalahan TUR),39.9780,33.1342
+Klaipeida (LTU navy),55.7316,21.0876
+SDJ (Stockholm Radio Grimeton SWE),57.1029,12.3847
+Ersigen (Murain MFA EMCOM SWI),47.0999,7.5846
+Kernenried (MFA EMCOM SWI),47.0585,7.5447
+HBM46 (Wald MIL SWI),46.8867,7.4782
 Lashkar_Gah (Afghanistan),31.583,64.36
 Kondoz (Afghanistan),36.728,68.8725
 Jalalabad (Afghanistan),34.4415,70.4361

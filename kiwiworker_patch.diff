@@ -1,25 +1,28 @@
---- kiwiworker.py	2019-01-26 13:55:08.000000000 +0000
-+++ kiwiworker.py	2019-01-26 14:13:46.210486003 +0000
-@@ -26,7 +26,7 @@
-                 self._recorder.connect(self._options.server_host, self._options.server_port)
-             except:
-                 print "Failed to connect, sleeping and reconnecting"
--                self._sleep(15)
-+                self._sleep(3)
+--- worker.py	2020-01-24 21:05:52.530626977 +0000
++++ worker.py	2020-02-03 20:50:50.601945384 +0000
+@@ -42,21 +42,21 @@
+                 if self._options.no_api:
+                     msg = ''
+                 else:
+-                    msg = ' Reconnecting after 5 seconds'
++                    msg = ' Reconnecting after 2 seconds'
+                 logging.info("%s:%s %s.%s" % (self._options.server_host, self._options.server_port, e, msg))
+                 self._recorder.close()
+                 if self._options.no_api:    ## don't retry
+                     break
+                 self._recorder._start_ts = None ## this makes the recorder open a new file on restart
+-                self._event.wait(timeout=5)
++                self._event.wait(timeout=2)
                  continue
- 
-             try:
-@@ -35,11 +35,10 @@
-                     self._recorder.run()
              except KiwiTooBusyError:
-                 print "Server %s:%d too busy now" % (self._options.server_host, self._options.server_port)
--                self._sleep(15)
-+                self._sleep(3)
+-                logging.info("%s:%d too busy now. Reconnecting after 15 seconds"
++                logging.info("%s:%d too busy now. Reconnecting after 2 seconds"
+                       % (self._options.server_host, self._options.server_port))
+                 if self._options.is_kiwi_tdoa:
+                     self._options.status = 2
+                     break
+-                self._event.wait(timeout=15)
++                self._event.wait(timeout=2)
                  continue
-             except Exception as e:
--                traceback.print_exc()
--                break
-+                continue
- 
-         self._run_event.clear()   # tell all other threads to stop
-         # hangs for some reason
+             except KiwiTimeLimitError:
+                 break

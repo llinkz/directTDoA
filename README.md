@@ -1,15 +1,12 @@
-# directTDoA v4.20
+# directTDoA v5.00
 
-This piece of software is JUST a GUI written for Python 2.7 designed to compute TDoA maps with GPS enabled KiwiSDR servers around the world using GNU Octave & the EXCELLENT work of Christoph Mayer @ https://github.com/hcab14/TDoA + his forked "kiwiclient" python stuff, original code by Dmitry Janushkevich @ https://github.com/dev-zzo/kiwiclient
+This software is JUST a python 2/3 GUI designed to compute TDoA runs on shortwave radio transmissions and print results on maps, using remote (GPS enabled) KiwiSDR receivers around the World.
 
-Thanks to Pierre Ynard (linkfanel) for the listing of available KiwiSDR nodes used as source for the TDoA map update process (http://rx.linkfanel.net)
+`TDoA = Time Difference of Arrival .. (in this case: the Arrival of shortwave radio transmissions)`
 
-Thanks to Marco Cogoni (IS0KYB) for allowing me the use of his SNR measurements of the KiwiSDR network (http://sibamanna.duckdns.org/sdr_map.html)
+## INSTALL AND RUN (on LINUX)
 
-
-## INSTALL AND RUN (on LINUX) Thanks Daniel E. for the install procedure
-
-Install python 2.7
+Install python (version 2 or 3)
 
 Install python-pip (search for the right package for your distro)
 
@@ -21,16 +18,17 @@ Install GNU octave
 
 `./setup.sh` (this script will install python modules, compile the necessary .oct file and apply some files patchs)
 
-`./directTDoA.py` (note: check the shebang if it fails on your system. On my Archlinux it should be "#!/usr/bin/python2" for example)
+`./directTDoA.py` (Check the shebang if run fails on your system. On Archlinux it should be `#!/usr/bin/python2` for example. But i suggest you to create a simlink, check with `ls -alh /usr/bin/python*`  )
 
+* You may need to manually install xdg-utils, liboctave-dev
 
-## INSTALL AND RUN (on MAC OS) Thanks Nicolas M. for the install procedure
+## INSTALL AND RUN (on MAC OS X)
 
 * REQUIREMENT 	Xcode + Homebrew (https://brew.sh/index_fr)
 
 Install Homebrew, in terminal : `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
 
-Install Python 2.7, in terminal : `brew install python@2`
+Install Python, in terminal : `brew install python@2` or `brew install python@3`
 
 Install GNU Octave in Terminal : `brew install octave`
 
@@ -42,15 +40,8 @@ Install GNU Octave in Terminal : `brew install octave`
 
 `./directTDoA.py`
 
-
 ## LICENSE
 * This python GUI code has been written and released under the "do what the f$ck you want with it" license
-
-
-## WARNING
-* This code may contain some silly procedures and dumb algorithms as I'm not a python guru, but it almost works so...
-* This code is not optimized at all as well, will try to do my best during free time...
-
 
 ## CHANGE LOG
 * v1.00-1.50 : first working version, basic, static map, manual host adding, hardcoded coordinates, manual octave code run etc...
@@ -86,6 +77,16 @@ Install GNU Octave in Terminal : `brew install octave`
 * v4.18: early ultimateTDoA mode dev, adding a necessary patch for TDoA/kiwiclient/kiwiworker.py to bypass returned errors causing full IQ recording process freezes (KiwiBadPasswordError & KiwiDownError) **to apply run: _patch -i kiwiworker_patch.diff ./TDoA/kiwiclient/kiwiworker.py_**
 * v4.19: adding another patch for TDoA/m/tdoa_plot_map.m to display the 'most likely position' string in the final pdf title + exchanging lon and lat values position for better reading - **Note: that patch already contains the nopng patch previously released**
 * v4.20: introducing new **ultimateTDoA** mode (massive IQ recordings without octave run from the GUI), nodes selection using the same way as defining TDoA map boundaries, all IQ files saved and compute_ultimate.sh dynamic bash script created in same ./TDoA/iq/subdirectory + recomputed pdf files now containing a timestamp so you'll keep all of them (instead of overwriting the only ./TDoA/pdf one)
+* v5.00: big code optimization + adding waterfall/SNR measurement + removing Marco website source + keyboard shortcuts + filter/color/icon/add rem fav/blk changes w/o restart - better precision on map (coordinates with decimals) + highlight on selected nodes + plot_iq.py script (plotting IQ spectrograms w/o GPS ticks) + GUI colors management
+         + mapbox.com world maps in final results + trim_iq.py script to modify the recorded IQ files
+## Thanks
+* Christoph Mayer @ https://github.com/hcab14/TDoA for the main TDoA code, excellent work and thanks for the public release !
+* John Seamons, KiwiSDR developper @ https://github.com/jks-prv
+* Dmitry Janushkevich @ https://github.com/dev-zzo/kiwiclient for the code that I've modified to work with the GUI 
+* Marco Cogoni (IS0KYB) for the microkiwi_waterfall.py code that I've modified to work directly via python
+* James Gibbard, Maxim and Bernhard Wagner (stackoverflow.com users) for some parts of code I've used in plot_iq.py
+* Nicolas M. for the MAC OS X directTDoA installing procedure
 
-## TODO LIST
-* compute mini-waterfall pictures on selected nodes if necessary (directly in python, not via jupyther notebook stuff)
+## Special Thanks
+* Daniel Ekmann, naturally designated as a beta tester, for the help on coding, feedbacks and suggestions since the beginning.
+* Pierre Ynard (linkfanel) for the listing of available KiwiSDR nodes (and SNR measurements) used as source for the World map update process (http://rx.linkfanel.net)
