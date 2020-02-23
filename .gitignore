@@ -4,5 +4,5 @@ __pycache__/
 *$py.class
 
 # directTDoA
-directTDoA_server_list.db*
+directTDoA_server_list.db.bak*
 directTDoA.cfg.bak*
