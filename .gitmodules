@@ -2,3 +2,7 @@
 	path = TDoA
 	url = https://github.com/hcab14/TDoA
 	ignore = dirty
+[submodule "kiwiclient"]
+	path = kiwiclient
+	url = https://github.com/jks-prv/kiwiclient
+	ignore = dirty
