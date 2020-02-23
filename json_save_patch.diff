@@ -1,0 +1,10 @@
+--- json_save_cc.cc	2020-02-22 21:50:32.641526421 +0000
++++ json_save_cc.cc	2020-01-24 21:23:00.239190842 +0000
+@@ -1,6 +1,6 @@
+ #include <octave/oct.h>
+ 
+-#if OCTAVE_MAJOR_VERSION >= 4 and OCTAVE_MINOR_VERSION >= 4
++#if OCTAVE_MAJOR_VERSION >= 4 and OCTAVE_MINOR_VERSION >= 0
+ #  include <octave/interpreter.h>
+ #  define OCT_STREAM_TYPE    octave::stream
+ #  define OCT_REGEXP_REPLACE octave::regexp::replace

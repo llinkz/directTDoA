@@ -1,0 +1,17 @@
+--- tdoa_read_data.m	2020-02-03 21:07:32.745370216 +0000
++++ tdoa_read_data2.m	2020-01-24 21:22:43.892867681 +0000
+@@ -83,11 +83,11 @@
+     b = input(i).t<t0 | input(i).t>t1;
+     input(i).t(b) = [];
+     input(i).z(b) = [];
+-    input(i).use  = numel(input(i).z)/input(i).fs > 10;
++    input(i).use  = numel(input(i).z)/input(i).fs > 3;
+     if ~input(i).use
+       printf('tdoa_read_data: %-40s excluded (%.2f sec < %g sec overlap)\n', ...
+-             input(i).fn, numel(input(i).z)/input(i).fs, 10);
+-      status.per_file(i).message = sprintf('excluded (%.2f sec < %g sec overlap)', numel(input(i).z)/12000, 10);
++             input(i).fn, numel(input(i).z)/input(i).fs, 3);
++      status.per_file(i).message = sprintf('excluded (%.2f sec < %g sec overlap)', numel(input(i).z)/12000, 3);
+     end
+   end
+ 
