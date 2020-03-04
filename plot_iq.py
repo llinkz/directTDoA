@@ -10,18 +10,17 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
-import matplotlib
 import struct
 import os
 import glob
 import sys
-
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 from PIL import Image
 
-cdict1 = {
+GRADIENT = {
     'red': ((0.0, 0.0, 0.0),
             (0.077, 0.0, 0.0),
             (0.16, 0.0, 0.0),
@@ -47,10 +46,11 @@ cdict1 = {
              (1.0, 1.0, 1.0)),
 }
 
-cmap = LinearSegmentedColormap('SAColorMap', cdict1, 1024)
+COLORMAP = LinearSegmentedColormap('SAColorMap', GRADIENT, 1024)
 
 
 def plotspectrogram(source):
+    """ Create spectrogram of the IQ file, using specgram and save it to file. """
     old_f = open(source, 'rb')
     new_f = open(source + '.nogps', 'wb')
     old_size = os.path.getsize(source)
@@ -63,46 +63,47 @@ def plotspectrogram(source):
         new_f.write(old_f.read(2048))
     new_f.close()
     old_f.close()
-    with open(source + '.nogps', "rb") as f:
-        f.seek(0, 0)
-        data = np.fromfile(f, dtype='int16')
+    with open(source + '.nogps', "rb") as no_gps:
+        no_gps.seek(0, 0)
+        data = np.fromfile(no_gps, dtype='int16')
         data = data[0::2] + 1j * data[1::2]
     # cmap = plt.get_cmap('bone')
-    fig, ax = plt.subplots()
+    fig, a_x = plt.subplots()
     plt.specgram(data, NFFT=1024, Fs=12000, window=lambda data: data * np.hanning(len(data)), noverlap=512, vmin=10,
-                 vmax=200, cmap=cmap)
+                 vmax=200, cmap=COLORMAP)
     plt.title(
         source.rsplit("_", 3)[2] + " - [CF=" + str((float(wavfiles.rsplit("_", 3)[1]) // 1000)) + " kHz] - GPS:" + str(
             has_gps(source)))
     plt.xlabel("time (s)")
     plt.ylabel("frequency offset (kHz)")
     ticks = matplotlib.ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x // 1e3))
-    ax.yaxis.set_major_formatter(ticks)
+    a_x.yaxis.set_major_formatter(ticks)
     plt.savefig(source + '.png')
     os.remove(source + '.nogps')
 
 
 def has_gps(source):
-    f = open(source, 'rb')
-    f.seek(2118)
+    """ Detect if IQ file has GPS GNSS data (in test). """
+    f_src = open(source, 'rb')
+    f_src.seek(2118)
     if sys.version_info[0] == 2:
-        return ord(f.read(1)[0]) < 254
-    else:
-        return f.read(1)[0] < 254
+        return ord(f_src.read(1)[0]) < 254
+    return f_src.read(1)[0] < 254
 
 
 def pil_grid(images, filename, max_horiz=np.iinfo(int).max):
+    """ Make a poster of png files. """
     n_images = len(images)
     n_horiz = min(n_images, max_horiz)
     h_sizes, v_sizes = [0] * n_horiz, [0] * ((n_images // n_horiz) + (1 if n_images % n_horiz > 0 else 0))
-    for i, im in enumerate(images):
-        h, v = i % n_horiz, i // n_horiz
-        h_sizes[h] = max(h_sizes[h], im.size[0])
-        v_sizes[v] = max(v_sizes[v], im.size[1])
+    for i, im_v1 in enumerate(images):
+        h_var, v_var = i % n_horiz, i // n_horiz
+        h_sizes[h_var] = max(h_sizes[h_var], im_v1.size[0])
+        v_sizes[v_var] = max(v_sizes[v_var], im_v1.size[1])
     h_sizes, v_sizes = np.cumsum([0] + h_sizes), np.cumsum([0] + v_sizes)
     im_grid = Image.new('RGB', (h_sizes[-1], v_sizes[-1]), color='white')
-    for i, im in enumerate(images):
-        im_grid.paste(im, (h_sizes[i % n_horiz], v_sizes[i // n_horiz]))
+    for i, im_v2 in enumerate(images):
+        im_grid.paste(im_v2, (h_sizes[i % n_horiz], v_sizes[i // n_horiz]))
     im_grid.save(filename, resolution=153.5)  # adjust res to ~900x600
     return im_grid
 
@@ -110,14 +111,14 @@ def pil_grid(images, filename, max_horiz=np.iinfo(int).max):
 if __name__ == '__main__':
 
     plt.rcParams.update({'figure.max_open_warning': 0})
-    count = 1
-    totalcount = len(glob.glob("*.wav"))
+    COUNT = 1
+    TOTALCOUNT = len(glob.glob("*.wav"))
     for wavfiles in glob.glob("*.wav"):
-        print(str(count) + "/" + str(totalcount) + " ... [" + wavfiles.rsplit("_", 3)[2] + "]")
+        print(str(COUNT) + "/" + str(TOTALCOUNT) + " ... [" + wavfiles.rsplit("_", 3)[2] + "]")
         plotspectrogram(wavfiles)
-        count += 1
-    images = [Image.open(x) for x in glob.glob("*.png")]
-    finalname = 'TDoA_' + str(wavfiles.rsplit("_", 3)[1]) + '_spec.pdf'
-    pil_grid(images, finalname, 3)  # last parameter = the number of images displayed horizontally
+        COUNT += 1
+    IMAGES = [Image.open(x) for x in glob.glob("*.png")]
+    FINALNAME = 'TDoA_' + str(wavfiles.rsplit("_", 3)[1]) + '_spec.pdf'
+    pil_grid(IMAGES, FINALNAME, 3)  # last parameter = the number of images displayed horizontally
     for imgfiles in glob.glob("*.wav.png"):
         os.remove(imgfiles)

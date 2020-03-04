@@ -43,7 +43,7 @@ else:
     from tkinter.colorchooser import askcolor
     from tkinter.simpledialog import askstring, askinteger
 
-VERSION = "directTDoA v5.00"
+VERSION = "directTDoA v5.10"
 
 
 class Restart(object):
@@ -297,10 +297,6 @@ class RunUpdate(threading.Thread):
                             nodelat = nodelon = "0"
                         # Now create a json-type line for the kiwiSDR node listing
                         try:
-                            if sys.version_info[0] == 2:
-                                no_ascii = json_data[i]["name"].encode("ascii", "ignore")
-                            else:
-                                no_ascii = json_data[i]["name"]
                             # Check if node has been measured by linkfanel's SNR script
                             try:
                                 snr_search = str(int(round(float(json_data2[json_data[i]['id']]))))
@@ -314,17 +310,15 @@ class RunUpdate(threading.Thread):
                                 id=node_id,
                                 lat=nodelat,
                                 lon=nodelon,
-                                name=no_ascii.replace(" ", "_").replace("!", "_").replace("\"", "").replace("||", ""),
                                 snr=snr_search
                             )
-                            ordered_dict = ['mac', 'url', 'id', 'name', 'snr', 'lat', 'lon']
+                            ordered_dict = ['mac', 'url', 'id', 'snr', 'lat', 'lon']
                             nodelist = [(key, nodeinfo[key]) for key in ordered_dict]
                             nodeinfo = OrderedDict(nodelist)
                             json1 = json.dumps(nodeinfo, ensure_ascii=False)
                             db_file.write(json1 + ",\n")
                         except Exception as node_error:
-                            print (no_ascii + " -> " + str(node_error))
-                            # print (no_ascii)
+                            print (str(node_error))
                             pass
                     else:
                         pass
@@ -427,7 +421,8 @@ class OctaveProcessing(threading.Thread):
         global tdoa_position, PROC_PID  # stdout
         # tdoa_filename = "proc_tdoa_" + KHZ_FREQ  # + ".m"
         octave_errors = [b'index-out-of-bounds', b'< 2 good stations found', b'Octave:nonconformant - args',
-                         b'n_stn=2 is not supported', b'resample.m: p and q must be positive integers']
+                         b'n_stn=2 is not supported', b'resample.m: p and q must be positive integers',
+                         b'Octave:invalid-index']
         if sys.version_info[0] == 2:
             tdoa_filename = "proc_tdoa_" + KHZ_FREQ + ".m"
             proc = subprocess.Popen(['octave-cli', tdoa_filename], cwd=os.path.join('TDoA'),
@@ -658,7 +653,7 @@ class FillMapWithNodes(object):
     def add_point(self, node_index_data, node_color, node_db_data):
         """ Process that add node icons over the World map. """
         global tag_list
-        mykeys = ['mac', 'url', 'id', 'name', 'snr', 'lat', 'lon']
+        mykeys = ['mac', 'url', 'id', 'snr', 'lat', 'lon']
         node_lat = self.convert_lat(node_db_data[node_index_data]["lat"])
         node_lon = self.convert_lon(node_db_data[node_index_data]["lon"])
         node_tag = str('$'.join([node_db_data[node_index_data][x] for x in mykeys]))
@@ -692,8 +687,8 @@ class FillMapWithNodes(object):
         for node_tag_item in tag_list:
             if node_mac in node_tag_item:
                 tmp_latlon = node_tag_item.rsplit("$", 6)
-                tmp_lat = self.convert_lat(tmp_latlon[5])
-                tmp_lon = self.convert_lon(tmp_latlon[6])
+                tmp_lat = self.convert_lat(tmp_latlon[4])
+                tmp_lon = self.convert_lon(tmp_latlon[5])
                 is_delta = int(ICONSIZE) + 1
                 if ICONTYPE == 0:
                     self.parent.canvas.create_oval(tmp_lon - is_delta, tmp_lat - is_delta, tmp_lon + is_delta,
@@ -1004,7 +999,6 @@ class GuiCanvas(Frame):
         #  city coordinates y & x (degrees) converted to pixels
         ic_size = int(ICONSIZE)
         xx0 = (1910 + ((float(x_kwn) * 1910) / 180)) - ic_size
-        # xx0 = (1907.5 + ((float(x) * 1910) / 180))
         xx1 = (1910 + ((float(x_kwn) * 1910) / 180)) + ic_size
         if float(y_kwn) > 0:  # point is located in North Hemisphere
             yy0 = (990 - (float(y_kwn) * 11)) - ic_size
@@ -1035,11 +1029,11 @@ class GuiCanvas(Frame):
         HOST = self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0]
         menu = Menu(self, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')
         # menu2 = Menu(menu, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # demodulation menu
-        # mykeys = ['mac', 'url', 'id', 'name', 'snr', 'lat', 'lon']
-        # n_field    0      1      2     3       4      5      6
+        # mykeys = ['mac', 'url', 'id', 'snr', 'lat', 'lon']
+        # n_field    0      1      2     3      4     5
         n_field = HOST.rsplit("$", 6)
         # Color gradiant proportionnal to SNR value
-        snr_gradiant = (int(n_field[4]) - 30) * GRAD
+        snr_gradiant = (int(n_field[3]) - 30) * GRAD
         if n_field[0] in WHITELIST:
             nodecolor = FAVCOLOR
         else:
@@ -1054,26 +1048,26 @@ class GuiCanvas(Frame):
             chktimeout = 2  # timeout of the node check
             checkthenode = requests.get("http://" + n_field[1] + "/status", timeout=chktimeout)
             i_node = []
-            for line in checkthenode.text.splitlines():
-                i_node.append(line.rsplit("=", 1)[1])
-            # i_node = each parameter of the retrieved "address:port/status" webpage lines
-            # 0 = status (private / public)    10 = good received GPS sats
-            # 1 = offline (no / yes)           11 = total GPS fixes
-            # 2 = name                         12 = GPS fixes per minute (max = 30)
-            # 3 = sdr_hw                       13 = GPS fixes per hour
-            # 4 = op_email                     14 = TDoA id
-            # 5 = bands (KiwiSDR freq range)   15 = TDoA receiver slots
-            # 6 = users                        16 = Receiver altitude
-            # 7 = max users                    17 = Receiver location
-            # 8 = avatar ctime                 18 = Software version
-            # 9 = gps coordinates              19 = Antenna description
-            # 20 = KiwiSDR uptime (in sec)
-            try:  # node filtering
+            try:
+                for line in checkthenode.text.splitlines():
+                    i_node.append(line.rsplit("=", 1)[1])
+                # i_node = each parameter of the retrieved "address:port/status" webpage lines
+                # 0 = status (private / public)    10 = good received GPS sats
+                # 1 = offline (no / yes)           11 = total GPS fixes
+                # 2 = name                         12 = GPS fixes per minute (max = 30)
+                # 3 = sdr_hw                       13 = GPS fixes per hour
+                # 4 = op_email                     14 = TDoA id
+                # 5 = bands (KiwiSDR freq range)   15 = TDoA receiver slots
+                # 6 = users                        16 = Receiver altitude
+                # 7 = max users                    17 = Receiver location
+                # 8 = avatar ctime                 18 = Software version
+                # 9 = gps coordinates              19 = Antenna description
+                # 20 = KiwiSDR uptime (in sec)
                 permit_web = False
                 gps_ready = False
                 n_stat = " [" + i_node[6] + "/" + i_node[7] + " users]"
                 g_stat = " [GNSS: " + i_node[12] + " fixes/min] [GPS: " + i_node[10] + "/12]"
-                s_stat = " [SNR: " + n_field[4] + " dB]"
+                s_stat = " [SNR: " + n_field[3] + " dB]"
                 # If no socket slots are available on this node :
                 if i_node[6] == i_node[7]:
                     menu.add_command(label=n_field[2] + " is full" + g_stat + n_stat + s_stat, background=rbg,
@@ -1100,11 +1094,10 @@ class GuiCanvas(Frame):
                     menu.add_command(label="Remove " + n_field[2] + " from TDoA process" + g_stat + n_stat + s_stat,
                                      background=cbg, foreground=dfg, font="TkFixedFont 7 bold",
                                      command=lambda: self.populate("del", n_field))
-            except Exception:
-                if "not found" in i_node[13]:
-                    menu.add_command(label=n_field[2] + " is not available. (proxy.kiwisdr.com error)", background=rbg,
-                                     foreground=dfg, command=None)
-                    permit_web = False
+            except IndexError as wrong_status:
+                menu.add_command(label=n_field[2] + " is not available. (proxy.kiwisdr.com error)", background=rbg,
+                                 foreground=dfg, command=None)
+                permit_web = False
         except requests.exceptions.ConnectionError as req_conn_error:
             menu.add_command(label=n_field[2] + " node is not available. " + str(req_conn_error).split('\'')[1::2][1],
                              background=rbg, foreground=dfg, command=None)
@@ -1113,8 +1106,12 @@ class GuiCanvas(Frame):
             menu.add_command(label=n_field[2] + " node is not available. " + str(req_various_error), background=rbg,
                              foreground=dfg, command=None)
             permit_web = False
-        # Always print out KiwiSDR's full name line
-        menu.add_command(label=n_field[3].replace("_", " "), state=NORMAL, background=cbg, foreground=dfg, command=None)
+
+        # Always try to print out KiwiSDR's full name line
+        try:
+            menu.add_command(label=i_node[2], state=NORMAL, background=cbg, foreground=dfg, command=None)
+        except (UnboundLocalError, IndexError):
+            pass
 
         # EXTRA commands and lines
         if permit_web and APP.gui.freq_input.get() != "" and 5 < float(APP.gui.freq_input.get()) < 30000:
@@ -1127,6 +1124,7 @@ class GuiCanvas(Frame):
                              command=lambda: self.openinbrowser(1, APP.gui.freq_input.get()))
             menu.add_command(label="Open " + n_field[1] + "/status", background=cbg, foreground=dfg,
                              command=lambda: self.openinbrowser(2, None))
+            # parts removed because of python3 compatibility not created yet
             # if LISTENMODE == "0":
             #     # Add demodulation process line
             #     menu.add_cascade(label="Listen to that frequency using " + n_field[2], state=NORMAL, background=cbg,
@@ -1212,7 +1210,7 @@ class GuiCanvas(Frame):
             url = "http://" + str(HOST).rsplit("$", 6)[1] + "/status"
         else:
             url = "http://" + str(HOST).rsplit("$", 6)[1] + "/?f=" + freq + "iqz8&ext=tdoa,lat:" + \
-                  str(HOST).rsplit("$", 6)[5] + ",lon:" + str(HOST).rsplit("$", 6)[6] + ",z:5," + \
+                  str(HOST).rsplit("$", 6)[4] + ",lon:" + str(HOST).rsplit("$", 6)[5] + ",z:5," + \
                   str(HOST).rsplit("$", 6)[2]
         webbrowser.open_new(url)
 
@@ -1505,7 +1503,7 @@ class MainWindow(Frame):
             "Already computed TDoA runs : " + str([len(d) for r, d, folder in os.walk(os.path.join('TDoA', 'iq'))][0]))
         self.writelog("There are " + str(NODE_COUNT) + " KiwiSDRs in the db. Have fun !")
         self.writelog("The default IQ recording bandwidth is set to " + IQBW + " Hz")
-        self.writelog("TDoA settings: plot_kiwi_json=" + PKJ + ", use_constraints=" + UC + ", mode=" + (
+        self.writelog("TDoA settings: plot_kiwi_json=" + PKJ + ", use_constraints=" + UC + ", algo=" + (
             "standard TDoA calculation method" if TDOAVERSION == "false" else "new TDoA calculation method (2020)"))
 
         # Status window
@@ -1636,7 +1634,6 @@ class MainWindow(Frame):
         menu_5.add_command(label="Sorcerer host IP address", command=lambda *args: self.tcp_settings(0))
         menu_5.add_command(label="Sorcerer host port number", command=lambda *args: self.tcp_settings(1))
         menu_5.add_command(label="IQ auto-recording duration", command=lambda *args: self.tcp_settings(2))
-        # command=lambda *args: [SaveCfg().save_cfg("tcp", "host", "streets-v11"), ReadCfg().read_cfg()
 
         # About menu
         menu_6 = Menu(menubar, tearoff=0)
@@ -1809,7 +1806,7 @@ class MainWindow(Frame):
     5/ Click Start Recording button and wait for some seconds (Recorded IQ files size are displayed in the right window)
     6/ Click Stop Recording button when you consider file size are enough for TDoA runs (ideally, more than 200KB)
     7/ All IQ recordings will be automatically saved in a new subdirectory of TDoA/iq/ and directory window will pop-up
-    8/ Use compute_ultimate.sh script to run TDoA processes
+    8/ Use compute_ultimate.py script to run TDoA processes
     
     Note: You can change the map boundaries after step 2, uncheck \"ultimateTDoA mode\" box, set the map boundaries then
           click the checkbox again before starting the recording process.
@@ -1862,6 +1859,9 @@ class MainWindow(Frame):
     
     The World map is static, click UPDATE button to get an updated node list, only GPS enabled nodes are displayed
     KiwiSDR node informations are retrieved in real time when node square icon is clicked on the map
+    
+    If you wish to add some non-public nodes, fill the "directTDoA_static_server_list.db" json file, don't forget to
+    add "," at the end of each line (but not on the last one !)
     
     Thanks:   
     John Seamons, KiwiSDR developper @ https://github.com/jks-prv
@@ -2173,6 +2173,8 @@ class MainWindow(Frame):
                     try:
                         r_dir = os.path.join('TDoA', 'iq') + os.sep + starttime + tdoa_mode + str(FREQUENCY)
                         webbrowser.open(r_dir)
+                        subprocess.call(['python', 'compute_ultimate.py'], cwd=os.path.join(r_dir), shell=False,
+                                        preexec_fn=os.setsid)
                     except ValueError as ultimate_failure:
                         print (ultimate_failure)
 
@@ -2385,12 +2387,15 @@ endfunction
         time.sleep(0.2)
         if (ultimate.get()) == 1:
             copyfile(proc_m_name + ".m", run_dir + "proc_tdoa_" + KHZ_FREQ + ".empty")
-            copyfile("compute_ultimate.sh", run_dir + "compute_ultimate.sh")
+            copyfile("compute_ultimate.py", run_dir + "compute_ultimate.py")
             copyfile('plot_iq.py', run_dir + "plot_iq.py")
             copyfile('trim_iq.py', run_dir + "trim_iq.py")
-            os.chmod(run_dir + "compute_ultimate.sh", 0o777)
+            os.chmod(run_dir + "compute_ultimate.py", 0o777)
             os.chmod(run_dir + "plot_iq.py", 0o777)
             os.chmod(run_dir + "trim_iq.py", 0o777)
+            PlotIQ().start()
+            # subprocess.call(['python', 'plot_iq.py'], cwd=os.path.join(run_dir), shell=False, preexec_fn=os.setsid)
+            # os.remove(run_dir + "plot_iq.py")
         else:
             copyfile(proc_m_name + ".m", run_dir + "proc_tdoa_" + KHZ_FREQ + ".m")
             with open(run_dir + "recompute.sh", "w") as recompute:
@@ -2406,10 +2411,10 @@ octave-cli """ + ("--eval " if sys.version_info[0] == 3 else "") + """proc_tdoa_
 rm -f proc_tdoa_""" + KHZ_FREQ + """.m""")
             recompute.close()
             os.chmod(run_dir + "recompute.sh", 0o777)
-        copyfile('plot_iq.py', run_dir + "plot_iq.py")
-        copyfile('trim_iq.py', run_dir + "trim_iq.py")
-        os.chmod(run_dir + "plot_iq.py", 0o777)
-        os.chmod(run_dir + "trim_iq.py", 0o777)
+            copyfile('plot_iq.py', run_dir + "plot_iq.py")
+            copyfile('trim_iq.py', run_dir + "trim_iq.py")
+            os.chmod(run_dir + "plot_iq.py", 0o777)
+            os.chmod(run_dir + "trim_iq.py", 0o777)
 
 
 class MainW(Tk, object):

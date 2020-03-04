@@ -8,22 +8,23 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
 import subprocess
 import struct
 import os
 import glob
-import io
-import sys
 import shutil
-from matplotlib.widgets import SpanSelector
+import argparse
+import io
 from io import BytesIO
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.widgets import SpanSelector
 
-trim_proc = 1
 
-cdict1 = {
+TRIM_PROC = 1
+
+GRADIENT = {
     'red': ((0.0, 0.0, 0.0),
             (0.077, 0.0, 0.0),
             (0.16, 0.0, 0.0),
@@ -49,7 +50,7 @@ cdict1 = {
              (1.0, 1.0, 1.0)),
 }
 
-cmap = LinearSegmentedColormap('SAColorMap', cdict1, 1024)
+COLORMAP = LinearSegmentedColormap('SAColorMap', GRADIENT, 1024)
 
 
 def on_press(event):
@@ -67,13 +68,12 @@ def onselect(event1, event2):
         print ("Period range is too small (less than 2 sec) - deleting " + IQfile)
         os.remove(IQfile)
         plt.close()
-        pass
 
 
 def trim_iq(from_block, to_block):
     """ Trim the original IQ file and save it. """
 
-    global trim_proc
+    global TRIM_PROC
     plt.close()
     block_duration = 512 / 12000.0
     from_idx = int(float(from_block) // block_duration)
@@ -89,20 +89,20 @@ def trim_iq(from_block, to_block):
         new_f.write(old_f.read(2074))
     old_f.close()
     new_f.seek(0)
-    with open(IQfile, 'wb') as f:
-        shutil.copyfileobj(new_f, f)
+    with open(IQfile, 'wb') as f_data:
+        shutil.copyfileobj(new_f, f_data)
     # file result preview if requested by user
-    if getpreview == "y":
-        trim_proc = 0
+    if ARGS.get_preview == "y":
+        TRIM_PROC = 0
         convert_iq_and_plot_from_mem(IQfile)
     else:
-        trim_proc = 1
+        TRIM_PROC = 1
 
 
 def convert_iq_and_plot_from_mem(in_file):
     """ remove GNSS data from the IQ file and plot it from memory. """
 
-    global trim_proc
+    global TRIM_PROC
     # Remove GNSS data from the IQ file
     old_f = open(in_file, 'rb')
     old_size = os.path.getsize(in_file)
@@ -121,33 +121,33 @@ def convert_iq_and_plot_from_mem(in_file):
     # Plot the IQ w/o GNSS data
     plt.rcParams['toolbar'] = 'None'
     # cmap = plt.get_cmap('bone')
-    fig, ax = plt.subplots()
+    fig, a_x = plt.subplots()
     plt.specgram(data, NFFT=1024, Fs=12000, window=lambda data: data * np.hanning(len(data)), noverlap=512, vmin=10,
-                 vmax=200, cmap=cmap)
+                 vmax=200, cmap=COLORMAP)
     plt.xlabel("time (s)")
     plt.ylabel("frequency offset (kHz)")
-    if trim_proc == 1:
+    if TRIM_PROC == 1:
         plt.title(in_file + " - [original IQ]", fontsize=10)
-        span = SpanSelector(ax, onselect, 'horizontal', useblit=True, rectprops=dict(alpha=0.4, facecolor='red'))
+        span = SpanSelector(a_x, onselect, 'horizontal', useblit=True, rectprops=dict(alpha=0.4, facecolor='red'))
     else:
         plt.gcf().set_facecolor("yellow")
         fig.canvas.mpl_connect('button_press_event', on_press)
         plt.title(in_file + " - [trimmed IQ preview]", fontsize=10)
-        trim_proc = 1
+        TRIM_PROC = 1
     plt.show()
 
 
 if __name__ == '__main__':
-    print ("---- trim_iq.py ----")
-    getoriginal = "n"
-    if sys.version_info[0] == 2:
-        if os.path.isdir('./IQ'):
-            getoriginal = raw_input('\nUse original IQ files ? (y/n) ')
-        getpreview = raw_input('Trimmed IQ file preview ? (y/n) ')
-    else:
-        if os.path.isdir('./IQ'):
-            getoriginal = input('\nUse original IQ files ? (y/n) ')
-        getpreview = input('Trimmed IQ file preview ? (y/n) ')
+    PARSER = argparse.ArgumentParser(description='Trim KiwiSDR IQ files.')
+    PARSER.add_argument('-o', dest='get_original', action='store', choices=['y', 'n'], default='n',
+                        help='Use original IQ files (default=no)')
+    PARSER.add_argument('-v', dest='get_preview', action='store', choices=['y', 'n'], default='n',
+                        help='Show preview window (default=no)')
+    PARSER.add_argument('-p', dest='plot_iq', action='store', choices=['y', 'n'], default='y',
+                        help='Run plot_iq script (default=yes)')
+    PARSER.add_argument('-r', dest='show_result', action='store', choices=['y', 'n'], default='y',
+                        help='Show plot_iq PDF result (default=yes)')
+    ARGS = PARSER.parse_args()
 
     # Always do the backup of IQ files + spectrogram pdf (if present)
     if not os.path.isdir('./IQ'):
@@ -158,7 +158,7 @@ if __name__ == '__main__':
             shutil.copyfile(SPECfile, "IQ" + os.sep + SPECfile)
 
     # Restore the IQ files if requested by user
-    if getoriginal == "y":
+    if ARGS.get_original == "y":
         for IQfile in glob.glob("IQ" + os.sep + "*.wav"):
             shutil.copyfile(IQfile, IQfile.rsplit(os.sep, 1)[1])
 
@@ -166,7 +166,11 @@ if __name__ == '__main__':
     for IQfile in glob.glob("*.wav"):
         convert_iq_and_plot_from_mem(IQfile)
 
-    # Run plot_iq.py to get the spectrogram pdf file using the new trimmed files
-    with open(os.devnull, 'w') as fp:
-        subprocess.call(['python', 'plot_iq.py'], shell=False, stdout=fp, preexec_fn=os.setsid)
-    subprocess.call(["xdg-open", 'TDoA_' + str(IQfile.rsplit("_", 3)[1]) + '_spec.pdf'])
+    # Run plot_iq.py to get the spectrogram pdf file using the new trimmed files if requested by user
+    if ARGS.plot_iq == "y":
+        with open(os.devnull, 'w') as fp:
+            subprocess.call(['python', 'plot_iq.py'], shell=False, stdout=fp, preexec_fn=os.setsid)
+
+    # Show the spectrogram pdf file if requested by user
+    if ARGS.show_result == "y":
+        subprocess.call(["xdg-open", 'TDoA_' + str(IQfile.rsplit("_", 3)[1]) + '_spec.pdf'])
