@@ -72,7 +72,7 @@ def plotspectrogram(source):
     plt.specgram(data, NFFT=1024, Fs=12000, window=lambda data: data * np.hanning(len(data)), noverlap=512, vmin=10,
                  vmax=200, cmap=COLORMAP)
     plt.title(
-        source.rsplit("_", 3)[2] + " - [CF=" + str((float(wavfiles.rsplit("_", 3)[1]) // 1000)) + " kHz] - GPS:" + str(
+        source.rsplit("_", 3)[2] + " - [CF=" + str((float(wavfiles.rsplit("_", 3)[1]) / 1000)) + " kHz] - GPS:" + str(
             has_gps(source)))
     plt.xlabel("time (s)")
     plt.ylabel("frequency offset (kHz)")

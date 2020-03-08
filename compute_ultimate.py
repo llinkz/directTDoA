@@ -196,7 +196,7 @@ class PlotIQ(threading.Thread):
         plt.specgram(data, NFFT=1024, Fs=12000, window=lambda data: data * np.hanning(len(data)), noverlap=512, vmin=10,
                      vmax=200, cmap=cmap)
         plt.title(source.rsplit("_", 3)[2] + " - [CF=" + str(
-            (float(source.rsplit("_", 3)[1]) // 1000)) + " kHz] - GPS:" + str(self.has_gps(source)))
+            (float(source.rsplit("_", 3)[1]) / 1000)) + " kHz] - GPS:" + str(self.has_gps(source)))
         plt.xlabel("time (s)")
         plt.ylabel("frequency offset (kHz)")
         ticks = matplotlib.ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x // 1e3))

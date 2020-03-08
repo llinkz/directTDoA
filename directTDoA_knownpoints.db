@@ -1,10 +1,11 @@
-## This is the directTDoa 2.5x known point database file, please use the following format 
+## This is the directTDoa known point database file, please use the following format
 ## LAT/LON in decimal format with minus (-) symbol for West & South, don't forget the _ for spaces in the first field and keep the " , , " entry please
 ## Name|Names_with_spaces|Callsign (country|details|whatever|notimportant),LAT,LON     
  , , 
 Junglinster (BCE Site, LUX),49.7191,6.2644
-FUG (Saissac, FRA),43.3904,2.099861
-FUX (La Reunion FRA),-20.9101,55.5844
+TDF (VLF 162kHz Allouis FRA),47.1695,2.2046
+FUG (Saissac FRA),43.3904,2.099861
+FUX (Reunion Isl FRA),-20.9101,55.5844
 FUJ (Noumea NCL),-22.3054,166.4548
 FUM (Papeete PYF),-17.5060,-149.4827
 FUF (Martinique MTQ),14.5322,-60.9790
@@ -22,7 +23,7 @@ DCF77 (VLF Mainflingen DEU),50.0154,9.008
 RIT (Severomorsk Northern Fleet RUS),69.0588,33.3266
 RMP (Yantarny Baltic Fleet RUS),54.8589,19.9418
 RCV (Sevastopol Black Sea Fleet RUS),44.6010,33.5929
-Savolenka (RUS),54.7109,35.3777
+Savolenka (Yukhnov RUS),54.7109,35.3777
 GYN2_VLF (Inskip GBR),53.8300,-2.8342
 MSF_VLF (Anthorn GBR),54.9111,-3.2793
 CKN (Esquimalt CAN),49.1087,-122.2423
@@ -34,6 +35,7 @@ Point_Petre (CFB MACS Trenton Military CAN),43.8434,-77.1475
 Matsqui (NRS MARCOM Aldergrove CAN),49.1076,-122.2443
 Halifax (CFH NRS MARCOM Newport_Corner CAN),44.9672,-63.9821
 CTA (Palhais POR),38.6035,-9.0315
+CTP (Sao Miguel Isl AZR),37.8117,-25.5532
 TBO (Izimir TUR),38.4649,27.4665
 TBB (Lalahan TUR),39.9780,33.1342
 BPC_VLF (Shangqiu CHN),34.4565,115.8369
@@ -125,8 +127,7 @@ WI2XAJ_Chicago (Toggle Communications LLC USA),41.8984,-88.2207
 WI2XAJ_New_York (Toggle Communications LLC USA),41.1607,-74.0887
 WI2XNX (10Band LLC USA),41.9262,-88.4997
 WH2XWU (County Information Services LLC USA),41.4571,-86.8591
-Kontainer (29B6 Kovylkino RUS),53.9837,43.8475
-Kontainer2 (29B6 Shadym RUS),53.8836,43.9931
+Kontainer (29B6 Kovylkino RUS),53.8836,43.9931
 PJK (Willemstad CUW),12.1718,-68.8658
 Klaipeida (LTU navy),55.7316,21.0876
 SDJ (Stockholm Radio Grimeton SWE),57.1029,12.3847
