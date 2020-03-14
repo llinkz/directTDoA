@@ -151,7 +151,13 @@ class TrimIQ(threading.Thread):
         self.tdoa_rootdir = tdoa_rootdir
 
     def run(self):
+        APP.gui.writelog("trim_iq.py script started.")
+        APP.gui.writelog("Usage:")
+        APP.gui.writelog("Click and Drag : Select a time portion of the IQ record that you want to keep.")
+        APP.gui.writelog("Click to close window : No changes on the entire IQ recording.")
+        APP.gui.writelog("One click on the spectrogram OR less than 2 seconds selected : Deletes the IQ recording.")
         subprocess.call(['python', 'trim_iq.py'], cwd=self.tdoa_rootdir, shell=False, preexec_fn=os.setsid)
+        Restart().run()
 
 
 class PlotIQ(threading.Thread):
@@ -177,6 +183,7 @@ class PlotIQ(threading.Thread):
             self.plotspectrogram(self.iqfile)
 
     def plotspectrogram(self, source):
+        global gps_status
         old_f = open(source, 'rb')
         new_f = open(source + '.nogps', 'wb')
         old_size = os.path.getsize(source)
@@ -197,6 +204,7 @@ class PlotIQ(threading.Thread):
                      vmax=200, cmap=cmap)
         plt.title(source.rsplit("_", 3)[2] + " - [CF=" + str(
             (float(source.rsplit("_", 3)[1]) / 1000)) + " kHz] - GPS:" + str(self.has_gps(source)))
+        gps_status = self.has_gps(source)
         plt.xlabel("time (s)")
         plt.ylabel("frequency offset (kHz)")
         ticks = matplotlib.ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x // 1e3))
@@ -643,7 +651,7 @@ class GuiCanvas(Frame):
 
     def onclickleft(self, event):
         """ Left Mouse Click bind on the World map. """
-        global HOST, node_file, node_list
+        global HOST, node_file, node_list, gps_status
         HOST = self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0]
         menu = Menu(self, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')
         # menu2 = Menu(menu, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # demodulation menu
@@ -660,14 +668,19 @@ class GuiCanvas(Frame):
         dfg = self.get_font_color((self.color_variant("#FFFF00", snr_gradiant)))
         # Colorized background (depending on Favorite node or not)
         cbg = self.color_variant(nodecolor, snr_gradiant)
-        matches = [el for el in fulllist if n_field[0] in el]
-        if len(matches) != 1:
-            menu.add_command(label="Add " + n_field[2] + " for TDoA process", background=cbg, foreground=dfg,
-                             font="TkFixedFont 7 bold", command=lambda *args: self.populate("add", n_field))
-        elif len(matches) == 1:
-            menu.add_command(label="Remove " + n_field[2] + " from TDoA process", background=cbg, foreground=dfg,
-                             font="TkFixedFont 7 bold", command=lambda: self.populate("del", n_field))
+        # Get spectrogram of the node recorded IQ file
         PlotIQ(node_file[node_list.index(n_field[2])], 0, 1).run()
+        matches = [el for el in fulllist if n_field[0] in el]
+        if gps_status:
+            if len(matches) != 1:
+                menu.add_command(label="Add " + n_field[2] + " for TDoA process", background=cbg, foreground=dfg,
+                                 font="TkFixedFont 7 bold", command=lambda *args: self.populate("add", n_field))
+            elif len(matches) == 1:
+                menu.add_command(label="Remove " + n_field[2] + " from TDoA process", background=cbg, foreground=dfg,
+                                 font="TkFixedFont 7 bold", command=lambda: self.populate("del", n_field))
+        else:
+            menu.add_command(label=n_field[2] + " is not usable for this run (no recent GPS timestamps in the IQ)",
+                             background="red", foreground=dfg, font="TkFixedFont 7 bold", command=None)
         menu.add_command(label="SNR: " + n_field[3] + " dB", state=NORMAL, background=cbg, foreground=dfg, command=None)
         menu.post(event.x_root, event.y_root)  # popup placement // node icon
 
@@ -807,7 +820,7 @@ class MainWindow(Frame):
         # selectedcity = ""
         map_preset = 0
         tdoa_in_progress = 0
-        open_pdf = IntVar(self)
+        open_pdf = IntVar(self, value=1)
         # Control panel background
         self.label0 = Label(parent)
         self.label0.place(relx=0, rely=0.64, relheight=0.4, relwidth=1)
@@ -873,7 +886,7 @@ class MainWindow(Frame):
         self.open_pdf_checkbox = Checkbutton(parent)
         self.open_pdf_checkbox.place(relx=0.62, rely=0.9, height=21, relwidth=0.11)
         self.open_pdf_checkbox.configure(bg=BGC, fg=FGC, activebackground=BGC, activeforeground=FGC,
-                                         font="TkFixedFont 8", width=214, selectcolor=BGC, text="auto-open PDF",
+                                         font="TkFixedFont 8", width=214, selectcolor=BGC, text="auto-open result",
                                          anchor="w", variable=open_pdf, command=None)
 
         # plot IQ preview
