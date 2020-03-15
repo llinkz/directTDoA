@@ -358,7 +358,7 @@ class FillMapWithNodes(object):
             with open(server_list) as node_db:
                 db_data = json.load(node_db)
                 for node_index in range(len(db_data)):
-                    if db_data[node_index]["id"] in node_list:
+                    if db_data[node_index]["id"].replace("/", "") in node_list:
                         # Change icon color of fav, black and standards nodes and apply a gradiant // SNR
                         perc = (int(db_data[node_index]["snr"]) - 30) * GRAD
                         if db_data[node_index]["mac"] in WHITELIST:
@@ -669,7 +669,7 @@ class GuiCanvas(Frame):
         # Colorized background (depending on Favorite node or not)
         cbg = self.color_variant(nodecolor, snr_gradiant)
         # Get spectrogram of the node recorded IQ file
-        PlotIQ(node_file[node_list.index(n_field[2])], 0, 1).run()
+        PlotIQ(node_file[node_list.index(n_field[2].replace("/", ""))], 0, 1).run()
         matches = [el for el in fulllist if n_field[0] in el]
         if gps_status:
             if len(matches) != 1:
