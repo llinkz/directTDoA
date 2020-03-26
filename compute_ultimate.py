@@ -202,9 +202,9 @@ class PlotIQ(threading.Thread):
         fig, ax = plt.subplots()
         plt.specgram(data, NFFT=1024, Fs=12000, window=lambda data: data * np.hanning(len(data)), noverlap=512, vmin=10,
                      vmax=200, cmap=cmap)
-        plt.title(source.rsplit("_", 3)[2] + " - [CF=" + str(
-            (float(source.rsplit("_", 3)[1]) / 1000)) + " kHz] - GPS:" + str(self.has_gps(source)))
         gps_status = self.has_gps(source)
+        plt.title(source.rsplit("_", 3)[2] + " - [CF=" + str(
+            (float(source.rsplit("_", 3)[1]) / 1000)) + " kHz] - GPS:" + str(gps_status))
         plt.xlabel("time (s)")
         plt.ylabel("frequency offset (kHz)")
         ticks = matplotlib.ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x // 1e3))
@@ -220,6 +220,7 @@ class PlotIQ(threading.Thread):
             os.remove(source + '.png')
 
     def pil_grid(self, images, filename, max_horiz=np.iinfo(int).max):
+        """ Make a poster of png files. """
         n_images = len(images)
         n_horiz = min(n_images, max_horiz)
         h_sizes, v_sizes = [0] * n_horiz, [0] * ((n_images // n_horiz) + (1 if n_images % n_horiz > 0 else 0))
@@ -235,12 +236,13 @@ class PlotIQ(threading.Thread):
         return im_grid
 
     def has_gps(self, source):
+        """ Detect if IQ file has GPS GNSS data (in test). """
+        gpslast = 0
         f = open(source, 'rb')
-        f.seek(2118)
-        if sys.version_info[0] == 2:
-            return ord(f.read(1)[0]) < 254
-        else:
-            return f.read(1)[0] < 254
+        for i in range(2118, os.path.getsize(source), 2074):
+            f.seek(i)
+            gpslast = max(gpslast, ord(f.read(1)[0]))
+        return 0 < gpslast < 254
 
 
 class OctaveProcessing(threading.Thread):
@@ -504,8 +506,8 @@ class GuiCanvas(Frame):
             f = open(mfile, 'r')
             filedata = f.read()
             f.close()
-            lat = re.search(r"lat_range', \[([-]?[0-9]{1,2}(\.[0-9]*)?) ?([-]?[0-9]{1,3}(\.[0-9]*))?\]", filedata)
-            lon = re.search(r"lon_range', \[([-]?[0-9]{1,2}(\.[0-9]*)?) ?([-]?[0-9]{1,3}(\.[0-9]*))?\]", filedata)
+            lat = re.search(r"lat_range', \[([-]?[0-9]{1,2}(\.[0-9]*)?) ?([-]?[0-9]{1,2}(\.[0-9]*|))?\]", filedata)
+            lon = re.search(r"lon_range', \[([-]?[0-9]{1,3}(\.[0-9]*)?) ?([-]?[0-9]{1,3}(\.[0-9]*|))?\]", filedata)
             lat_min_map = lat.group(1)
             lat_max_map = lat.group(3)
             lon_min_map = lon.group(1)

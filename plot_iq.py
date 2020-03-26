@@ -84,11 +84,12 @@ def plotspectrogram(source):
 
 def has_gps(source):
     """ Detect if IQ file has GPS GNSS data (in test). """
-    f_src = open(source, 'rb')
-    f_src.seek(2118)
-    if sys.version_info[0] == 2:
-        return ord(f_src.read(1)[0]) < 254
-    return f_src.read(1)[0] < 254
+    gpslast = 0
+    f = open(source, 'rb')
+    for i in range(2118, os.path.getsize(source), 2074):
+        f.seek(i)
+        gpslast = max(gpslast, ord(f.read(1)[0]))
+    return 0 < gpslast < 254
 
 
 def pil_grid(images, filename, max_horiz=np.iinfo(int).max):

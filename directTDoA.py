@@ -43,7 +43,7 @@ else:
     from tkinter.colorchooser import askcolor
     from tkinter.simpledialog import askstring, askinteger
 
-VERSION = "directTDoA v5.10"
+VERSION = "directTDoA v5.20"
 
 
 class Restart(object):
@@ -357,15 +357,14 @@ class StartRecording(threading.Thread):
         which_list = fulllist
         which_action = "IQ Recordings in progress..."
         if (ultimate.get()) == 1:
-            which_list = ultimatelist  #
             which_action = "ultimateTDoA IQ Recordings in progress..."
-        proc2 = subprocess.Popen(
-            [sys.executable, 'kiwiclient' + os.sep + 'kiwirecorder.py', '-s',
-             ','.join(str(p).rsplit('$')[0] for p in which_list), '-p',
-             ','.join(str(p).rsplit('$')[1] for p in which_list),
-             '--station=' + ','.join(str(p).rsplit('$')[3] for p in which_list), '-f', str(FREQUENCY), '-L',
-             str(0 - lpcut), '-H', str(hpcut), '-m', 'iq', '-w', '-d', os.path.join('TDoA', 'iq')], stdout=PIPE,
-            shell=False, preexec_fn=os.setsid)
+        proc2 = subprocess.Popen([sys.executable, 'kiwiclient' + os.sep + 'kiwirecorder.py', '-s',
+                                  ','.join(str(p).rsplit('$')[0] for p in which_list), '-p',
+                                  ','.join(str(p).rsplit('$')[1] for p in which_list),
+                                  '--station=' + ','.join(str(p).rsplit('$')[3] for p in which_list), '-f',
+                                  str(FREQUENCY), '-L', str(0 - lpcut), '-H', str(hpcut), '-m', 'iq', '-u',
+                                  VERSION.replace(' ', '_'), '-w', '-d', os.path.join('TDoA', 'iq')], stdout=PIPE,
+                                 shell=False, preexec_fn=os.setsid)
         self.parent.writelog(which_action)
         PROC2_PID = proc2.pid
         # debug command line
@@ -408,6 +407,19 @@ class PlotIQ(threading.Thread):
         run_dir = os.path.join('TDoA', 'iq') + os.sep + starttime + tdoa_mode + str(FREQUENCY) + os.sep
         with open(os.devnull, 'w') as fp:
             subprocess.call(['python', 'plot_iq.py'], cwd=os.path.join(run_dir), shell=False, stdout=fp,
+                            preexec_fn=os.setsid)
+
+
+class ComputeUltimate(threading.Thread):
+    """ compute_ultimate.py processing routine """
+
+    def __init__(self):
+        super(ComputeUltimate, self).__init__()
+
+    def run(self):
+        run_dir = os.path.join('TDoA', 'iq') + os.sep + starttime + tdoa_mode + str(FREQUENCY)
+        with open(os.devnull, 'w') as fp:
+            subprocess.call(['python', 'compute_ultimate.py'], cwd=os.path.join(run_dir), shell=False, stdout=fp,
                             preexec_fn=os.setsid)
 
 
@@ -824,9 +836,8 @@ class GuiCanvas(Frame):
         parent.geometry("1200x700+150+10")
         img = PhotoImage(file='icon.gif')
         parent.after(50, parent.call('wm', 'iconphoto', parent, img))
-        global fulllist, ultimatelist, LISTENMODE, mapboundaries_set
+        global fulllist, LISTENMODE, mapboundaries_set
         fulllist = []
-        ultimatelist = []
         LISTENMODE = "0"
         mapboundaries_set = None
         ReadCfg().read_cfg()
@@ -940,9 +951,11 @@ class GuiCanvas(Frame):
     def on_button_release(self, event):
         """ When Mouse right button is released (map boundaries set or ultimateTDoA set). """
         global mapboundaries_set, map_preset  # lon_min_map, lon_max_map, lat_min_map, lat_max_map
-        global ultimatelist, map_manual
+        global map_manual, fulllist
         if (ultimate.get()) == 1:  # ultimateTDoA mode
-            ultimatelist = []
+            APP.gui.purgenode()
+            mapboundaries_set = 1
+            map_manual = 1
             server_lists = ["directTDoA_server_list.db", "directTDoA_static_server_list.db"]
             for server_list in server_lists:
                 with open(server_list) as node_db2:
@@ -953,27 +966,27 @@ class GuiCanvas(Frame):
                         if (lat_min_map < float(db_data2[y]["lat"]) < lat_max_map) and (
                                 lon_min_map < float(db_data2[y]["lon"]) < lon_max_map):
                             if ultimatefav.get() == 1 and db_data2[y]["mac"] in WHITELIST:
-                                ultimatelist.append(
+                                fulllist.append(
                                     db_data2[y]["url"].rsplit(':')[0] + "$" + db_data2[y]["url"].rsplit(':')[1] + "$" +
                                     db_data2[y]["mac"] + "$" + db_data2[y]["id"].replace("/", ""))
                                 FillMapWithNodes(self).node_sel_active(node_mac=db_data2[y]["mac"])
                             else:
                                 if ultimatefav.get() == 0 and db_data2[y]["mac"] not in BLACKLIST:
-                                    ultimatelist.append(
+                                    fulllist.append(
                                         db_data2[y]["url"].rsplit(':')[0] + "$" + db_data2[y]["url"].rsplit(':')[
                                             1] + "$" + db_data2[y]["mac"] + "$" + db_data2[y]["id"].replace("/", ""))
                                     FillMapWithNodes(self).node_sel_active(node_mac=db_data2[y]["mac"])
 
             APP.gui.label4.configure(text="[LAT] range: " + str(lat_min_map) + "° " + str(
                 lat_max_map) + "°  [LON] range: " + str(lon_min_map) + "° " + str(lon_max_map) + "°")
-            if ultimatelist:
-                APP.gui.writelog(str(len(ultimatelist)) + " KiwiSDR(s) found within this area.")
-                APP.title(VERSION + " - ultimateTDoA nodes [" + str(len(ultimatelist)) + "] : " + '/'.join(
-                    str(p).rsplit('$')[3] for p in ultimatelist))
+            if fulllist:
+                APP.gui.writelog(str(len(fulllist)) + " KiwiSDR(s) found within this area.")
+                APP.title(VERSION + " - ultimateTDoA nodes [" + str(len(fulllist)) + "] : " + '/'.join(
+                    str(p).rsplit('$')[3] for p in fulllist))
             else:
                 APP.gui.writelog("No KiwiSDR found within this area.")
                 APP.title(VERSION)
-                ultimatelist = []
+                fulllist = []
 
         else:
             if map_preset == 1 and map_manual == 0:
@@ -986,10 +999,10 @@ class GuiCanvas(Frame):
                     map_manual = 1
                 except NameError:
                     pass
-        if (len(fulllist) >= 3 or len(ultimatelist) >= 3) and APP.gui.freq_input.get() != "" and 5 < float(
+        if len(fulllist) >= 3 and APP.gui.freq_input.get() != "" and 5 < float(
                 APP.gui.freq_input.get()) < 30000:
             APP.gui.sorcerer_checkbox.configure(state="normal")
-            if len(ultimatelist) == 0:
+            if (ultimate.get()) == 0:
                 APP.gui.autorun_checkbox.configure(state="normal")
         else:
             APP.gui.sorcerer_checkbox.configure(state="disabled")
@@ -1028,6 +1041,7 @@ class GuiCanvas(Frame):
         global HOST
         HOST = self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0]
         menu = Menu(self, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')
+        menu2 = Menu(menu, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # enforce menu
         # menu2 = Menu(menu, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # demodulation menu
         # mykeys = ['mac', 'url', 'id', 'snr', 'lat', 'lon']
         # n_field    0      1      2     3      4     5
@@ -1077,8 +1091,10 @@ class GuiCanvas(Frame):
                     menu.add_command(label=n_field[2] + " is offline", background=rbg, foreground=dfg, command=None)
                 # If node had no GPS fix in the last minute :
                 elif i_node[12] == "0":
-                    menu.add_command(label=n_field[2] + " is not useful for TDoA" + g_stat + n_stat + s_stat,
-                                     background=rbg, foreground=dfg, command=None)
+                    menu.add_cascade(label=n_field[2] + " is not useful for TDoA" + g_stat + n_stat + s_stat,
+                                     background=rbg, foreground=dfg, menu=menu2)
+                    menu2.add_command(label="add anyway", background=cbg, foreground=dfg,
+                                      command=lambda *args: self.populate("add", n_field))
                     permit_web = True
                 else:  # All is ok for this node and then, permit extra commands
                     permit_web = True
@@ -1238,7 +1254,12 @@ class GuiCanvas(Frame):
     def populate(self, action, sel_node_tag):
         """ TDoA listing node populate/depopulate process. """
         if action == "add":
-            if len(fulllist) < 6:
+            if len(fulllist) < 6 and (ultimate.get()) == 0:
+                fulllist.append(
+                    sel_node_tag[1].rsplit(':')[0] + "$" + sel_node_tag[1].rsplit(':')[1] + "$" + sel_node_tag[
+                        0] + "$" + sel_node_tag[2].replace("/", ""))
+                FillMapWithNodes(self).node_sel_active(sel_node_tag[0])
+            elif (ultimate.get()) == 1:
                 fulllist.append(
                     sel_node_tag[1].rsplit(':')[0] + "$" + sel_node_tag[1].rsplit(':')[1] + "$" + sel_node_tag[
                         0] + "$" + sel_node_tag[2].replace("/", ""))
@@ -1340,9 +1361,10 @@ class MainWindow(Frame):
         ReadKnownPointFile().run()
         global image_scale, selectedcity, selectedlat, selectedlon
         global lpcut, hpcut, currentbw, sorcerer, auto_run_tdoa, tdoa_mode
-        global ultimate, ultimatefav, map_preset, rec_in_progress, tdoa_in_progress
+        global ultimate, ultimatefav, runultimateintf, map_preset, rec_in_progress, tdoa_in_progress
         ultimate = IntVar(self)
         ultimatefav = IntVar(self)
+        runultimateintf = IntVar(self)
         sorcerer = IntVar(self)
         auto_run_tdoa = IntVar(self)
         tdoa_mode = "_S_F"
@@ -1437,28 +1459,35 @@ class MainWindow(Frame):
 
         # UltimateTDoA checkbox
         self.ultimate_checkbox = Checkbutton(parent)
-        self.ultimate_checkbox.place(relx=0.55, rely=0.89, height=21, relwidth=0.11)
+        self.ultimate_checkbox.place(relx=0.507, rely=0.89, height=21, relwidth=0.108)
         self.ultimate_checkbox.configure(bg=BGC, fg=FGC, activebackground=BGC, activeforeground=FGC,
                                          font="TkFixedFont 8", width=214, selectcolor=BGC, text="ultimateTDoA mode",
                                          anchor="w", variable=ultimate, command=self.checkboxcheck)
 
         # UltimateTDoA (favorites) checkbox
         self.ultimate_fav_checkbox = Checkbutton(parent)
-        self.ultimate_fav_checkbox.place(relx=0.66, rely=0.89, height=21, relwidth=0.08)
+        self.ultimate_fav_checkbox.place(relx=0.617, rely=0.89, height=21, relwidth=0.06)
         self.ultimate_fav_checkbox.configure(bg=BGC, fg=FGC, activebackground=BGC, activeforeground=FGC,
-                                             font="TkFixedFont 8", width=214, selectcolor=BGC, text="favorites only",
+                                             font="TkFixedFont 8", width=214, selectcolor=BGC, text="fav. only",
                                              anchor="w", state="disabled", variable=ultimatefav)
+
+        # UltimateTDoA (run interface) checkbox
+        self.run_ultimate_intf_checkbox = Checkbutton(parent)
+        self.run_ultimate_intf_checkbox.place(relx=0.68, rely=0.89, height=21, relwidth=0.077)
+        self.run_ultimate_intf_checkbox.configure(bg=BGC, fg=FGC, activebackground=BGC, activeforeground=FGC,
+                                             font="TkFixedFont 8", width=214, selectcolor=BGC, text="run interface",
+                                             anchor="w", state="disabled", variable=runultimateintf)
 
         # TCP Client checkbox (for Sorcerer 2G ALE decoding module)
         self.sorcerer_checkbox = Checkbutton(parent)
-        self.sorcerer_checkbox.place(relx=0.55, rely=0.920, height=21, relwidth=0.11)
+        self.sorcerer_checkbox.place(relx=0.507, rely=0.922, height=21, relwidth=0.108)
         self.sorcerer_checkbox.configure(bg=BGC, fg=FGC, activebackground=BGC, activeforeground=FGC,
                                          font="TkFixedFont 8", width=214, selectcolor=BGC, text="sorcerer TCP client",
                                          anchor="w", state="disabled", variable=sorcerer, command=self.sorcerercheck)
 
         # TCP Client TDoA autorun checkbox (use with standard TDoA mode 3-6 nodes only)
         self.autorun_checkbox = Checkbutton(parent)
-        self.autorun_checkbox.place(relx=0.66, rely=0.920, height=21, relwidth=0.11)
+        self.autorun_checkbox.place(relx=0.617, rely=0.922, height=21, relwidth=0.055)
         self.autorun_checkbox.configure(bg=BGC, fg=FGC, activebackground=BGC, activeforeground=FGC,
                                         font="TkFixedFont 8", width=214, selectcolor=BGC, text="autorun",
                                         anchor="w", state="disabled", variable=auto_run_tdoa,
@@ -1684,18 +1713,27 @@ class MainWindow(Frame):
         """ UltimateTDoA favorites checkbox management. """
         if ultimate.get() == 1:
             self.ultimate_fav_checkbox.configure(state="normal")
+            self.run_ultimate_intf_checkbox.configure(state="normal")
         if ultimate.get() == 0:
             self.ultimate_fav_checkbox.configure(state="disabled")
+            self.run_ultimate_intf_checkbox.configure(state="disabled")
 
     @staticmethod
     def sorcerercheck():
         """ TCP Client for Sorcerer software checkbox management. """
         if sorcerer.get() == 1:
             SorcererTcpClient().start()
+            runultimateintf.set(0)
+            APP.gui.start_rec_button.configure(state="disabled")
             if ultimate.get() == 0:
                 APP.gui.autorun_checkbox.configure(state="normal")
+        elif rec_in_progress == 1:
+            APP.gui.writelog("You asked to disconnect the Sorcerer TCP client. IQ recording discontinued")
+            APP.gui.start_stop_rec()
+
         else:
             APP.gui.autorun_checkbox.configure(state="disabled")
+            APP.gui.start_rec_button.configure(state="normal")
             auto_run_tdoa.set(0)
 
     @staticmethod
@@ -1707,10 +1745,9 @@ class MainWindow(Frame):
     def freqbox(self):
         """ freq input box. """
         try:
-            if self.freq_input.get() != "" and (len(fulllist) >= 3 or len(ultimatelist) >= 3) and 5 < float(
-                    APP.gui.freq_input.get()) < 30000:
+            if self.freq_input.get() != "" and len(fulllist) >= 3 and 5 < float(APP.gui.freq_input.get()) < 30000:
                 APP.gui.sorcerer_checkbox.configure(state="normal")
-                if len(ultimatelist) == 0 and mapboundaries_set == 1:
+                if (ultimate.get()) == 0 and mapboundaries_set == 1:
                     APP.gui.autorun_checkbox.configure(state="normal")
             else:
                 APP.gui.sorcerer_checkbox.configure(state="disabled")
@@ -2005,15 +2042,25 @@ class MainWindow(Frame):
             if value == 5:
                 SaveCfg().save_cfg("guicolors", "main_b", color_n)
                 APP.gui.writelog("GUI background color is now " + color_n)
-                nums = ['0', '1', '2', '3', '4', '5', '6']
+                nums = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
                 chg_list = [APP.gui.label0, APP.gui.label1, APP.gui.label2, APP.gui.label3, APP.gui.label4,
-                            APP.gui.ultimate_checkbox, APP.gui.ultimate_fav_checkbox]
+                            APP.gui.ultimate_checkbox, APP.gui.ultimate_fav_checkbox,
+                            APP.gui.run_ultimate_intf_checkbox, APP.gui.sorcerer_checkbox, APP.gui.autorun_checkbox]
                 APP.gui.ultimate_checkbox.configure(activebackground=color_n,
                                                     activeforeground=GuiCanvas.get_font_color(color_n),
                                                     selectcolor=color_n)
                 APP.gui.ultimate_fav_checkbox.configure(activebackground=color_n,
                                                         activeforeground=GuiCanvas.get_font_color(color_n),
                                                         selectcolor=color_n)
+                APP.gui.run_ultimate_intf_checkbox.configure(activebackground=color_n,
+                                                             activeforeground=GuiCanvas.get_font_color(color_n),
+                                                             selectcolor=color_n)
+                APP.gui.sorcerer_checkbox.configure(activebackground=color_n,
+                                                    activeforeground=GuiCanvas.get_font_color(color_n),
+                                                    selectcolor=color_n)
+                APP.gui.autorun_checkbox.configure(activebackground=color_n,
+                                                   activeforeground=GuiCanvas.get_font_color(color_n),
+                                                   selectcolor=color_n)
                 for x, l in zip(nums, chg_list):
                     l.configure(background=color_n)
                     l.configure(foreground=GuiCanvas.get_font_color(color_n))
@@ -2100,8 +2147,7 @@ class MainWindow(Frame):
 
     def purgenode(self):
         """ Purge KiwiSDR node list process. """
-        global fulllist, ultimatelist
-        ultimatelist = []
+        global fulllist
         fulllist = []
         APP.title(VERSION)
         self.member1.unselect_allpoint()
@@ -2173,8 +2219,8 @@ class MainWindow(Frame):
                     try:
                         r_dir = os.path.join('TDoA', 'iq') + os.sep + starttime + tdoa_mode + str(FREQUENCY)
                         webbrowser.open(r_dir)
-                        subprocess.call(['python', 'compute_ultimate.py'], cwd=os.path.join(r_dir), shell=False,
-                                        preexec_fn=os.setsid)
+                        if sorcerer.get() != 1 and runultimateintf.get() == 1:
+                            ComputeUltimate().start()
                     except ValueError as ultimate_failure:
                         print (ultimate_failure)
 
@@ -2188,9 +2234,14 @@ class MainWindow(Frame):
                         self.writelog("ERROR : Please check the frequency !")
                     elif (ultimate.get()) == 0 and len(fulllist) < 3:  # debug
                         self.writelog("ERROR : Select at least 3 nodes for TDoA processing !")
-                    elif (ultimate.get()) == 1 and not ultimatelist:
-                        self.writelog("ERROR : ultimateTDoA listing is empty !")
+                    elif (ultimate.get()) == 0 and len(fulllist) > 6:  # debug
+                        self.writelog("ERROR : Too much nodes selected for a standard TDoA processing, remove " + str(
+                            len(fulllist) - 6) + " nodes please !")
+                    elif (ultimate.get()) == 1 and len(fulllist) == 0:
+                        self.writelog("ERROR : Node listing is empty !")
                     else:
+                        if (ultimate.get()) == 1:
+                            self.start_tdoa_button.configure(text="", state="disabled")
                         FREQUENCY = str(float(self.freq_input.get()))
                         self.start_rec_button.configure(text="Stop recording")
                         if (ultimate.get()) == 0:

@@ -1,4 +1,4 @@
-# directTDoA v5.10
+# directTDoA v5.20
 
 This software is JUST a python 2/3 GUI designed to compute TDoA runs on shortwave radio transmissions and print results on maps, using remote (GPS enabled) KiwiSDR receivers around the World.
 
@@ -80,6 +80,8 @@ Install GNU Octave in Terminal : `brew install octave`
 * v5.00: big code optimization + adding waterfall/SNR measurement + removing Marco website source + keyboard shortcuts + filter/color/icon/add rem fav/blk changes w/o restart - better precision on map (coordinates with decimals) + highlight on selected nodes + plot_iq.py script (plotting IQ spectrograms w/o GPS ticks) + GUI colors management
          + mapbox.com world maps in final results + trim_iq.py script to modify the recorded IQ files + Sorcerer TCP client for ALE auto-detect & auto-compute TDoAs
 * v5.10: removed KiwiSDR nodes "names" from .db files + compute_ultimate script has been transformed into GUI with plot_iq now only displaying the selected nodes + adding command arguments to trim_iq.py script (./trim_iq.py -h ,for help)
+* v5.20: "directTDoA_v5.xx" now displayed on the KiwiSDR target's userlist when connected + simplification of the node rec-list management + adding a checkbox to automatically start (or not) _compute_ultimate.py_ script when "Stop Rec" button is clicked + extra command on KiwiSDR first line popup to add the node even if it has _fixes_min=0_
+         + new _has_gps_ routine in both _plot_iq.py_ & _compute_ultimate.py_ + bug fix: regexp wrongly detecting LON + bug fix: if Sorcerer TCP client checkbox is unchecked while recording, no more endless record session.
 ## Thanks
 * Christoph Mayer @ https://github.com/hcab14/TDoA for the main TDoA code, excellent work and thanks for the public release !
 * John Seamons, KiwiSDR developper @ https://github.com/jks-prv
