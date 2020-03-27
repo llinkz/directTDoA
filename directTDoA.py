@@ -565,34 +565,34 @@ class CheckSnr(threading.Thread):
             print ("Error: unable to retrieve datas from this node")
 
 
-class StartDemodulation(threading.Thread):
-    """ Demodulation process. """
-
-    def __init__(self, server, port, frequency, modulation):
-        threading.Thread.__init__(self)
-        self.s_host = server
-        self.s_port = port
-        self.s_freq = frequency
-        self.s_mod = modulation
-
-    def run(self):
-        global LISTENMODE, kiwisdrclient_pid
-        try:
-            # '-g', '1', '50', '0', '-100', '6', '1000'  <==== static AGC settings
-            # 1= AGC (on)  50=Manual Gain (dB) 0=Hang (off)
-            # -100=Threshold (dB) 6=Slope (dB) 1000=Decay (ms)
-            # -L and -H are demod filters settings, override by kiwiSDRclient.py (BW=3600Hz)
-            proc8 = subprocess.Popen(
-                [sys.executable, 'KiwiSDRclient.py', '-s', self.s_host, '-p', self.s_port, '-f', self.s_freq, '-m',
-                 self.s_mod, '-L', '0', '-H', '5000', '-g', '1', '50', '0', '-100', '6', '1000'], stdout=PIPE,
-                shell=False)
-            kiwisdrclient_pid = proc8.pid
-            LISTENMODE = "1"
-            APP.gui.writelog(
-                "Starting Listen mode   [ " + self.s_host + " / " + self.s_freq + " kHz / " + self.s_mod.upper() + " ]")
-        except Exception as demodulation_Error:
-            print ("Unable to demodulate this node - Error: " + str(demodulation_Error))
-            LISTENMODE = "0"
+# class StartDemodulation(threading.Thread):
+#     """ Demodulation process. """
+#
+#     def __init__(self, server, port, frequency, modulation):
+#         threading.Thread.__init__(self)
+#         self.s_host = server
+#         self.s_port = port
+#         self.s_freq = frequency
+#         self.s_mod = modulation
+#
+#     def run(self):
+#         global LISTENMODE, kiwisdrclient_pid
+#         try:
+#             # '-g', '1', '50', '0', '-100', '6', '1000'  <==== static AGC settings
+#             # 1= AGC (on)  50=Manual Gain (dB) 0=Hang (off)
+#             # -100=Threshold (dB) 6=Slope (dB) 1000=Decay (ms)
+#             # -L and -H are demod filters settings, override by kiwiSDRclient.py (BW=3600Hz)
+#             proc8 = subprocess.Popen(
+#                 [sys.executable, 'KiwiSDRclient.py', '-s', self.s_host, '-p', self.s_port, '-f', self.s_freq, '-m',
+#                  self.s_mod, '-L', '0', '-H', '5000', '-g', '1', '50', '0', '-100', '6', '1000'], stdout=PIPE,
+#                 shell=False)
+#             kiwisdrclient_pid = proc8.pid
+#             LISTENMODE = "1"
+#             APP.gui.writelog(
+#               "Starting Listen mode   [ " + self.s_host + " / " + self.s_freq + " kHz / " + self.s_mod.upper() + " ]")
+#         except Exception as demodulation_Error:
+#             print ("Unable to demodulate this node - Error: " + str(demodulation_Error))
+#             LISTENMODE = "0"
 
 
 class FillMapWithNodes(object):
@@ -635,8 +635,7 @@ class FillMapWithNodes(object):
                         NODE_COUNT_FILTER += 1
                         self.add_point(node_index, node_color, db_data)
         if 'APP' in globals():
-            APP.gui.label04.configure(text="█ Visible: " + str(NODE_COUNT_FILTER))
-            APP.gui.writelog("There are " + str(NODE_COUNT) + " KiwiSDRs in the db. Have fun !")
+            APP.gui.label04.configure(text="█ Visible: " + str(NODE_COUNT_FILTER) + "/" + str(NODE_COUNT))
         self.parent.show_image()
 
     @staticmethod
@@ -1230,26 +1229,26 @@ class GuiCanvas(Frame):
                   str(HOST).rsplit("$", 6)[2]
         webbrowser.open_new(url)
 
-    @staticmethod
-    def listenmode(modulation):
-        """ Start listen mode process. """
-        server_host = str(HOST).rsplit("$", 6)[1].rsplit(":", 2)[0]
-        server_port = str(HOST).rsplit("$", 6)[1].rsplit(":", 2)[1]
-        server_frequency = APP.gui.freq_input.get()
-        demod_thread = StartDemodulation(server_host, server_port, server_frequency, modulation)
-        if LISTENMODE == "0":
-            demod_thread.start()
-        else:
-            os.kill(kiwisdrclient_pid, signal.SIGTERM)
-            demod_thread.start()
-
-    @staticmethod
-    def stoplistenmode():
-        """ Stop listen mode process. """
-        global LISTENMODE
-        os.kill(kiwisdrclient_pid, signal.SIGTERM)
-        LISTENMODE = "0"
-        APP.gui.writelog("Stopping Listen mode")
+    # @staticmethod
+    # def listenmode(modulation):
+    #     """ Start listen mode process. """
+    #     server_host = str(HOST).rsplit("$", 6)[1].rsplit(":", 2)[0]
+    #     server_port = str(HOST).rsplit("$", 6)[1].rsplit(":", 2)[1]
+    #     server_frequency = APP.gui.freq_input.get()
+    #     demod_thread = StartDemodulation(server_host, server_port, server_frequency, modulation)
+    #     if LISTENMODE == "0":
+    #         demod_thread.start()
+    #     else:
+    #         os.kill(kiwisdrclient_pid, signal.SIGTERM)
+    #         demod_thread.start()
+    #
+    # @staticmethod
+    # def stoplistenmode():
+    #     """ Stop listen mode process. """
+    #     global LISTENMODE
+    #     os.kill(kiwisdrclient_pid, signal.SIGTERM)
+    #     LISTENMODE = "0"
+    #     APP.gui.writelog("Stopping Listen mode")
 
     def populate(self, action, sel_node_tag):
         """ TDoA listing node populate/depopulate process. """
@@ -1389,21 +1388,21 @@ class MainWindow(Frame):
 
         # Map Legend
         self.label01 = Label(parent)
-        self.label01.place(x=0, y=0, height=14, width=80)
+        self.label01.place(x=0, y=0, height=14, width=96)
         self.label01.configure(bg="black", font=la_f, anchor="w", fg=STDCOLOR, text="█ Standard")
         self.label02 = Label(parent)
-        self.label02.place(x=0, y=14, height=14, width=80)
+        self.label02.place(x=0, y=14, height=14, width=96)
         self.label02.configure(bg="black", font=la_f, anchor="w", fg=FAVCOLOR, text="█ Favorite")
         self.label03 = Label(parent)
-        self.label03.place(x=0, y=28, height=14, width=80)
+        self.label03.place(x=0, y=28, height=14, width=96)
         self.label03.configure(bg="black", font=la_f, anchor="w", fg=BLKCOLOR, text="█ Blacklisted")
         self.label04 = Label(parent)
-        self.label04.place(x=0, y=42, height=14, width=80)
+        self.label04.place(x=0, y=42, height=14, width=96)
         self.label04.configure(bg="black", font=la_f, anchor="w", fg="white",
-                               text="█ Visible: " + str(NODE_COUNT_FILTER))
+                               text="█ Visible: " + str(NODE_COUNT_FILTER) + "/" + str(NODE_COUNT))
         self.label05 = Label(parent)
-        self.label05.place(x=0, y=56, height=14, width=80)
-        self.label05.configure(bg="black", font=la_f, anchor="w", fg="white", text="BW: " + str(IQBW) + "Hz")
+        self.label05.place(x=0, y=56, height=14, width=96)
+        self.label05.configure(bg="black", font=la_f, anchor="w", fg="white", text="█ IQ BW: " + str(IQBW) + " Hz")
 
         # Frequency entry field
         self.freq_input = Entry(parent)
@@ -2160,7 +2159,7 @@ class MainWindow(Frame):
     def set_iq(self, iq_bw):
         """ On-the-fly IQ bandwidth value setting. """
         global lpcut, hpcut, currentbw
-        self.label05.configure(text="BW: " + str(iq_bw) + "Hz")
+        self.label05.configure(text="█ IQ BW: " + str(iq_bw) + " Hz")
         try:
             if 5 < int(self.freq_input.get()) < 30000:
                 self.writelog("Setting IQ bandwidth at " + iq_bw + " Hz       | " + str(
