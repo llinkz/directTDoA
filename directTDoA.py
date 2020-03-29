@@ -383,17 +383,28 @@ class CheckFileSize(threading.Thread):
         super(CheckFileSize, self).__init__()
 
     def run(self):
+        APP.gui.purge_button.configure(state="disabled")
+        APP.gui.restart_button.configure(state="disabled")
+        APP.gui.update_button.configure(state="disabled")
         while True:
             for wavfiles in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
                 try:
-                    APP.gui.status_window.insert('end -1 lines', wavfiles.rsplit(os.sep, 1)[1] + " - " + str(
-                        os.path.getsize(wavfiles) // 1024) + "KB\n")
+                    if (ultimate.get()) == 1:
+                        APP.gui.status_window.insert('end -1 lines',
+                                                     wavfiles.rsplit(os.sep, 1)[1].rsplit("_", 3)[2] + "|" + str(
+                                                         os.path.getsize(wavfiles) // 1024) + "KB   ")
+                    else:
+                        APP.gui.status_window.insert('end -1 lines', wavfiles.rsplit(os.sep, 1)[1] + " - " + str(
+                            os.path.getsize(wavfiles) // 1024) + "KB\n")
                 except OSError:
                     APP.gui.status_window.insert('end -1 lines', "\n")
             APP.gui.status_window.see('end')
             time.sleep(0.5)
             APP.gui.status_window.delete("0.0", END)
             if rec_in_progress == 0:
+                APP.gui.purge_button.configure(state="normal")
+                APP.gui.restart_button.configure(state="normal")
+                APP.gui.update_button.configure(state="normal")
                 break
 
 
