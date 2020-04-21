@@ -1,16 +1,24 @@
-# directTDoA v5.20
+# directTDoA v6.00
 
-This software is JUST a python 2/3 GUI designed to compute TDoA runs on shortwave radio transmissions and print results on maps, using remote (GPS enabled) KiwiSDR receivers around the World.
+This software is JUST a python 2/3 GUI designed to compute TDoA runs on shortwave radio transmissions using remote (GPS enabled) KiwiSDR receivers around the World.
 
-`TDoA = Time Difference of Arrival .. (in this case: the Arrival of shortwave radio transmissions)`
+> TDoA = Time Difference of Arrival .. (in this case: the Arrival of shortwave radio transmissions)
+
+## INSTALL AND RUN (on WINDOWS)
+
+#### The decision was made not to support installation from the repository
+
+Instead, just download `directTDoA-windows.zip`, unzip and double-click `directTDoA.bat`
+
+> This archive contains all the necessary files already patched and compiled and also includes light versions of GNU Octave and python, so no need to install the full versions of the last two on your machine. The unzipped archive should be around 300 MB, compared to 2 GB in the other installer way.
 
 ## INSTALL AND RUN (on LINUX)
 
-Install python (version 2 or 3)
-
-Install python-pip (search for the right package for your distro)
+Install python (version 2 or 3) and python-pip using your package manager
 
 Install GNU octave
+
+Install git
 
 `git clone --recursive https://github.com/llinkz/directTDoA`
 
@@ -18,9 +26,9 @@ Install GNU octave
 
 `./setup.sh` (this script will install python modules, compile the necessary .oct file and apply some files patchs)
 
-`./directTDoA.py` (Check the shebang if run fails on your system. On Archlinux it should be `#!/usr/bin/python2` for example. But i suggest you to create a simlink, check with `ls -alh /usr/bin/python*`  )
+`./directTDoA.py`
 
-* You may need to manually install xdg-utils, liboctave-dev
+> NOTE: You may need to manually install xdg-utils, liboctave-dev
 
 ## INSTALL AND RUN (on MAC OS X)
 
@@ -36,7 +44,7 @@ Install GNU Octave in Terminal : `brew install octave`
 
 `cd directTDoA`
 
-`./setup.sh`  (this script will install python modules, compile the necessary .oct file and apply the patch to bypass the .png file creation)
+`./setup.sh`  (this script will install python modules, compile the necessary .oct file and apply patches to some files)
 
 `./directTDoA.py`
 
@@ -82,6 +90,7 @@ Install GNU Octave in Terminal : `brew install octave`
 * v5.10: removed KiwiSDR nodes "names" from .db files + compute_ultimate script has been transformed into GUI with plot_iq now only displaying the selected nodes + adding command arguments to trim_iq.py script (./trim_iq.py -h ,for help)
 * v5.20: "directTDoA_v5.xx" now displayed on the KiwiSDR target's userlist when connected + simplification of the node rec-list management + adding a checkbox to automatically start (or not) _compute_ultimate.py_ script when "Stop Rec" button is clicked + extra command on KiwiSDR first line popup to add the node even if it has _fixes_min=0_
          + new _has_gps_ routine in both _plot_iq.py_ & _compute_ultimate.py_ + bug fix: regexp wrongly detecting LON + bug fix: if Sorcerer TCP client checkbox is unchecked while recording, no more endless record session.
+* v6.00: Listen mode (AM/LSB/USB) is back + some python 2 Vs. python 3 bug fixes + bug fixed on map update process + .desktop files creation removed
 ## Thanks
 * Christoph Mayer @ https://github.com/hcab14/TDoA for the main TDoA code, excellent work and thanks for the public release !
 * John Seamons, KiwiSDR developper @ https://github.com/jks-prv

@@ -1,0 +1,4 @@
+Additional World maps are stored here:
+http://81.93.247.141/~linkz/directTDoA/maps/
+
+download them to /maps directory and they will be available in the "Browse map folder"

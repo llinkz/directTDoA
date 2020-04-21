@@ -67,13 +67,11 @@ def plotspectrogram(source):
         no_gps.seek(0, 0)
         data = np.fromfile(no_gps, dtype='int16')
         data = data[0::2] + 1j * data[1::2]
-    # cmap = plt.get_cmap('bone')
     fig, a_x = plt.subplots()
     plt.specgram(data, NFFT=1024, Fs=12000, window=lambda data: data * np.hanning(len(data)), noverlap=512, vmin=10,
                  vmax=200, cmap=COLORMAP)
-    plt.title(
-        source.rsplit("_", 3)[2] + " - [CF=" + str((float(wavfiles.rsplit("_", 3)[1]) / 1000)) + " kHz] - GPS:" + str(
-            has_gps(source)))
+    freq = str((float(wavfiles.rsplit("_", 3)[1]) / 1000))
+    plt.title(source.rsplit("_", 3)[2] + " - [CF=" + freq + " kHz] - GPS:" + str(has_gps(source)))
     plt.xlabel("time (s)")
     plt.ylabel("frequency offset (kHz)")
     ticks = matplotlib.ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x // 1e3))
@@ -85,10 +83,13 @@ def plotspectrogram(source):
 def has_gps(source):
     """ Detect if IQ file has GPS GNSS data (in test). """
     gpslast = 0
-    f = open(source, 'rb')
+    f_wav = open(source, 'rb')
     for i in range(2118, os.path.getsize(source), 2074):
-        f.seek(i)
-        gpslast = max(gpslast, ord(f.read(1)[0]))
+        f_wav.seek(i)
+        if sys.version_info[0] < 3:
+            gpslast = max(gpslast, ord(f_wav.read(1)[0]))
+        else:
+            gpslast = max(gpslast, f_wav.read(1)[0])
     return 0 < gpslast < 254
 
 

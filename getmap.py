@@ -10,71 +10,70 @@ import json
 import glob
 import re
 import threading
-import requests
 import shutil
 from io import BytesIO
+import requests
+from PIL import Image, ImageDraw, ImageFont
 if sys.version_info[0] == 2:
     import urllib
 else:
     import urllib.parse
 
-from PIL import Image, ImageDraw, ImageFont
-
-# Mapbox map styles :
+# <map-style> :
 # streets-v11 / outdoors-v11 / light-v10 / dark-v10
 # satellite-v9 / satellite-streets-v11
 # navigation-preview-day-v4 / navigation-preview-night-v4
 # navigation-guidance-day-v4 / navigation-guidance-night-v4
 
-map_token = "pk.eyJ1IjoibGxpbmt6IiwiYSI6ImNrM3JzMzE4ZTBlY3gzZXM1MnR5ODZrcnAifQ.fdqW8wmA7qhPYzFsGufZXg"
-data_l = []
-nb_of_file = 0
-mapbox_zoom = {'2': [0, 0], '4': [900, 0], '6': [0, 600], '8': [900, 600]}
-nb_of_nodes = len(glob.glob1(sys.argv[6].rsplit(os.sep, 1)[0], "*.wav"))
-fnt = ImageFont.truetype('Pillow/Tests/fonts/DejaVuSans.ttf', 18)
-new_image = Image.new("RGB", (1800, 1200))
+MAP_TOK = "pk.eyJ1IjoibGxpbmt6IiwiYSI6ImNrM3JzMzE4ZTBlY3gzZXM1MnR5ODZrcnAifQ.fdqW8wmA7qhPYzFsGufZXg"
+DATA_L = []
+MAPBOX_ZOOM = {'2': [0, 0], '4': [900, 0], '6': [0, 600], '8': [900, 600]}
+NB_OF_NODES = len(glob.glob1(sys.argv[6].rsplit(os.sep, 1)[0], "*.wav"))
+NB_OF_FILES = 0
+FONT = ImageFont.truetype('Pillow/Tests/fonts/DejaVuSans.ttf', 18)
+NEW_IMAGE = Image.new("RGB", (1800, 1200))
 
 for wavfiles in glob.glob(sys.argv[6].rsplit(os.sep, 1)[0] + os.sep + "*.wav"):
     for gnssfiles in glob.glob("gnss_pos/*.txt"):
         if wavfiles.rsplit("_", 2)[1] + ".txt" == gnssfiles.rsplit(os.sep, 2)[1]:
-            data_latlon = {}
+            DATA_LATLON = {}
             filent2 = open("gnss_pos/" + gnssfiles.rsplit(os.sep, 2)[1], 'r')
             data2 = filent2.readlines()
-            data_latlon['lon'] = data2[0].rsplit("[", 1)[1].rsplit("]", 1)[0].rsplit(",", 1)[1]
-            data_latlon['lat'] = data2[0].rsplit("[", 1)[1].rsplit("]", 1)[0].rsplit(",", 1)[0]
-            data_latlon['size'] = "small"
-            data_latlon['symbol'] = "triangle"
+            DATA_LATLON['lon'] = data2[0].rsplit("[", 1)[1].rsplit("]", 1)[0].rsplit(",", 1)[1]
+            DATA_LATLON['lat'] = data2[0].rsplit("[", 1)[1].rsplit("]", 1)[0].rsplit(",", 1)[0]
+            DATA_LATLON['size'] = "small"
+            DATA_LATLON['symbol'] = "triangle"
             filent = open(os.getcwd() + os.sep + "proc_tdoa_" +
-                          str(float(sys.argv[6].rsplit("_F", 1)[1].rsplit("/", 1)[0]) * 1000).rsplit(".", 1)[0] + ".m",
-                          'r')
+                          str(float(sys.argv[6].rsplit("_F", 1)[1].rsplit(os.sep, 1)[0]) * 1000).rsplit(".", 1)[
+                              0] + ".m", 'r')
             if wavfiles.rsplit("_", 2)[1] in filent.read():
-                data_latlon['color'] = "#ff0"
-                data_l.append(data_latlon)
-            elif nb_of_nodes <= 22:
-                data_latlon['color'] = "#999"
-                data_l.append(data_latlon)
+                DATA_LATLON['color'] = "#ff0"
+                DATA_L.append(DATA_LATLON)
+            elif NB_OF_NODES <= 22:
+                DATA_LATLON['color'] = "#999"
+                DATA_L.append(DATA_LATLON)
 
 # TDoA coordinates and style
-data_latlon = dict()
-data_latlon['lon'] = sys.argv[2]
-data_latlon['lat'] = sys.argv[1]
-data_latlon['size'] = "medium"
-data_latlon['color'] = "#d00"
-data_latlon['symbol'] = ""
-data_l.append(data_latlon)
+DATA_LATLON = dict()
+DATA_LATLON['lon'] = sys.argv[2]
+DATA_LATLON['lat'] = sys.argv[1]
+DATA_LATLON['size'] = "medium"
+DATA_LATLON['color'] = "#d00"
+DATA_LATLON['symbol'] = ""
+DATA_L.append(DATA_LATLON)
 
 # Known point coordinates and style (if filled)
 if sys.argv[3] != "0" and sys.argv[4] != "0":
-    data_latlon = dict()
-    data_latlon['lon'] = sys.argv[4]
-    data_latlon['lat'] = sys.argv[3]
-    data_latlon['size'] = "small"
-    data_latlon['color'] = "#f70"
-    data_latlon['symbol'] = "star"
-    data_l.append(data_latlon)
+    DATA_LATLON = dict()
+    DATA_LATLON['lon'] = sys.argv[4]
+    DATA_LATLON['lat'] = sys.argv[3]
+    DATA_LATLON['size'] = "small"
+    DATA_LATLON['color'] = "#f70"
+    DATA_LATLON['symbol'] = "star"
+    DATA_L.append(DATA_LATLON)
 
 # Mapbox's geojson maker
-geojson = {
+GEOJSON = {
     "type": "FeatureCollection",
     "features": [
         {
@@ -88,41 +87,41 @@ geojson = {
                 "marker-color": d["color"],
                 "marker-symbol": d["symbol"]
             },
-        } for d in data_l]
+        } for d in DATA_L]
 }
 
 # Remove double-quotes on coordinates and convert json to url-style
-geojson = re.sub('\"(-?\d+(\.\d+)?)\"', r'\1', json.dumps(geojson))
+GEOJSON = re.sub(r'\"(-?\d+(\.\d+)?)\"', r'\1', json.dumps(GEOJSON))
 if sys.version_info[0] == 2:
-    geojson = urllib.quote(geojson)
+    GEOJSON = urllib.quote(GEOJSON)
 else:
-    geojson = urllib.parse.quote(geojson)
+    GEOJSON = urllib.parse.quote(GEOJSON)
 
 
-class CurlCmd(threading.Thread):
+class GetMaps(threading.Thread):
     """ Curl processing routine """
 
     def __init__(self, zooming=None, x=None, y=None):
-        super(CurlCmd, self).__init__()
+        super(GetMaps, self).__init__()
         self.zoom2 = zooming
         self.x_pos = x
         self.y_pos = y
 
     def run(self):
-        global nb_of_file
-        r = requests.get("https://api.mapbox.com/styles/v1/mapbox/" +
-                         sys.argv[5] + "/static/geojson(" + geojson + ')/' +
-                         sys.argv[2] + ',' + sys.argv[1] + "," + self.zoom2 + "/900x600?access_token=" +
-                         map_token, timeout=2, stream=True)
-        if r.status_code == 200:
+        global NB_OF_FILES
+        req = requests.get(
+            "https://api.mapbox.com/styles/v1/mapbox/" + sys.argv[5] + "/static/geojson(" + GEOJSON + ')/' + sys.argv[
+                2] + ',' + sys.argv[1] + "," + self.zoom2 + "/900x600?access_token=" + MAP_TOK, timeout=2,
+            stream=True)
+        if req.status_code == 200:
             new_pic = BytesIO()
-            r.raw.decode_content = True
-            shutil.copyfileobj(r.raw, new_pic)
+            req.raw.decode_content = True
+            shutil.copyfileobj(req.raw, new_pic)
             img = Image.open(new_pic)
-            new_image.paste(img, (self.x_pos, self.y_pos))
-            nb_of_file += 1
-            if nb_of_file == 4:
-                draw = ImageDraw.Draw(new_image)
+            NEW_IMAGE.paste(img, (self.x_pos, self.y_pos))
+            NB_OF_FILES += 1
+            if NB_OF_FILES == 4:
+                draw = ImageDraw.Draw(NEW_IMAGE)
                 draw.line((900, 0, 900, 1200), fill="#000")
                 draw.line((0, 600, 1800, 600), fill="#000")
                 text_length = 10.5 * len(sys.argv[1] + " " + sys.argv[2])
@@ -132,15 +131,15 @@ class CurlCmd(threading.Thread):
                 draw.polygon([(395, 855), (395, 835), (395 + text_length, 835), (395 + text_length, 855)], fill="#222")
                 draw.polygon([(1295, 855), (1295, 835), (1295 + text_length, 835), (1295 + text_length, 855)],
                              fill="#222")
-                [(draw.text((x, y), sys.argv[1] + " " + sys.argv[2], fill="#fff", font=fnt)) for x in [400, 1300] for y
+                [(draw.text((x, y), sys.argv[1] + " " + sys.argv[2], fill="#fff", font=FONT)) for x in [400, 1300] for y
                  in [235, 835]]
-                new_image.save(sys.argv[6].replace("_[[]", "_[").replace("[]]_", "]_").replace(".png", ".pdf"), "PDF",
-                               resolution=144, append_images=[new_image])
+                NEW_IMAGE.save(sys.argv[6].replace("_[[]", "_[").replace("[]]_", "]_").replace(".png", ".pdf"), "PDF",
+                               resolution=144, append_images=[NEW_IMAGE])
 
 
 if sys.version_info[0] == 2:
-    for zoom, placement in mapbox_zoom.iteritems():
-        CurlCmd(zoom, placement[0], placement[1]).start()
+    for zoom, placement in MAPBOX_ZOOM.iteritems():
+        GetMaps(zoom, placement[0], placement[1]).start()
 else:
-    for zoom, placement in mapbox_zoom.items():
-        CurlCmd(zoom, placement[0], placement[1]).start()
+    for zoom, placement in MAPBOX_ZOOM.items():
+        GetMaps(zoom, placement[0], placement[1]).start()

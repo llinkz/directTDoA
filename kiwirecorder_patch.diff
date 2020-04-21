@@ -1,0 +1,127 @@
+--- kiwirecorder.py	2020-04-19 22:07:10.613484893 +0000
++++ kiwirecorder.py	2020-04-19 22:05:07.786030210 +0000
+@@ -10,6 +10,10 @@
+ from kiwi import KiwiSDRStream, KiwiWorker
+ from optparse import OptionParser
+ from optparse import OptionGroup
++import sounddevice
++
++stream = sounddevice.OutputStream(12000, 2048, channels=1, dtype='int16')
++stream.start()
+ 
+ HAS_RESAMPLER = True
+ try:
+@@ -151,8 +155,10 @@
+             # For AM, ignore the low pass filter cutoff
+             lp_cut = -hp_cut if hp_cut is not None else hp_cut
+         self.set_mod(mod, lp_cut, hp_cut, self._freq)
+-        if self._options.agc_gain != None:
+-            self.set_agc(on=False, gain=self._options.agc_gain)
++        if self._options.agc_gain is not None:
++            self.set_agc(on=False, gain=self._options.agc_gain[0], hang=self._options.agc_gain[1],
++                         thresh=self._options.agc_gain[2], slope=self._options.agc_gain[3],
++                         decay=self._options.agc_gain[4])
+         else:
+             self.set_agc(on=True)
+         if self._options.compression is False:
+@@ -270,31 +276,34 @@
+                 _write_wav_header(fp, filesize, int(self._output_sample_rate), self._num_channels, self._options.is_kiwi_wav)
+ 
+     def _write_samples(self, samples, *args):
+-        """Output to a file on the disk."""
+-        now = time.gmtime()
+-        sec_of_day = lambda x: 3600*x.tm_hour + 60*x.tm_min + x.tm_sec
+-        dt_reached = self._options.dt != 0 and self._start_ts is not None and sec_of_day(now)//self._options.dt != sec_of_day(self._start_ts)//self._options.dt
+-        if self._start_ts is None or (self._options.filename == '' and dt_reached):
+-            self._start_ts = now
+-            self._start_time = time.time()
+-            # Write a static WAV header
+-            with open(self._get_output_filename(), 'wb') as fp:
+-                _write_wav_header(fp, 100, int(self._output_sample_rate), self._num_channels, self._options.is_kiwi_wav)
+-            if self._options.is_kiwi_tdoa:
+-                # NB: MUST be a print (i.e. not a logging.info)
+-                print("file=%d %s" % (self._options.idx, self._get_output_filename()))
+-            else:
+-                logging.info("Started a new file: %s" % self._get_output_filename())
+-        with open(self._get_output_filename(), 'ab') as fp:
+-            if self._options.is_kiwi_wav:
+-                gps = args[0]
+-                self._gnss_performance.analyze(self._get_output_filename(), gps)
+-                fp.write(struct.pack('<4sIBBII', b'kiwi', 10, gps['last_gps_solution'], 0, gps['gpssec'], gps['gpsnsec']))
+-                sample_size = samples.itemsize * len(samples)
+-                fp.write(struct.pack('<4sI', b'data', sample_size))
+-            # TODO: something better than that
+-            samples.tofile(fp)
+-        self._update_wav_header()
++        """Output to a file on the disk OR give me sound ! """
++        if self._options.audio:
++            stream.write(np.array(samples, dtype=np.int16))
++        else:
++            now = time.gmtime()
++            sec_of_day = lambda x: 3600*x.tm_hour + 60*x.tm_min + x.tm_sec
++            dt_reached = self._options.dt != 0 and self._start_ts is not None and sec_of_day(now)//self._options.dt != sec_of_day(self._start_ts)//self._options.dt
++            if self._start_ts is None or (self._options.filename == '' and dt_reached):
++                self._start_ts = now
++                self._start_time = time.time()
++                # Write a static WAV header
++                with open(self._get_output_filename(), 'wb') as fp:
++                    _write_wav_header(fp, 100, int(self._output_sample_rate), self._num_channels, self._options.is_kiwi_wav)
++                if self._options.is_kiwi_tdoa:
++                    # NB: MUST be a print (i.e. not a logging.info)
++                    print("file=%d %s" % (self._options.idx, self._get_output_filename()))
++                else:
++                    logging.info("Started a new file: %s" % self._get_output_filename())
++            with open(self._get_output_filename(), 'ab') as fp:
++                if self._options.is_kiwi_wav:
++                    gps = args[0]
++                    self._gnss_performance.analyze(self._get_output_filename(), gps)
++                    fp.write(struct.pack('<4sIBBII', b'kiwi', 10, gps['last_gps_solution'], 0, gps['gpssec'], gps['gpsnsec']))
++                    sample_size = samples.itemsize * len(samples)
++                    fp.write(struct.pack('<4sI', b'data', sample_size))
++                # TODO: something better than that
++                samples.tofile(fp)
++            self._update_wav_header()
+ 
+     def _on_gnss_position(self, pos):
+         pos_record = False
+@@ -371,9 +380,9 @@
+         opt_single.server_host = s
+         opt_single.status = 0
+ 
+-        # time() returns seconds, so add pid and host index to make tstamp unique per connection
++        # time() returns seconds, so add pid and host index to make timestamp unique per connection
+         opt_single.timestamp = int(time.time() + os.getpid() + i) & 0xffffffff
+-        for x in ['server_port', 'password', 'tlimit_password', 'frequency', 'agc_gain', 'filename', 'station', 'user']:
++        for x in ['server_port', 'password', 'tlimit_password', 'frequency', 'filename', 'station', 'user']:
+             opt_single.__dict__[x] = _sel_entry(i, opt_single.__dict__[x])
+         l.append(opt_single)
+         multiple_connections = i
+@@ -567,6 +576,11 @@
+                       default=False,
+                       action='store_true',
+                       help='Also process sound data when in waterfall or S-meter mode (sound connection options above apply)')
++    group.add_option('-a', '--audio',
++                      dest='audio',
++                      default=False,
++                      action='store_true',
++                      help='Get audio output instead of writing to disk (mod by linkz)')
+     parser.add_option_group(group)
+ 
+     group = OptionGroup(parser, "S-meter mode options", "")
+@@ -635,7 +649,7 @@
+             if opt.launch_delay != 0 and i != 0 and options[i-1].server_host == options[i].server_host:
+                 time.sleep(opt.launch_delay)
+             r.start()
+-            #logging.info("started sound recorder %d, tstamp=%d" % (i, options[i].timestamp))
++            #logging.info("started sound recorder %d, timestamp=%d" % (i, options[i].timestamp))
+             logging.info("started sound recorder %d" % i)
+ 
+         for i,r in enumerate(wf_recorders):
+@@ -664,6 +678,7 @@
+ 
+     logging.debug('gc %s' % gc.garbage)
+ 
++
+ if __name__ == '__main__':
+     #import faulthandler
+     #faulthandler.enable()

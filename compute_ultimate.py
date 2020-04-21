@@ -65,7 +65,7 @@ cdict1 = {
              (1.0, 1.0, 1.0)),
 }
 
-cmap = LinearSegmentedColormap('SAColorMap', cdict1, 1024)
+COLORMAP = LinearSegmentedColormap('SAColorMap', cdict1, 1024)
 
 
 class Restart(object):
@@ -85,7 +85,8 @@ class Restart(object):
             os.kill(PROC_PID, signal.SIGTERM)
         except (NameError, OSError):
             pass
-        os.execv(sys.executable, [sys.executable] + sys.argv)
+        APP.destroy()
+        subprocess.call([sys.executable, os.path.abspath(__file__)])
 
 
 class ReadKnownPointFile(object):
@@ -156,7 +157,7 @@ class TrimIQ(threading.Thread):
         APP.gui.writelog("Click and Drag : Select a time portion of the IQ record that you want to keep.")
         APP.gui.writelog("Click to close window : No changes on the entire IQ recording.")
         APP.gui.writelog("One click on the spectrogram OR less than 2 seconds selected : Deletes the IQ recording.")
-        subprocess.call(['python', 'trim_iq.py'], cwd=self.tdoa_rootdir, shell=False, preexec_fn=os.setsid)
+        subprocess.call(['python', 'trim_iq.py'], cwd=self.tdoa_rootdir, shell=False)
         Restart().run()
 
 
@@ -201,7 +202,7 @@ class PlotIQ(threading.Thread):
         data = data[0::2] + 1j * data[1::2]
         fig, ax = plt.subplots()
         plt.specgram(data, NFFT=1024, Fs=12000, window=lambda data: data * np.hanning(len(data)), noverlap=512, vmin=10,
-                     vmax=200, cmap=cmap)
+                     vmax=200, cmap=COLORMAP)
         gps_status = self.has_gps(source)
         plt.title(source.rsplit("_", 3)[2] + " - [CF=" + str(
             (float(source.rsplit("_", 3)[1]) / 1000)) + " kHz] - GPS:" + str(gps_status))
@@ -238,10 +239,13 @@ class PlotIQ(threading.Thread):
     def has_gps(self, source):
         """ Detect if IQ file has GPS GNSS data (in test). """
         gpslast = 0
-        f = open(source, 'rb')
+        f_wav = open(source, 'rb')
         for i in range(2118, os.path.getsize(source), 2074):
-            f.seek(i)
-            gpslast = max(gpslast, ord(f.read(1)[0]))
+            f_wav.seek(i)
+            if sys.version_info[0] < 3:
+                gpslast = max(gpslast, ord(f_wav.read(1)[0]))
+            else:
+                gpslast = max(gpslast, f_wav.read(1)[0])
         return 0 < gpslast < 254
 
 
@@ -258,17 +262,15 @@ class OctaveProcessing(threading.Thread):
         global PROC_PID  # stdout
         octave_errors = [b'index-out-of-bounds', b'< 2 good stations found', b'Octave:nonconformant - args',
                          b'n_stn=2 is not supported', b'resample.m: p and q must be positive integers',
-                         b'Octave:invalid-index']
+                         b'Octave:invalid-index', b'incomplete \'data\' chunk']
         if sys.version_info[0] == 2:
             tdoa_filename = self.m_file_to_process
-            proc = subprocess.Popen(['octave-cli', tdoa_filename], cwd=self.tdoa_rootdir,
-                                    stderr=subprocess.STDOUT,
-                                    stdout=subprocess.PIPE, shell=False, preexec_fn=os.setsid)
+            proc = subprocess.Popen(['octave-cli', tdoa_filename], cwd=self.tdoa_rootdir, stderr=subprocess.STDOUT,
+                                    stdout=subprocess.PIPE, shell=False)
         else:
             tdoa_filename = self.m_file_to_process.replace(".m", "")
             proc = subprocess.Popen(['octave-cli', '--eval', tdoa_filename], cwd=self.tdoa_rootdir,
-                                    stderr=subprocess.STDOUT,
-                                    stdout=subprocess.PIPE, shell=False, preexec_fn=os.setsid)
+                                    stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=False)
         PROC_PID = proc.pid
         if PROC_PID:
             APP.gui.writelog("ultimateTDoA process started.")
@@ -1049,7 +1051,7 @@ class MainWindow(Frame):
             else:
                 self.label3.configure(text="LAT: " + str(
                     my_info2[my_info1.index(event.widget.get(event.widget.curselection()))]) + " LON: " + str(
-                    my_info3[my_info1.index(event.widget.get(event.widget.curselection()))]))
+                        my_info3[my_info1.index(event.widget.get(event.widget.curselection()))]))
                 selectedlat = str(my_info2[my_info1.index(event.widget.get(event.widget.curselection()))])
                 selectedlon = str(my_info3[my_info1.index(event.widget.get(event.widget.curselection()))])
                 selectedcity = event.widget.get(event.widget.curselection())
@@ -1153,7 +1155,7 @@ class MainWindow(Frame):
                     f = open(newfile, 'w')
                     f.write(file_d)
                     f.close()
-                    PlotIQ(None, 1, file_list).start()
+                    PlotIQ(None, 1, file_list).run()
                     OctaveProcessing(os.path.basename(mfile).replace("empty", "m"), tdoa_rootdir, logfile).start()
                     self.compute_button.configure(text="Abort TDoA")
                     tdoa_in_progress = 1

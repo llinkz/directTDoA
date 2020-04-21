@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""" DirectTDoA python code. """
+""" DirectTDoA python code. linux and MacOS only """
 
 # python 2/3 compatibility
 from __future__ import print_function
@@ -43,7 +43,7 @@ else:
     from tkinter.colorchooser import askcolor
     from tkinter.simpledialog import askstring, askinteger
 
-VERSION = "directTDoA v5.20"
+VERSION = "directTDoA v6.00"
 
 
 class Restart(object):
@@ -58,16 +58,20 @@ class Restart(object):
     @staticmethod
     def run():
         """ GUI Restart routine. """
-        # global PROC_PID, PROC2_PID
         try:  # to kill octave-cli process if exists
             os.kill(PROC_PID, signal.SIGTERM)
         except (NameError, OSError):
             pass
         try:  # to kill kiwirecorder.py process if exists
-            os.kill(PROC2_PID, signal.SIGTERM)
+            os.kill(PROC2_PID, signal.SIGINT)
         except (NameError, OSError):
             pass
-        os.execv(sys.executable, [sys.executable] + sys.argv)  # restart directTDoA.py
+        try:  # to kill kiwirecorder.py in LISTENING MODE
+            os.kill(kiwisdrclient_pid, signal.SIGINT)
+        except (NameError, OSError):
+            pass
+        APP.destroy()
+        subprocess.call([sys.executable, os.path.abspath(__file__)])
 
 
 class ReadKnownPointFile(object):
@@ -237,7 +241,7 @@ class RunUpdate(threading.Thread):
             nodelist = requests.get("http://rx.linkfanel.net/kiwisdr_com.js")
             # Convert that listing to fit a JSON format (also removing bad/incomplete node entries)
             kiwilist = re.sub(r"{\n(.*?),\n(.*?),\n\t\},", "", re.sub(r"},\n]\n;", "\t}\n]", re.sub(
-                r"(//.+\n){4}\n.+", "", nodelist.text, 0), 0), 0)
+                r"(//.+\n)+\n.+", "", nodelist.text, 0), 0), 0)
             json_data = json.loads(kiwilist)
             # Get the SNR list from linkfanel website
             snrlist = requests.get("http://rx.linkfanel.net/snr.js")
@@ -363,8 +367,8 @@ class StartRecording(threading.Thread):
                                   ','.join(str(p).rsplit('$')[1] for p in which_list),
                                   '--station=' + ','.join(str(p).rsplit('$')[3] for p in which_list), '-f',
                                   str(FREQUENCY), '-L', str(0 - lpcut), '-H', str(hpcut), '-m', 'iq', '-u',
-                                  VERSION.replace(' ', '_'), '-w', '-d', os.path.join('TDoA', 'iq')], stdout=PIPE,
-                                 shell=False, preexec_fn=os.setsid)
+                                  VERSION.replace(' ', '_') + "_(record)", '-w', '-d', os.path.join('TDoA', 'iq')],
+                                 stdout=PIPE, shell=False)
         self.parent.writelog(which_action)
         PROC2_PID = proc2.pid
         # debug command line
@@ -417,8 +421,7 @@ class PlotIQ(threading.Thread):
     def run(self):
         run_dir = os.path.join('TDoA', 'iq') + os.sep + starttime + tdoa_mode + str(FREQUENCY) + os.sep
         with open(os.devnull, 'w') as fp:
-            subprocess.call(['python', 'plot_iq.py'], cwd=os.path.join(run_dir), shell=False, stdout=fp,
-                            preexec_fn=os.setsid)
+            subprocess.call(['python', 'plot_iq.py'], cwd=os.path.join(run_dir), shell=False, stdout=fp)
 
 
 class ComputeUltimate(threading.Thread):
@@ -430,8 +433,7 @@ class ComputeUltimate(threading.Thread):
     def run(self):
         run_dir = os.path.join('TDoA', 'iq') + os.sep + starttime + tdoa_mode + str(FREQUENCY)
         with open(os.devnull, 'w') as fp:
-            subprocess.call(['python', 'compute_ultimate.py'], cwd=os.path.join(run_dir), shell=False, stdout=fp,
-                            preexec_fn=os.setsid)
+            subprocess.call(['python', 'compute_ultimate.py'], cwd=os.path.join(run_dir), shell=False, stdout=fp)
 
 
 class OctaveProcessing(threading.Thread):
@@ -445,17 +447,17 @@ class OctaveProcessing(threading.Thread):
         # tdoa_filename = "proc_tdoa_" + KHZ_FREQ  # + ".m"
         octave_errors = [b'index-out-of-bounds', b'< 2 good stations found', b'Octave:nonconformant - args',
                          b'n_stn=2 is not supported', b'resample.m: p and q must be positive integers',
-                         b'Octave:invalid-index']
+                         b'Octave:invalid-index', b'incomplete \'data\' chunk']
         if sys.version_info[0] == 2:
             tdoa_filename = "proc_tdoa_" + KHZ_FREQ + ".m"
             proc = subprocess.Popen(['octave-cli', tdoa_filename], cwd=os.path.join('TDoA'),
                                     stderr=subprocess.STDOUT,
-                                    stdout=subprocess.PIPE, shell=False, preexec_fn=os.setsid)
+                                    stdout=subprocess.PIPE, shell=False)
         else:
             tdoa_filename = "proc_tdoa_" + KHZ_FREQ
             proc = subprocess.Popen(['octave-cli', '--eval', tdoa_filename], cwd=os.path.join('TDoA'),
                                     stderr=subprocess.STDOUT,
-                                    stdout=subprocess.PIPE, shell=False, preexec_fn=os.setsid)
+                                    stdout=subprocess.PIPE, shell=False)
         PROC_PID = proc.pid
         logfile = open(os.path.join('TDoA', 'iq') + os.sep + starttime + tdoa_mode + str(
             FREQUENCY) + os.sep + "TDoA_" + KHZ_FREQ + "_log.txt", 'w')
@@ -576,34 +578,39 @@ class CheckSnr(threading.Thread):
             print ("Error: unable to retrieve datas from this node")
 
 
-# class StartDemodulation(threading.Thread):
-#     """ Demodulation process. """
-#
-#     def __init__(self, server, port, frequency, modulation):
-#         threading.Thread.__init__(self)
-#         self.s_host = server
-#         self.s_port = port
-#         self.s_freq = frequency
-#         self.s_mod = modulation
-#
-#     def run(self):
-#         global LISTENMODE, kiwisdrclient_pid
-#         try:
-#             # '-g', '1', '50', '0', '-100', '6', '1000'  <==== static AGC settings
-#             # 1= AGC (on)  50=Manual Gain (dB) 0=Hang (off)
-#             # -100=Threshold (dB) 6=Slope (dB) 1000=Decay (ms)
-#             # -L and -H are demod filters settings, override by kiwiSDRclient.py (BW=3600Hz)
-#             proc8 = subprocess.Popen(
-#                 [sys.executable, 'KiwiSDRclient.py', '-s', self.s_host, '-p', self.s_port, '-f', self.s_freq, '-m',
-#                  self.s_mod, '-L', '0', '-H', '5000', '-g', '1', '50', '0', '-100', '6', '1000'], stdout=PIPE,
-#                 shell=False)
-#             kiwisdrclient_pid = proc8.pid
-#             LISTENMODE = "1"
-#             APP.gui.writelog(
-#               "Starting Listen mode   [ " + self.s_host + " / " + self.s_freq + " kHz / " + self.s_mod.upper() + " ]")
-#         except Exception as demodulation_Error:
-#             print ("Unable to demodulate this node - Error: " + str(demodulation_Error))
-#             LISTENMODE = "0"
+class StartDemodulation(threading.Thread):
+    """ Demodulation process. """
+
+    def __init__(self, server, port, frequency, modulation):
+        threading.Thread.__init__(self)
+        self.s_host = server
+        self.s_port = port
+        self.s_freq = frequency
+        self.s_mod = modulation
+
+    def run(self):
+        global LISTENMODE, kiwisdrclient_pid
+        if self.s_mod == "am":
+            low_cut = "-5000"
+            hi_cut = "5000"
+        elif self.s_mod == "lsb":
+            low_cut = "-3600"
+            hi_cut = "0"
+        else:
+            low_cut = "0"
+            hi_cut = "3600"
+        try:
+            proc8 = subprocess.Popen(
+                [sys.executable, 'kiwiclient' + os.sep + 'kiwirecorder.py', '-s', self.s_host, '-p', self.s_port, '-f',
+                 self.s_freq, '-m', self.s_mod, '-L', low_cut, '-H', hi_cut, '-u',
+                 VERSION.replace(' ', '_') + "_(listen)", '-q', '-a'], stdout=PIPE, shell=False)
+            kiwisdrclient_pid = proc8.pid
+            LISTENMODE = "1"
+            APP.gui.writelog(
+                "Starting Listen mode   [ " + self.s_host + " / " + self.s_freq + " kHz / " + self.s_mod.upper() + " ]")
+        except Exception as demodulation_Error:
+            print ("Unable to demodulate this node - Error: " + str(demodulation_Error))
+            LISTENMODE = "0"
 
 
 class FillMapWithNodes(object):
@@ -961,7 +968,9 @@ class GuiCanvas(Frame):
     def on_button_release(self, event):
         """ When Mouse right button is released (map boundaries set or ultimateTDoA set). """
         global mapboundaries_set, map_preset  # lon_min_map, lon_max_map, lat_min_map, lat_max_map
-        global map_manual, fulllist
+        global map_manual, fulllist, LISTENMODE
+        if LISTENMODE == "1":
+            return
         if (ultimate.get()) == 1:  # ultimateTDoA mode
             APP.gui.purgenode()
             mapboundaries_set = 1
@@ -1104,7 +1113,7 @@ class GuiCanvas(Frame):
                     menu.add_cascade(label=n_field[2] + " is not useful for TDoA" + g_stat + n_stat + s_stat,
                                      background=rbg, foreground=dfg, menu=menu2)
                     menu2.add_command(label="add anyway", background=cbg, foreground=dfg,
-                                      command=lambda *args: self.populate("add", n_field))
+                                      command=lambda *args: self.populate("add", "no", n_field))
                     permit_web = True
                 else:  # All is ok for this node and then, permit extra commands
                     permit_web = True
@@ -1114,12 +1123,12 @@ class GuiCanvas(Frame):
                 if len(matches) != 1 and int(i_node[12]) > 0 and gps_ready:
                     menu.add_command(label="Add " + n_field[2] + " for TDoA process" + g_stat + n_stat + s_stat,
                                      background=cbg, foreground=dfg, font="TkFixedFont 7 bold",
-                                     command=lambda *args: self.populate("add", n_field))
+                                     command=lambda *args: self.populate("add", "no", n_field))
                 # if node IS already in the TDoA node group, allow the REMOVE command
                 elif len(matches) == 1:
                     menu.add_command(label="Remove " + n_field[2] + " from TDoA process" + g_stat + n_stat + s_stat,
                                      background=cbg, foreground=dfg, font="TkFixedFont 7 bold",
-                                     command=lambda: self.populate("del", n_field))
+                                     command=lambda: self.populate("del", "no", n_field))
             except IndexError as wrong_status:
                 menu.add_command(label=n_field[2] + " is not available. (proxy.kiwisdr.com error)", background=rbg,
                                  foreground=dfg, command=None)
@@ -1150,20 +1159,19 @@ class GuiCanvas(Frame):
                              command=lambda: self.openinbrowser(1, APP.gui.freq_input.get()))
             menu.add_command(label="Open " + n_field[1] + "/status", background=cbg, foreground=dfg,
                              command=lambda: self.openinbrowser(2, None))
-            # parts removed because of python3 compatibility not created yet
-            # if LISTENMODE == "0":
-            #     # Add demodulation process line
-            #     menu.add_cascade(label="Listen to that frequency using " + n_field[2], state=NORMAL, background=cbg,
-            #                      foreground=dfg, menu=menu2)
-            #     menu2.add_command(label="USB", background=cbg, foreground=dfg,
-            #                       command=lambda *args: self.listenmode("usb"))
-            #     menu2.add_command(label="LSB", background=cbg, foreground=dfg,
-            #                       command=lambda *args: self.listenmode("lsb"))
-            #     menu2.add_command(label="AM", background=cbg, foreground=dfg,
-            #                       command=lambda *args: self.listenmode("am"))
-            # else:
-            #     menu.add_command(label="Stop Listen Mode", state=NORMAL, background=cbg, foreground=dfg,
-            #                      command=self.stoplistenmode)
+            if LISTENMODE == "0":
+                # Add demodulation process line
+                menu.add_cascade(label="Listen to that frequency using " + n_field[2], state=NORMAL, background=cbg,
+                                 foreground=dfg, menu=menu2)
+                menu2.add_command(label="USB", background=cbg, foreground=dfg,
+                                  command=lambda *args: [self.listenmode("usb"), self.populate("add", "yes", n_field)])
+                menu2.add_command(label="LSB", background=cbg, foreground=dfg,
+                                  command=lambda *args: [self.listenmode("lsb"), self.populate("add", "yes", n_field)])
+                menu2.add_command(label="AM", background=cbg, foreground=dfg,
+                                  command=lambda *args: [self.listenmode("am"), self.populate("add", "yes", n_field)])
+            else:
+                menu.add_command(label="Stop Listen Mode", state=NORMAL, background=cbg, foreground=dfg,
+                                 command=lambda *args: [self.stoplistenmode(), self.populate("del", "yes", n_field)])
         if permit_web:
             menu.add_command(label="Get Waterfall & SNR from " + n_field[2], background=cbg, foreground=dfg,
                              command=CheckSnr(n_field[1]).start)
@@ -1240,30 +1248,36 @@ class GuiCanvas(Frame):
                   str(HOST).rsplit("$", 6)[2]
         webbrowser.open_new(url)
 
-    # @staticmethod
-    # def listenmode(modulation):
-    #     """ Start listen mode process. """
-    #     server_host = str(HOST).rsplit("$", 6)[1].rsplit(":", 2)[0]
-    #     server_port = str(HOST).rsplit("$", 6)[1].rsplit(":", 2)[1]
-    #     server_frequency = APP.gui.freq_input.get()
-    #     demod_thread = StartDemodulation(server_host, server_port, server_frequency, modulation)
-    #     if LISTENMODE == "0":
-    #         demod_thread.start()
-    #     else:
-    #         os.kill(kiwisdrclient_pid, signal.SIGTERM)
-    #         demod_thread.start()
-    #
-    # @staticmethod
-    # def stoplistenmode():
-    #     """ Stop listen mode process. """
-    #     global LISTENMODE
-    #     os.kill(kiwisdrclient_pid, signal.SIGTERM)
-    #     LISTENMODE = "0"
-    #     APP.gui.writelog("Stopping Listen mode")
+    @staticmethod
+    def listenmode(modulation):
+        """ Start listen mode process. """
+        server_host = str(HOST).rsplit("$", 6)[1].rsplit(":", 2)[0]
+        server_port = str(HOST).rsplit("$", 6)[1].rsplit(":", 2)[1]
+        server_frequency = APP.gui.freq_input.get()
+        demod_thread = StartDemodulation(server_host, server_port, server_frequency, modulation)
+        APP.gui.start_rec_button.configure(state="disabled")
+        APP.gui.purge_button.configure(state="disabled")
+        APP.gui.update_button.configure(state="disabled")
+        if LISTENMODE == "0":
+            demod_thread.start()
+        else:
+            os.kill(kiwisdrclient_pid, signal.SIGINT)
+            demod_thread.start()
 
-    def populate(self, action, sel_node_tag):
-        """ TDoA listing node populate/depopulate process. """
-        if action == "add":
+    @staticmethod
+    def stoplistenmode():
+        """ Stop listen mode process. """
+        global LISTENMODE
+        os.kill(kiwisdrclient_pid, signal.SIGINT)
+        LISTENMODE = "0"
+        APP.gui.writelog("Stopping Listen mode")
+        APP.gui.start_rec_button.configure(state="normal")
+        APP.gui.purge_button.configure(state="normal")
+        APP.gui.update_button.configure(state="normal")
+
+    def populate(self, action, listenmode, sel_node_tag):
+        """ TDoA mode / Listen mode listing populate/depopulate process. """
+        if action == "add" and listenmode == "no":
             if len(fulllist) < 6 and (ultimate.get()) == 0:
                 fulllist.append(
                     sel_node_tag[1].rsplit(':')[0] + "$" + sel_node_tag[1].rsplit(':')[1] + "$" + sel_node_tag[
@@ -1276,11 +1290,15 @@ class GuiCanvas(Frame):
                 FillMapWithNodes(self).node_sel_active(sel_node_tag[0])
             else:
                 tkMessageBox.showinfo(title="  ¯\\_(ツ)_/¯", message="6 nodes Maximum !")
-        elif action == "del":
+        elif action == "del" and listenmode == "no":
             fulllist.remove(
                 sel_node_tag[1].rsplit(':')[0] + "$" + sel_node_tag[1].rsplit(':')[1] + "$" + sel_node_tag[0] + "$" +
                 sel_node_tag[2].replace("/", ""))
             FillMapWithNodes(self).node_selection_inactive(sel_node_tag[0])
+        elif action == "add" and listenmode == "yes":
+            FillMapWithNodes(self).node_sel_active(sel_node_tag[0])
+        elif action == "del" and listenmode == "yes":
+            FillMapWithNodes(self).node_selection_inactiveall()
         if fulllist:
             APP.title(VERSION + " - Selected nodes [" + str(len(fulllist)) + "] : " + '/'.join(
                 str(p).rsplit('$')[3] for p in fulllist))
@@ -1485,8 +1503,9 @@ class MainWindow(Frame):
         self.run_ultimate_intf_checkbox = Checkbutton(parent)
         self.run_ultimate_intf_checkbox.place(relx=0.68, rely=0.89, height=21, relwidth=0.077)
         self.run_ultimate_intf_checkbox.configure(bg=BGC, fg=FGC, activebackground=BGC, activeforeground=FGC,
-                                             font="TkFixedFont 8", width=214, selectcolor=BGC, text="run interface",
-                                             anchor="w", state="disabled", variable=runultimateintf)
+                                                  font="TkFixedFont 8", width=214, selectcolor=BGC,
+                                                  text="run interface", anchor="w", state="disabled",
+                                                  variable=runultimateintf)
 
         # TCP Client checkbox (for Sorcerer 2G ALE decoding module)
         self.sorcerer_checkbox = Checkbutton(parent)
@@ -1822,110 +1841,13 @@ class MainWindow(Frame):
 
     @staticmethod
     def help():
-        """ Help menu text. """
-        master = Tk()
-        help_msg = Message(master, text="""
-    *** Regular TDoA runs (from 3 to 6 simultaneous KiwiSDR choosed):
-    
-    1/ Press and hold Left-Mouse button to drag the World Map to the desired location
-    2/ Enter the FREQUENCY, between 0 and 30000 (kHz)
-    3/ Choose from the top bar menu a specific bandwidth for the IQ recordings if necessary (default is in config file)
-    4/ Choose KiwiSDR nodes by Left-Mouse click on and select \"Add:\" command to add them to the list
-    5/ You can remove undesired nodes from the list using the \"Remove:\" command
-    6/ Hold Right-Mouse button to set the TDoA computed map geographical boundaries
-       or select one of the presets from the top bar menu, you can cancel by drawing again by hand
-    7/ Type some text in the bottom left box to search for a city or TX site to display on final TDoA map (if needed)
-    8/ Click Start Recording button and wait for some seconds (Recorded IQ files size are displayed in the right window)
-    9/ Click Start TDoA button and WAIT until the TDoA process stops by itself (it may take some CPU process time!)
-    10/ Calculated TDoA map is automatically displayed as 'Figure1' ghostscript pop-up window and will close by itself
-    11/ A PDF file will be created automatically too, it takes time, so wait for the final pop-up window
-    12/ All TDoA process files (wav/m/pdf) will be automatically saved in a subdirectory of TDoA/iq/
-    
-    Note: You can re-compute TDoA runs, if you want to exclude nodes, change map boundaries or change known location
-          place for example, to do so use the \"./recompute.sh\" script included in each TDoA/iq/ subdirectory.
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    *** UltimateTDoA runs (as much KiwiSDRs as you want):
-    
-    1/ Check the \"ultimateTDoA mode\" box and \"Favorites only\" box if needed
-    2/ Hold Right-Mouse button to drag a selection box and get a node listing of KiwiSDRs found within the area
-    3/ Enter the FREQUENCY, between 0 and 30000 (kHz)
-    4/ Choose from the top bar menu a specific bandwidth for the IQ recordings if necessary (default is in config file)
-    5/ Click Start Recording button and wait for some seconds (Recorded IQ files size are displayed in the right window)
-    6/ Click Stop Recording button when you consider file size are enough for TDoA runs (ideally, more than 200KB)
-    7/ All IQ recordings will be automatically saved in a new subdirectory of TDoA/iq/ and directory window will pop-up
-    8/ Use compute_ultimate.py script to run TDoA processes
-    
-    Note: You can change the map boundaries after step 2, uncheck \"ultimateTDoA mode\" box, set the map boundaries then
-          click the checkbox again before starting the recording process.
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    *** Sorcerer TCP client feature:
-    
-    You can choose to start automatically IQ recordings when 2G ALE is detected in Sorcerer software.
-    1/ In Sorcerer, activate the TCP server in the 2G ALE module using \"Start TCP Server (ANSI)\" menu
-    2/ Choose a TCP port of your choice (only private range is allowed in directTDoA, so from 49152 to 65535)
-    3/ In directTDoA now set the IP and port of the Sorcerer server using the \"TCP settings\" top bar menu
-    4/ Also, choose the <duration> of the IQ recordings using the same menu, consider a value of more than 10 seconds
-    
-    Tune a frequency of your choice in your receiver and adjust the frequency you type in directTDoA accordingly.
-    Choose between regular or ultimate mode to set more than 3 nodes to record, then click the \"sorcerer TCP client\" 
-    checkbox and let the job running alone itself. (checkbox is grayed if no freq typed and less than 3 nodes selected)
-    
-    When 2G ALE waveform will be detected in Sorcerer, directTDoA will automatically start recording on selected nodes  
-    for your choosed <duration>, in seconds. Then the IQ files will be saved and a file containing the 2G ALE IDs and 
-    \"CALL/CLOSING/SOUNDING\" details will be created in same dir in order to keep a trace of what has been recorded.
-    
-    Important note: Sorcerer TCP server is only listening to 127.0.0.1, that means you'll be unable to connect to a 
-    computer running the decoding software from a unix-based remote machine unless you do some network port forwarding.
-    On the Windows machine i use to host Sorcerer i'm using \"trivial_portforward\" micro-software to do this stuff.
-    command line is : \"trivial_portforward.exe <outside-port> 127.0.0.1 <sorcerer TCP server port>\" 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    \"plot_iq.py\" script is included in all subdirectories, it is used to check IQ recording quality by removing
-    GNSS data from the .wav files, creating a spectrogram of each IQ recordings and putting all in a single PNG file
-    To run the script use \"./plot_iq.py\" and wait for the TDoA_<FREQUENCY>_spec.pdf file to be created.
-        
-    \"trim_iq.py\" script is also included in all subdirectories, it is used to trim IQ recordings time by removing
-    undesirable parts, where the signal of interest isn't present.
-    To run the script use \"./trim_iq.py\"
-    """, width=1000, font="TkFixedFont 8", bg="white", anchor="center")
-        help_msg.pack()
+        """ Get Help web page """
+        webbrowser.open('https://github.com/llinkz/directTDoA/wiki/Help')
 
     @staticmethod
     def about():
-        """ About menu text. """
-        master = Tk()
-        about_msg = Message(master, text="""
-    Welcome to """ + VERSION + """
-
-    I've decided to write that python GUI in order to compute the TDoA stuff faster & easier.
-    Please note that I have no credits in all the GNU Octave calculation process (TDoA/ files).
-    Also I have no credits in the all the kiwirecorder codes (kiwiclient/* files).
-
-    A backup copy of processed ".wav", ".m", ".pdf" files is automatically made in a TDoA/iq/ subdirectory
-    Check TDoA/iq/<UTC-timeofprocess>_F<frequency>/ to find your files.
-    You can compute again your IQ recordings, to do so, just run the ./recompute.sh script
-    
-    The World map is static, click UPDATE button to get an updated node list, only GPS enabled nodes are displayed
-    KiwiSDR node informations are retrieved in real time when node square icon is clicked on the map
-    
-    If you wish to add some non-public nodes, fill the "directTDoA_static_server_list.db" json file, don't forget to
-    add "," at the end of each line (but not on the last one !)
-    
-    Thanks:   
-    John Seamons, KiwiSDR developper @ https://github.com/jks-prv
-    Christoph Mayer @ https://github.com/hcab14/TDoA for TDoA code, excellent work and thanks for the public release !
-    Dmitry Janushkevich @ https://github.com/dev-zzo/kiwiclient for the code that I've modified to work with the GUI 
-    Marco Cogoni (IS0KYB) for the microkiwi_waterfall.py code that I've modified to work directly via python
-    James Gibbard, Maxim and Bernhard Wagner (stackoverflow.com users) for some parts of code I've used in plot_iq.py
-    Nicolas M. for the MAC OS X directTDoA installing procedure
-    Pierre Ynard (linkfanel) KiwiSDR nodes and SNR listing used as source for the update process (rx.linkfanel.net)
-    Daniel Ekmann, naturally designated as beta tester, for the help on coding, feedback and suggestion since beginning
-    And.. Thanks to all KiwiSDR hosts with GPS activated and decent RX on both HF & GPS freqs...
-    
-    linkz 
-    
-    feedback, features request or help : contact me at ounaid at gmail dot com or IRC freenode #wunclub / #priyom
-    """, width=1000, font="TkFixedFont 8", bg="white", anchor="center")
-        about_msg.pack()
+        """ Get About web page """
+        webbrowser.open('https://github.com/llinkz/directTDoA/wiki')
 
     def map_preset(self, pmap):
         """ Map boundaries static presets. """
@@ -2213,7 +2135,7 @@ class MainWindow(Frame):
         tdoa_mode = "_" + ("U" if ultimate.get() == 1 else "S") + ("A" if sorcerer.get() == 1 else "") + "_F"
         try:
             if rec_in_progress == 1:  # stop rec process
-                os.kill(PROC2_PID, signal.SIGTERM)  # kills the kiwirecorder.py process
+                os.kill(PROC2_PID, signal.SIGINT)  # kills the kiwirecorder.py process
                 time.sleep(0.5)
                 rec_in_progress = 0
                 self.start_rec_button.configure(text="Start recording")
@@ -2232,7 +2154,7 @@ class MainWindow(Frame):
                         if sorcerer.get() != 1 and runultimateintf.get() == 1:
                             ComputeUltimate().start()
                     except ValueError as ultimate_failure:
-                        print (ultimate_failure)
+                        print(ultimate_failure)
 
             else:  # start rec process
                 if (ultimate.get()) == 0 and mapboundaries_set is None:
@@ -2283,7 +2205,10 @@ class MainWindow(Frame):
 
         else:  # Start TDoA process
             tdoa_in_progress = 1
-            os.kill(PROC2_PID, signal.SIGTERM)  # kills the kiwirecorder.py process
+            try:  # to kill kiwirecorder.py
+                os.kill(PROC2_PID, signal.SIGINT)
+            except (NameError, OSError):
+                pass
             self.start_rec_button.configure(text="", state="disabled")
             self.start_tdoa_button.configure(text="Abort TDoA proc")
             if rec_in_progress == 1:
@@ -2318,7 +2243,7 @@ class MainWindow(Frame):
         proc_m_name = os.path.join('TDoA') + os.sep + "proc_tdoa_" + str(firstfile.split("_", 2)[1].split("_", 1)[0])
         with open(proc_m_name + ".m", "w") as m_file:
             m_file.write("""## -*- octave -*-
-## This file was auto-generated by """ + VERSION + """
+## This file was generated by """ + VERSION + """
 \nfunction [tdoa,input]=proc_tdoa_""" + KHZ_FREQ + """
   exitcode = 0;
   status   = struct;\n
@@ -2414,11 +2339,11 @@ global mlp;
             # Adapt the getmap.py arguments if a known place has been set or not
             if selectedlat == "" or selectedlon == "":
                 m_file.write("""
-[curlcmd] = ["python ", "../getmap.py ", lat, " ", lon, " 0", " 0", " """
+[curlcmd] = ["python ", "..""" + os.sep + """getmap.py ", lat, " ", lon, " 0", " 0", " """
                              + MAP_BOX + """ ", \"""" + run_dir[5:] + """TDoA_Map.png"];""")
             else:
                 m_file.write("""
-[curlcmd] = ["python ", "../getmap.py ", lat, " ", lon, " """
+[curlcmd] = ["python ", "..""" + os.sep + """getmap.py ", lat, " ", lon, " """
                              + str(selectedlat) + """", " """ + str(selectedlon) + """", " """
                              + MAP_BOX + """ ", \"""" + run_dir[5:] + """TDoA_Map.png"];""")
 
@@ -2426,19 +2351,11 @@ global mlp;
 system(curlcmd);
 \n# Merge TDoA result (pdf) + Mapbox (pdf) + plot_iq (pdf) into a single .pdf file
 [gscmd] = ["gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=""" + run_dir[5:] + """TDoA_"""
-                         + str(KHZ_FREQ) + """_", tdoatime, ".pdf pdf/TDoA_""" + str(KHZ_FREQ) + """.pdf """
+                         + str(KHZ_FREQ) + """_", tdoatime, ".pdf pdf""" + os.sep + """TDoA_""" + str(KHZ_FREQ) + """.pdf """
                          + run_dir[5:] + """TDoA_Map.pdf """ + run_dir[5:] + """TDoA_"""
                          + str(KHZ_FREQ) + """_spec.pdf -c \\\"[ /Title (TDoA_"""
                          + str(KHZ_FREQ) + """_", tdoatime, ".pdf) /DOCINFO pdfmark\\\" -f\"];
 system(gscmd);
-\n# Generate .desktop file but only if new coords are different from already existing ones
-[r_file] = ["TDoA_""" + str(KHZ_FREQ) + """_", tdoatime, "_", lat, "_", lon];
-[google] = ["printf \\\"[Desktop Entry]\\012Version=1.0\\012Type=Link\\012Name=", r_file, ".desktop\\012URL=https://www.google.com/maps/search/", lat, "+", lon, "/@", lat, ",", lon, ",8z\\\"", " > """
-                         + run_dir[5:] + """", r_file, ".desktop && chmod +x """
-                         + run_dir[5:] + """", r_file, ".desktop"];
-if isempty(glob(strcat(\"""" + run_dir[5:] + """*", lat, "_", lon, "*"))) == 1
-  system(google);
-endif
 \n# Delete some files
 delete(\"""" + run_dir[5:] + """TDoA_Map.pdf")
 disp("finished");
@@ -2455,15 +2372,13 @@ endfunction
             os.chmod(run_dir + "plot_iq.py", 0o777)
             os.chmod(run_dir + "trim_iq.py", 0o777)
             PlotIQ().start()
-            # subprocess.call(['python', 'plot_iq.py'], cwd=os.path.join(run_dir), shell=False, preexec_fn=os.setsid)
-            # os.remove(run_dir + "plot_iq.py")
         else:
             copyfile(proc_m_name + ".m", run_dir + "proc_tdoa_" + KHZ_FREQ + ".m")
             with open(run_dir + "recompute.sh", "w") as recompute:
-
                 recompute.write("""#!/bin/bash
 ## This script moves *.wav back to iq directory and proc_tdoa_""" + KHZ_FREQ + """.m to
 ## TDoA directory then opens a file editor so you can modify .m file parameters.
+python plot_iq.py
 cp ./*.wav ../
 cp proc_tdoa_""" + KHZ_FREQ + """.m ../../
 cd ../..
@@ -2489,14 +2404,18 @@ class MainW(Tk, object):
 
 def on_closing():
     """ Actions to perform when software is closed using the top-right check button. """
-    # global PROC_PID, PROC2_PID
+
     if tkMessageBox.askokcancel("Quit", "Do you want to quit?"):
         try:  # to kill octave
             os.kill(PROC_PID, signal.SIGTERM)
         except (NameError, OSError):
             pass
         try:  # to kill kiwirecorder.py
-            os.kill(PROC2_PID, signal.SIGTERM)
+            os.kill(PROC2_PID, signal.SIGINT)
+        except (NameError, OSError):
+            pass
+        try:  # to kill kiwirecorder.py in LISTENING MODE
+            os.kill(kiwisdrclient_pid, signal.SIGINT)
         except (NameError, OSError):
             pass
         os.kill(os.getpid(), signal.SIGTERM)

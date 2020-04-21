@@ -169,7 +169,7 @@ if __name__ == '__main__':
     # Run plot_iq.py to get the spectrogram pdf file using the new trimmed files if requested by user
     if ARGS.plot_iq == "y":
         with open(os.devnull, 'w') as fp:
-            subprocess.call(['python', 'plot_iq.py'], shell=False, stdout=fp, preexec_fn=os.setsid)
+            subprocess.call(['python', 'plot_iq.py'], shell=False, stdout=fp)
 
     # Show the spectrogram pdf file if requested by user
     if ARGS.show_result == "y":
