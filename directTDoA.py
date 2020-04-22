@@ -1061,7 +1061,7 @@ class GuiCanvas(Frame):
         HOST = self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0]
         menu = Menu(self, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')
         menu2 = Menu(menu, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # enforce menu
-        # menu2 = Menu(menu, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # demodulation menu
+        menu3 = Menu(menu, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # demod menu
         # mykeys = ['mac', 'url', 'id', 'snr', 'lat', 'lon']
         # n_field    0      1      2     3      4     5
         n_field = HOST.rsplit("$", 6)
@@ -1162,12 +1162,12 @@ class GuiCanvas(Frame):
             if LISTENMODE == "0":
                 # Add demodulation process line
                 menu.add_cascade(label="Listen to that frequency using " + n_field[2], state=NORMAL, background=cbg,
-                                 foreground=dfg, menu=menu2)
-                menu2.add_command(label="USB", background=cbg, foreground=dfg,
+                                 foreground=dfg, menu=menu3)
+                menu3.add_command(label="USB", background=cbg, foreground=dfg,
                                   command=lambda *args: [self.listenmode("usb"), self.populate("add", "yes", n_field)])
-                menu2.add_command(label="LSB", background=cbg, foreground=dfg,
+                menu3.add_command(label="LSB", background=cbg, foreground=dfg,
                                   command=lambda *args: [self.listenmode("lsb"), self.populate("add", "yes", n_field)])
-                menu2.add_command(label="AM", background=cbg, foreground=dfg,
+                menu3.add_command(label="AM", background=cbg, foreground=dfg,
                                   command=lambda *args: [self.listenmode("am"), self.populate("add", "yes", n_field)])
             else:
                 menu.add_command(label="Stop Listen Mode", state=NORMAL, background=cbg, foreground=dfg,
@@ -2023,7 +2023,7 @@ class MainWindow(Frame):
         mapname = tkFileDialog.askopenfilename(initialdir="maps")
         if not mapname or not mapname.lower().endswith(('.png', '.jpg', '.jpeg')):
             tkMessageBox.showinfo("", message="Error, select png/jpg/jpeg files only.")
-            mapname = "maps/directKiwi_map_grayscale_with_sea.jpg"
+            mapname = "maps/directTDoA_map_grayscale_with_sea.jpg"
         SaveCfg().save_cfg("map", "file", "maps/" + os.path.split(mapname)[1])
         SaveCfg().save_cfg("map", "x0", str(b_box2[0]))
         SaveCfg().save_cfg("map", "y0", str(b_box2[1]))
