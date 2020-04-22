@@ -63,11 +63,11 @@ class Restart(object):
         except (NameError, OSError):
             pass
         try:  # to kill kiwirecorder.py process if exists
-            os.kill(PROC2_PID, signal.SIGINT)
+            os.kill(PROC2_PID, signal.SIGTERM)
         except (NameError, OSError):
             pass
         try:  # to kill kiwirecorder.py in LISTENING MODE
-            os.kill(kiwisdrclient_pid, signal.SIGINT)
+            os.kill(kiwisdrclient_pid, signal.SIGTERM)
         except (NameError, OSError):
             pass
         APP.destroy()
@@ -1261,14 +1261,14 @@ class GuiCanvas(Frame):
         if LISTENMODE == "0":
             demod_thread.start()
         else:
-            os.kill(kiwisdrclient_pid, signal.SIGINT)
+            os.kill(kiwisdrclient_pid, signal.SIGTERM)
             demod_thread.start()
 
     @staticmethod
     def stoplistenmode():
         """ Stop listen mode process. """
         global LISTENMODE
-        os.kill(kiwisdrclient_pid, signal.SIGINT)
+        os.kill(kiwisdrclient_pid, signal.SIGTERM)
         LISTENMODE = "0"
         APP.gui.writelog("Stopping Listen mode")
         APP.gui.start_rec_button.configure(state="normal")
@@ -2135,7 +2135,7 @@ class MainWindow(Frame):
         tdoa_mode = "_" + ("U" if ultimate.get() == 1 else "S") + ("A" if sorcerer.get() == 1 else "") + "_F"
         try:
             if rec_in_progress == 1:  # stop rec process
-                os.kill(PROC2_PID, signal.SIGINT)  # kills the kiwirecorder.py process
+                os.kill(PROC2_PID, signal.SIGTERM)  # kills the kiwirecorder.py process
                 time.sleep(0.5)
                 rec_in_progress = 0
                 self.start_rec_button.configure(text="Start recording")
@@ -2206,7 +2206,7 @@ class MainWindow(Frame):
         else:  # Start TDoA process
             tdoa_in_progress = 1
             try:  # to kill kiwirecorder.py
-                os.kill(PROC2_PID, signal.SIGINT)
+                os.kill(PROC2_PID, signal.SIGTERM)
             except (NameError, OSError):
                 pass
             self.start_rec_button.configure(text="", state="disabled")
@@ -2411,11 +2411,11 @@ def on_closing():
         except (NameError, OSError):
             pass
         try:  # to kill kiwirecorder.py
-            os.kill(PROC2_PID, signal.SIGINT)
+            os.kill(PROC2_PID, signal.SIGTERM)
         except (NameError, OSError):
             pass
         try:  # to kill kiwirecorder.py in LISTENING MODE
-            os.kill(kiwisdrclient_pid, signal.SIGINT)
+            os.kill(kiwisdrclient_pid, signal.SIGTERM)
         except (NameError, OSError):
             pass
         os.kill(os.getpid(), signal.SIGTERM)
