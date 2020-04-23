@@ -6,11 +6,15 @@ This software is JUST a python 2/3 GUI designed to compute TDoA runs on shortwav
 
 ## INSTALL AND RUN (on WINDOWS)
 
-#### The decision was made not to support installation from the repository
+##### The decision was made not to support installation from the repository.
 
-Instead, just download [directTDoA-windows.zip](https://github.com/llinkz/directTDoA/releases/download/v6.00/directTDoA-windows.zip), unzip and double-click `directTDoA.bat`
+Download [directTDoA-windows.zip](https://github.com/llinkz/directTDoA/releases/download/v6.00/directTDoA-windows.zip), unzip and extract it to a <strong>non-spaced path location !</strong>
 
-> This archive contains all the necessary files already patched and compiled and also includes light versions of GNU Octave and python, so no need to install the full versions of the last two on your machine. The unzipped archive should be around 300 MB, compared to 2 GB in the other installer way.
+Then double-click on `directTDoA.bat`
+
+#### IMPORTANT: This is the only way to launch the program due to files path problems that may occur.
+
+> Info: this archive contains all the necessary files already patched and compiled and also includes light versions of GNU Octave and python, so no need to install the full versions of the last two on your machine. The unzipped archive is 272 MB, compared to ~2 GB in the other installer way.
 
 ## INSTALL AND RUN (on LINUX)
 
