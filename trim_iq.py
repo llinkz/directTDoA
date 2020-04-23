@@ -13,6 +13,7 @@ import struct
 import os
 import glob
 import shutil
+import platform
 import argparse
 import io
 from io import BytesIO
@@ -173,4 +174,9 @@ if __name__ == '__main__':
 
     # Show the spectrogram pdf file if requested by user
     if ARGS.show_result == "y":
-        subprocess.call(["xdg-open", 'TDoA_' + str(IQfile.rsplit("_", 3)[1]) + '_spec.pdf'])
+        if platform.system() == "Windows":
+            os.system('start' + ' TDoA_' + str(IQfile.rsplit("_", 3)[1]) + '_spec.pdf')
+        elif platform.system() == "Darwin":
+            subprocess.Popen(["open", 'TDoA_' + str(IQfile.rsplit("_", 3)[1]) + '_spec.pdf'])
+        else:
+            subprocess.Popen(["xdg-open", 'TDoA_' + str(IQfile.rsplit("_", 3)[1]) + '_spec.pdf'])

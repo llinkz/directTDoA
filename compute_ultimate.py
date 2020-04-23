@@ -18,6 +18,7 @@ import subprocess
 import threading
 import time
 import struct
+import platform
 from io import BytesIO
 from collections import OrderedDict
 import numpy as np
@@ -85,8 +86,11 @@ class Restart(object):
             os.kill(PROC_PID, signal.SIGTERM)
         except (NameError, OSError):
             pass
-        APP.destroy()
-        subprocess.call([sys.executable, os.path.abspath(__file__)])
+        if platform.system() == "Windows":
+            os.execv(sys.executable, [sys.executable] + sys.argv)
+        else:
+            APP.destroy()
+            subprocess.call([sys.executable, os.path.abspath(__file__)])
 
 
 class ReadKnownPointFile(object):
@@ -335,7 +339,12 @@ class ProcessFinished(threading.Thread):
                     APP.gui.writelog("  " + line.rstrip())
         APP.gui.writelog("TDoA process finished successfully.")
         if open_pdf.get() == 1:
-            subprocess.call(["xdg-open", os.getcwd() + os.sep + sorted(glob.iglob('*.pdf'), key=os.path.getctime)[-1]])
+            if platform.system() == "Windows":
+                os.system('start ' + sorted(glob.iglob('*.pdf'), key=os.path.getctime)[-1])
+            elif platform.system() == "Darwin":
+                subprocess.Popen(["open", os.getcwd() + os.sep + sorted(glob.iglob('*.pdf'), key=os.path.getctime)[-1]])
+            else:
+                subprocess.Popen(["xdg-open", os.getcwd() + os.sep + sorted(glob.iglob('*.pdf'), key=os.path.getctime)[-1]])
         for spec_file in glob.glob(os.getcwd() + os.sep + "*temp.pdf"):
             os.remove(spec_file)
 
@@ -1091,12 +1100,21 @@ class MainWindow(Frame):
         global plot_kiwi_json_new, use_constraints_new, algo_new
         global lon_min_map, lon_max_map, lat_min_map, lat_max_map
         global plot_kiwi_json_origin, use_constraints_origin, algo_origin
-
         global selectedlat, selectedlon, selectedcity
         if tdoa_in_progress == 1:  # Abort TDoA process
             self.purge_button.configure(state="normal")
-            os.kill(PROC_PID, signal.SIGTERM)  # kills the octave process
-            os.system("killall -9 gs")  # and ghostscript
+            try:  # kills the octave process
+                os.kill(PROC_PID, signal.SIGTERM)
+            except (NameError, OSError):
+                pass
+            try:  # and ghostscript
+                if platform.system() == "Windows":
+                    if "gs.exe" in os.popen("tasklist").read():
+                        os.system("taskkill /F /IM gs.exe")
+                else:
+                    os.system("killall -9 gs")
+            except (NameError, OSError):
+                pass
             self.writelog("Octave process has been aborted...")
             tdoa_in_progress = 0
             self.compute_button.configure(text="Compute")

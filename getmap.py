@@ -11,6 +11,7 @@ import glob
 import re
 import threading
 import shutil
+import platform
 from io import BytesIO
 import requests
 from PIL import Image, ImageDraw, ImageFont
@@ -30,7 +31,10 @@ DATA_L = []
 MAPBOX_ZOOM = {'2': [0, 0], '4': [900, 0], '6': [0, 600], '8': [900, 600]}
 NB_OF_NODES = len(glob.glob1(sys.argv[6].rsplit(os.sep, 1)[0], "*.wav"))
 NB_OF_FILES = 0
-FONT = ImageFont.truetype('Pillow/Tests/fonts/DejaVuSans.ttf', 18)
+if platform.system() == "Windows":
+    FONT = ImageFont.truetype(r'C:\Windows\Fonts\arial.ttf', 18)
+else:
+    FONT = ImageFont.truetype('Pillow/Tests/fonts/DejaVuSans.ttf', 18)
 NEW_IMAGE = Image.new("RGB", (1800, 1200))
 
 for wavfiles in glob.glob(sys.argv[6].rsplit(os.sep, 1)[0] + os.sep + "*.wav"):

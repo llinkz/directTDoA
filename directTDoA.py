@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""" DirectTDoA python code. linux and MacOS only """
+""" DirectTDoA python code. """
 
 # python 2/3 compatibility
 from __future__ import print_function
@@ -13,6 +13,7 @@ import json
 import os
 import re
 import signal
+import platform
 import subprocess
 from subprocess import PIPE
 import sys
@@ -100,7 +101,7 @@ class ReadKnownPointFile(object):
 
 
 class ReadCfg(object):
-    """ DirectKiwi configuration file read process. """
+    """ DirectTDoA configuration file read process. """
 
     def __init__(self):
         pass
@@ -362,22 +363,21 @@ class StartRecording(threading.Thread):
         which_action = "IQ Recordings in progress..."
         if (ultimate.get()) == 1:
             which_action = "ultimateTDoA IQ Recordings in progress..."
+        if platform.system() == "Windows":
+            client_type = VERSION + ' [win/record]'
+        elif platform.system() == "Darwin":
+            client_type = VERSION + ' [macOS/record]'
+        else:
+            client_type = VERSION + ' [linux/record]'
         proc2 = subprocess.Popen([sys.executable, 'kiwiclient' + os.sep + 'kiwirecorder.py', '-s',
                                   ','.join(str(p).rsplit('$')[0] for p in which_list), '-p',
                                   ','.join(str(p).rsplit('$')[1] for p in which_list),
                                   '--station=' + ','.join(str(p).rsplit('$')[3] for p in which_list), '-f',
                                   str(FREQUENCY), '-L', str(0 - lpcut), '-H', str(hpcut), '-m', 'iq', '-u',
-                                  VERSION.replace(' ', '_') + "_(record)", '-w', '-d', os.path.join('TDoA', 'iq')],
-                                 stdout=PIPE, shell=False)
+                                  client_type.replace(' ', '_'), '-w', '-d', os.path.join('TDoA', 'iq')], stdout=PIPE,
+                                 shell=False)
         self.parent.writelog(which_action)
         PROC2_PID = proc2.pid
-        # debug command line
-        """self.parent.writelog('Command: kiwirecorder.py -s ' + ','.join(
-            str(p).rsplit('$')[0] for p in which_list) + ' -p ' + ','.join(
-            str(p).rsplit('$')[1] for p in which_list) + ' -station=' + ','.join(
-            str(p).rsplit('$')[3] for p in which_list) + ' -f ' + str(FREQUENCY) + ' -L ' + str(
-            0 - lpcut) + ' -H ' + str(hpcut) + ' -m iq -w')
-        """
 
 
 class CheckFileSize(threading.Thread):
@@ -444,7 +444,6 @@ class OctaveProcessing(threading.Thread):
 
     def run(self):
         global tdoa_position, PROC_PID  # stdout
-        # tdoa_filename = "proc_tdoa_" + KHZ_FREQ  # + ".m"
         octave_errors = [b'index-out-of-bounds', b'< 2 good stations found', b'Octave:nonconformant - args',
                          b'n_stn=2 is not supported', b'resample.m: p and q must be positive integers',
                          b'Octave:invalid-index', b'incomplete \'data\' chunk']
@@ -504,7 +503,12 @@ class ProcessFailed(threading.Thread):
     def run(self):
         global tdoa_in_progress  # TDoA process status
         r_dir = os.path.join('TDoA', 'iq') + os.sep + starttime + tdoa_mode + str(FREQUENCY) + os.sep
-        webbrowser.open(r_dir)
+        if platform.system() == "Windows":
+            webbrowser.open(r_dir)
+        elif platform.system() == "Darwin":
+            subprocess.Popen(["open", r_dir])
+        else:
+            subprocess.Popen(["xdg-open", r_dir])
         APP.gui.start_rec_button.configure(state="normal", text="Start recording")
         APP.gui.start_tdoa_button.configure(state="disabled")
         APP.gui.update_button.configure(state="normal")
@@ -528,7 +532,12 @@ class ProcessFinished(threading.Thread):
         global tdoa_in_progress  # TDoA process status
         r_dir = os.path.join('TDoA', 'iq') + os.sep + starttime + tdoa_mode + str(FREQUENCY) + os.sep
         if auto_run_tdoa.get() == 0:
-            webbrowser.open(r_dir)
+            if platform.system() == "Windows":
+                webbrowser.open(r_dir)
+            elif platform.system() == "Darwin":
+                subprocess.Popen(["open", r_dir])
+            else:
+                subprocess.Popen(["xdg-open", r_dir])
         APP.gui.start_rec_button.configure(state="normal", text="Start recording")
         APP.gui.start_tdoa_button.configure(state="disabled")
         APP.gui.update_button.configure(state="normal")
@@ -600,14 +609,20 @@ class StartDemodulation(threading.Thread):
             low_cut = "0"
             hi_cut = "3600"
         try:
+            if platform.system() == "Windows":
+                client_type = VERSION + ' [win/listen]'
+            elif platform.system() == "Darwin":
+                client_type = VERSION + ' [macOS/listen]'
+            else:
+                client_type = VERSION + ' [linux/listen]'
             proc8 = subprocess.Popen(
                 [sys.executable, 'kiwiclient' + os.sep + 'kiwirecorder.py', '-s', self.s_host, '-p', self.s_port, '-f',
-                 self.s_freq, '-m', self.s_mod, '-L', low_cut, '-H', hi_cut, '-u',
-                 VERSION.replace(' ', '_') + "_(listen)", '-q', '-a'], stdout=PIPE, shell=False)
+                 self.s_freq, '-m', self.s_mod, '-L', low_cut, '-H', hi_cut, '-u', client_type.replace(' ', '_'), '-q',
+                 '-a'], stdout=PIPE, shell=False)
             kiwisdrclient_pid = proc8.pid
             LISTENMODE = "1"
             APP.gui.writelog(
-                "Starting Listen mode   [ " + self.s_host + " / " + self.s_freq + " kHz / " + self.s_mod.upper() + " ]")
+                "Starting Listen mode   [ " + self.s_host + " / " + self.s_freq + " kHz / " + self.s_mod.upper() + " ] - to stop: use same command.")
         except Exception as demodulation_Error:
             print ("Unable to demodulate this node - Error: " + str(demodulation_Error))
             LISTENMODE = "0"
@@ -1061,7 +1076,7 @@ class GuiCanvas(Frame):
         HOST = self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0]
         menu = Menu(self, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')
         menu2 = Menu(menu, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # enforce menu
-        menu3 = Menu(menu, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # demod menu
+        menu3 = Menu(menu, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # demodulation menu
         # mykeys = ['mac', 'url', 'id', 'snr', 'lat', 'lon']
         # n_field    0      1      2     3      4     5
         n_field = HOST.rsplit("$", 6)
@@ -2150,7 +2165,12 @@ class MainWindow(Frame):
                     self.start_tdoa_button.configure(text="", state="disabled")
                     try:
                         r_dir = os.path.join('TDoA', 'iq') + os.sep + starttime + tdoa_mode + str(FREQUENCY)
-                        webbrowser.open(r_dir)
+                        if platform.system() == "Windows":
+                            webbrowser.open(r_dir)
+                        elif platform.system() == "Darwin":
+                            subprocess.Popen(["open", r_dir])
+                        else:
+                            subprocess.Popen(["xdg-open", r_dir])
                         if sorcerer.get() != 1 and runultimateintf.get() == 1:
                             ComputeUltimate().start()
                     except ValueError as ultimate_failure:
@@ -2224,8 +2244,12 @@ class MainWindow(Frame):
     def create_m_file(self):
         """ Octave .m files creation processes. """
         global KHZ_FREQ, ale_file_name, ale_file_data, tdoa_mode
+        if platform.system() == "Windows":
+            os_sep = "\\\\"
+        else:
+            os_sep = os.sep
         iq_files = []
-        run_dir = os.path.join('TDoA', 'iq') + os.sep + starttime + tdoa_mode + str(FREQUENCY) + os.sep
+        run_dir = os.path.join('TDoA', 'iq') + os_sep + starttime + tdoa_mode + str(FREQUENCY) + os_sep
         run_type = "initial"
         os.makedirs(run_dir)
         for iq_file in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
@@ -2243,7 +2267,7 @@ class MainWindow(Frame):
         proc_m_name = os.path.join('TDoA') + os.sep + "proc_tdoa_" + str(firstfile.split("_", 2)[1].split("_", 1)[0])
         with open(proc_m_name + ".m", "w") as m_file:
             m_file.write("""## -*- octave -*-
-## This file was generated by """ + VERSION + """
+## This file was auto-generated by """ + VERSION + """
 \nfunction [tdoa,input]=proc_tdoa_""" + KHZ_FREQ + """
   exitcode = 0;
   status   = struct;\n
@@ -2337,13 +2361,17 @@ global mlp;
 \n# Get Mapbox with the most_likely coordinates of the current TDoA computing""")
 
             # Adapt the getmap.py arguments if a known place has been set or not
+            if platform.system() == "Windows":
+                python_path = '..\\\python\\\python.exe'
+            else:
+                python_path = 'python'
             if selectedlat == "" or selectedlon == "":
                 m_file.write("""
-[curlcmd] = ["python ", "..""" + os.sep + """getmap.py ", lat, " ", lon, " 0", " 0", " """
+[curlcmd] = [\"""" + python_path + """ ", "..""" + os_sep + """getmap.py ", lat, " ", lon, " 0", " 0", " """
                              + MAP_BOX + """ ", \"""" + run_dir[5:] + """TDoA_Map.png"];""")
             else:
                 m_file.write("""
-[curlcmd] = ["python ", "..""" + os.sep + """getmap.py ", lat, " ", lon, " """
+[curlcmd] = [\"""" + python_path + """ ", "..""" + os_sep + """getmap.py ", lat, " ", lon, " """
                              + str(selectedlat) + """", " """ + str(selectedlon) + """", " """
                              + MAP_BOX + """ ", \"""" + run_dir[5:] + """TDoA_Map.png"];""")
 
@@ -2351,7 +2379,7 @@ global mlp;
 system(curlcmd);
 \n# Merge TDoA result (pdf) + Mapbox (pdf) + plot_iq (pdf) into a single .pdf file
 [gscmd] = ["gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=""" + run_dir[5:] + """TDoA_"""
-                         + str(KHZ_FREQ) + """_", tdoatime, ".pdf pdf""" + os.sep + """TDoA_""" + str(KHZ_FREQ) + """.pdf """
+                         + str(KHZ_FREQ) + """_", tdoatime, ".pdf pdf""" + os_sep + """TDoA_""" + str(KHZ_FREQ) + """.pdf """
                          + run_dir[5:] + """TDoA_Map.pdf """ + run_dir[5:] + """TDoA_"""
                          + str(KHZ_FREQ) + """_spec.pdf -c \\\"[ /Title (TDoA_"""
                          + str(KHZ_FREQ) + """_", tdoatime, ".pdf) /DOCINFO pdfmark\\\" -f\"];
@@ -2365,6 +2393,8 @@ endfunction
         time.sleep(0.2)
         if (ultimate.get()) == 1:
             copyfile(proc_m_name + ".m", run_dir + "proc_tdoa_" + KHZ_FREQ + ".empty")
+            if platform.system() == "Windows":
+                copyfile("compute_ultimate.bat", run_dir + "compute_ultimate.bat")
             copyfile("compute_ultimate.py", run_dir + "compute_ultimate.py")
             copyfile('plot_iq.py', run_dir + "plot_iq.py")
             copyfile('trim_iq.py', run_dir + "trim_iq.py")
@@ -2374,23 +2404,40 @@ endfunction
             PlotIQ().start()
         else:
             copyfile(proc_m_name + ".m", run_dir + "proc_tdoa_" + KHZ_FREQ + ".m")
-            with open(run_dir + "recompute.sh", "w") as recompute:
-                recompute.write("""#!/bin/bash
+            if platform.system() == "Windows":
+                with open(run_dir + "recompute.bat", "w") as recompute:
+                    recompute.write(""":: """ + VERSION + """ - Windows recompute TDoA batch file
+:: This script moves *.wav back to iq directory and proc_tdoa_""" + KHZ_FREQ + """.m to
+:: TDoA directory then opens a file editor so you can modify .m file parameters.
+@echo off
+if not exist *spec.pdf ..\..\..\python\python.exe plot_iq.py
+copy *.wav ..\\
+copy proc_tdoa_""" + KHZ_FREQ + """.m ..\..\\
+cd ..\..
+start /W notepad "proc_tdoa_""" + KHZ_FREQ + """.m"
+..\octave\\bin\octave-cli.exe proc_tdoa_""" + KHZ_FREQ + """.m
+del proc_tdoa_""" + KHZ_FREQ + """.m""")
+                recompute.close()
+                copyfile('plot_iq.py', run_dir + "plot_iq.py")
+                copyfile('trim_iq.py', run_dir + "trim_iq.py")
+            else:
+                with open(run_dir + "recompute.sh", "w") as recompute:
+                    recompute.write("""#!/bin/bash
 ## This script moves *.wav back to iq directory and proc_tdoa_""" + KHZ_FREQ + """.m to
 ## TDoA directory then opens a file editor so you can modify .m file parameters.
-python plot_iq.py
+[ ! -f ./TDoA_""" + KHZ_FREQ + """_spec.pdf ] && python plot_iq.py
 cp ./*.wav ../
 cp proc_tdoa_""" + KHZ_FREQ + """.m ../../
 cd ../..
 $EDITOR proc_tdoa_""" + KHZ_FREQ + """.m
 octave-cli """ + ("--eval " if sys.version_info[0] == 3 else "") + """proc_tdoa_""" + KHZ_FREQ + (".m" if sys.version_info[0] == 2 else "") + """
 rm -f proc_tdoa_""" + KHZ_FREQ + """.m""")
-            recompute.close()
-            os.chmod(run_dir + "recompute.sh", 0o777)
-            copyfile('plot_iq.py', run_dir + "plot_iq.py")
-            copyfile('trim_iq.py', run_dir + "trim_iq.py")
-            os.chmod(run_dir + "plot_iq.py", 0o777)
-            os.chmod(run_dir + "trim_iq.py", 0o777)
+                recompute.close()
+                os.chmod(run_dir + "recompute.sh", 0o777)
+                copyfile('plot_iq.py', run_dir + "plot_iq.py")
+                copyfile('trim_iq.py', run_dir + "trim_iq.py")
+                os.chmod(run_dir + "plot_iq.py", 0o777)
+                os.chmod(run_dir + "trim_iq.py", 0o777)
 
 
 class MainW(Tk, object):
