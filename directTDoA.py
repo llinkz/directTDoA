@@ -188,6 +188,7 @@ class RunUpdate(threading.Thread):
 
     def run(self):
         try:
+            tdoa_id_index = 1
             # Get the node list from linkfanel website
             nodelist = requests.get("http://rx.linkfanel.net/kiwisdr_com.js")
             # Convert that listing to fit a JSON format (also removing bad/incomplete node entries)
@@ -229,9 +230,9 @@ class RunUpdate(threading.Thread):
                             except:
                                 pass
                             try:
-                                # Search for a Hamcall in the name, becomes the node ID name if OK
+                                # Search for a Hamcall in the name, becomes the node ID name if OK - first call found.
                                 hamcallfield = re.search(
-                                    r"(.*)(\s|,|/|^)([A-Za-z]{1,2}[0-9][A-Za-z]{1,3})(\s|,|/|@|-)(.*)",
+                                    r"(.*?)(\s|,|/|^)([A-Za-z]{1,2}[0-9][A-Za-z]{1,3})(\s|,|/|@|-)(.*)",
                                     json_data[i]['name'])
                                 node_id = hamcallfield.group(3).upper()
                             except:
@@ -259,6 +260,11 @@ class RunUpdate(threading.Thread):
                                 snr_search = "15"
                             if node_id[0].isdigit():
                                 node_id = "h" + node_id
+                            # Check if TDoA id already exists in the db, then change it with an incremental index
+                            with codecs.open('directTDoA_server_list.db', 'rb', encoding='utf8') as db_file2:
+                                if "\"" + node_id + "\"" in db_file2.read():
+                                    node_id = node_id + "/" + str(tdoa_id_index)
+                                    tdoa_id_index += 1
                             nodeinfo = dict(
                                 mac=json_data[i]['id'],
                                 url=json_data[i]['url'].split('//', 1)[1],

@@ -265,14 +265,16 @@ class OctaveProcessing(threading.Thread):
         octave_errors = [b'index-out-of-bounds', b'< 2 good stations found', b'Octave:nonconformant - args',
                          b'n_stn=2 is not supported', b'resample.m: p and q must be positive integers',
                          b'Octave:invalid-index', b'incomplete \'data\' chunk']
-        if sys.version_info[0] == 2:
-            tdoa_filename = self.m_file_to_process
-            proc = subprocess.Popen(['octave-cli', tdoa_filename], cwd=self.tdoa_rootdir, stderr=subprocess.STDOUT,
-                                    stdout=subprocess.PIPE, shell=False)
-        else:
-            tdoa_filename = self.m_file_to_process.replace(".m", "")
-            proc = subprocess.Popen(['octave-cli', '--eval', tdoa_filename], cwd=self.tdoa_rootdir,
-                                    stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=False)
+        proc = subprocess.Popen(['octave-cli', self.m_file_to_process], cwd=self.tdoa_rootdir, stderr=subprocess.STDOUT,
+                                stdout=subprocess.PIPE, shell=False)
+        # if sys.version_info[0] == 2:
+        #     tdoa_filename = self.m_file_to_process
+        #     proc = subprocess.Popen(['octave-cli', tdoa_filename], cwd=self.tdoa_rootdir, stderr=subprocess.STDOUT,
+        #                             stdout=subprocess.PIPE, shell=False)
+        # else:
+        #     tdoa_filename = self.m_file_to_process.replace(".m", "")
+        #     proc = subprocess.Popen(['octave-cli', '--eval', tdoa_filename], cwd=self.tdoa_rootdir,
+        #                             stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=False)
         PROC_PID = proc.pid
         if PROC_PID:
             APP.gui.writelog("ultimateTDoA process started.")
