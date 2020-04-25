@@ -81,16 +81,14 @@ class Restart(object):
     @staticmethod
     def run():
         """ GUI Restart routine. """
-        global PROC_PID
         try:  # to kill octave-cli process if exists
             os.kill(PROC_PID, signal.SIGTERM)
         except (NameError, OSError):
             pass
         if platform.system() == "Windows":
-            os.execv(sys.executable, [sys.executable] + sys.argv)
+            os.execlp("pythonw.exe", "pythonw.exe", "compute_ultimate.py")
         else:
-            APP.destroy()
-            subprocess.call([sys.executable, os.path.abspath(__file__)])
+            os.execv(sys.executable, [sys.executable] + sys.argv)
 
 
 class ReadKnownPointFile(object):
@@ -161,7 +159,7 @@ class TrimIQ(threading.Thread):
         APP.gui.writelog("Click and Drag : Select a time portion of the IQ record that you want to keep.")
         APP.gui.writelog("Click to close window : No changes on the entire IQ recording.")
         APP.gui.writelog("One click on the spectrogram OR less than 2 seconds selected : Deletes the IQ recording.")
-        subprocess.call(['python', 'trim_iq.py'], cwd=self.tdoa_rootdir, shell=False)
+        subprocess.call([sys.executable, 'trim_iq.py'], cwd=self.tdoa_rootdir, shell=False)
         Restart().run()
 
 
@@ -1096,7 +1094,7 @@ class MainWindow(Frame):
 
     def start_stop_tdoa(self):
         """ Actions to perform when Compute button is clicked. """
-        global tdoa_in_progress
+        global tdoa_in_progress, PROC_PID
         global plot_kiwi_json_new, use_constraints_new, algo_new
         global lon_min_map, lon_max_map, lat_min_map, lat_max_map
         global plot_kiwi_json_origin, use_constraints_origin, algo_origin
@@ -1190,7 +1188,6 @@ class MainW(Tk, object):
 
 def on_closing():
     """ Actions to perform when software is closed using the top-right check button. """
-    global PROC_PID
     try:  # to kill octave
         os.kill(PROC_PID, signal.SIGTERM)
     except (NameError, OSError):

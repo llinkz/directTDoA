@@ -44,7 +44,7 @@ else:
     from tkinter.colorchooser import askcolor
     from tkinter.simpledialog import askstring, askinteger
 
-VERSION = "directTDoA v6.00"
+VERSION = "directTDoA v6.10"
 
 
 class Restart(object):
@@ -71,8 +71,10 @@ class Restart(object):
             os.kill(kiwisdrclient_pid, signal.SIGTERM)
         except (NameError, OSError):
             pass
-        APP.destroy()
-        subprocess.call([sys.executable, os.path.abspath(__file__)])
+        if platform.system() == "Windows":
+            os.execlp("pythonw.exe", "pythonw.exe", "directTDoA.py")
+        else:
+            os.execv(sys.executable, [sys.executable] + sys.argv)
 
 
 class ReadKnownPointFile(object):
@@ -114,7 +116,7 @@ class ReadCfg(object):
         global BGC, FGC, GRAD, THRES, CONS_B, CONS_F, STAT_B, STAT_F, MAP_BOX
         global TCPHOST, TCPPORT, IQDURATION, PKJ, UC, TDOAVERSION
         try:
-            # Read the config file v5.0 format and declare variables
+            # Read the config file and declare variables
             with open('directTDoA.cfg', 'r') as config_file:
                 CFG = json.load(config_file, object_pairs_hook=OrderedDict)
             DX0, DX1 = CFG["map"]["x0"], CFG["map"]["x1"]
@@ -131,65 +133,13 @@ class ReadCfg(object):
             TCPHOST, TCPPORT, IQDURATION = CFG["tcp"]["host"], CFG["tcp"]["port"], CFG["tcp"]["duration"]
             PKJ, UC, TDOAVERSION = CFG["iq"]["pkj"], CFG["iq"]["uc"], CFG["iq"]["mode"]
         except (ImportError, ValueError):
-            # If an old config file format is detected, convert it to v5.0 format
-            with open('directTDoA.cfg', "r") as old_config_file:
-                configline = old_config_file.readlines()
-                CFG = {'map': {}, 'nodes': {}, 'iq': {}, 'guicolors': {}, 'tcp': {}, 'presets(x0/y1/x1/y0)': {}}
-                CFG["map"]["x0"] = configline[3].split(',')[0]
-                CFG["map"]["x1"] = configline[3].split(',')[2]
-                CFG["map"]["y0"] = configline[3].split(',')[1]
-                CFG["map"]["y1"] = configline[3].replace("\n", "").split(',')[3]
-                CFG["map"]["file"] = configline[5].split('\n')[0]
-                CFG["map"]["iconsize"] = 2
-                CFG["map"]["icontype"] = 1
-                CFG["map"]["mapfl"] = int(configline[7].replace("\n", "")[0])
-                CFG["map"]["std"] = configline[13].replace("\n", "").split(',')[0]
-                CFG["map"]["fav"] = configline[13].replace("\n", "").split(',')[1]
-                CFG["map"]["blk"] = configline[13].replace("\n", "").split(',')[2]
-                CFG["map"]["poi"] = configline[13].replace("\n", "").split(',')[3]
-                CFG["map"]["hlt"] = "#ffffff"
-                if configline[9] == "\n":
-                    CFG["nodes"]["whitelist"] = []
-                else:
-                    CFG["nodes"]["whitelist"] = configline[9].replace("\n", "").split(',')
-                if configline[11] == "\n":
-                    CFG["nodes"]["blacklist"] = []
-                else:
-                    CFG["nodes"]["blacklist"] = configline[11].replace("\n", "").split(',')
-                CFG["iq"]["bw"] = "4000"
-                CFG["iq"]["pjk"] = 0
-                CFG["iq"]["uc"] = 1
-                CFG["iq"]["mode"] = "standard"
-                CFG["tcp"]["host"] = "127.0.0.1"
-                CFG["tcp"]["port"] = 55555
-                CFG["tcp"]["duration"] = 12
-                CFG["guicolors"]["main_b"] = "#d9d9d9"
-                CFG["guicolors"]["main_f"] = "#000000"
-                CFG["guicolors"]["cons_b"] = "#000000"
-                CFG["guicolors"]["cons_f"] = "#00ff00"
-                CFG["guicolors"]["stat_b"] = "#ffffff"
-                CFG["guicolors"]["stat_f"] = "#000000"
-                CFG["guicolors"]["grad"] = 10
-                CFG["guicolors"]["thres"] = 186
-                CFG["presets(x0/y1/x1/y0)"]["EU"] = [-12, 72, 50, 30]
-                CFG["presets(x0/y1/x1/y0)"]["AF"] = [-20, 40, 55, -35]
-                CFG["presets(x0/y1/x1/y0)"]["ME"] = [25, 45, 65, 10]
-                CFG["presets(x0/y1/x1/y0)"]["SAM"] = [-85, 15, -30, -60]
-                CFG["presets(x0/y1/x1/y0)"]["O"] = [110, -10, 180, -50]
-                CFG["presets(x0/y1/x1/y0)"]["EAS"] = [73, 55, 147, 15]
-                CFG["presets(x0/y1/x1/y0)"]["CAM"] = [-120, 33, -50, 5]
-                CFG["presets(x0/y1/x1/y0)"]["SEAS"] = [85, 30, 155, -12]
-                CFG["presets(x0/y1/x1/y0)"]["SAS"] = [60, 39, 100, 4]
-                CFG["presets(x0/y1/x1/y0)"]["NAM"] = [-170, 82, -50, 13]
-                CFG["presets(x0/y1/x1/y0)"]["WR"] = [27, 72, 90, 40]
-                CFG["presets(x0/y1/x1/y0)"]["ER"] = [90, 82, 180, 40]
-                CFG["presets(x0/y1/x1/y0)"]["US"] = [-125, 50, -66, 23]
-                CFG["presets(x0/y1/x1/y0)"]["W"] = [-179, 89, 179, -59]
-                copyfile("directTDoA.cfg", "directTDoA.do-not-use-anymore.cfg")
-            with open('directTDoA.cfg', 'w') as config_f:
-                json.dump(OrderedDict(sorted(CFG.items(), key=lambda t: t[0])), config_f, indent=2)
-            config_f.close()
-            sys.exit("v4.20 config file format has been converted to v5.xx\nRestart the GUI now")
+            # If config file is not valid json
+            tkMessageBox.showinfo(title="  ¯\\_(ツ)_/¯", message="config file syntax error !")
+            sys.exit()
+        except OSError:
+            # If config file is not found
+            tkMessageBox.showinfo(title="  ¯\\_(ツ)_/¯", message="config file not found !")
+            sys.exit()
 
 
 class SaveCfg(object):
@@ -421,7 +371,7 @@ class PlotIQ(threading.Thread):
     def run(self):
         run_dir = os.path.join('TDoA', 'iq') + os.sep + starttime + tdoa_mode + str(FREQUENCY) + os.sep
         with open(os.devnull, 'w') as fp:
-            subprocess.call(['python', 'plot_iq.py'], cwd=os.path.join(run_dir), shell=False, stdout=fp)
+            subprocess.call([sys.executable, 'plot_iq.py'], cwd=os.path.join(run_dir), shell=False, stdout=fp)
 
 
 class ComputeUltimate(threading.Thread):
@@ -433,7 +383,7 @@ class ComputeUltimate(threading.Thread):
     def run(self):
         run_dir = os.path.join('TDoA', 'iq') + os.sep + starttime + tdoa_mode + str(FREQUENCY)
         with open(os.devnull, 'w') as fp:
-            subprocess.call(['python', 'compute_ultimate.py'], cwd=os.path.join(run_dir), shell=False, stdout=fp)
+            subprocess.call([sys.executable, 'compute_ultimate.py'], cwd=os.path.join(run_dir), shell=False, stdout=fp)
 
 
 class OctaveProcessing(threading.Thread):
@@ -447,16 +397,19 @@ class OctaveProcessing(threading.Thread):
         octave_errors = [b'index-out-of-bounds', b'< 2 good stations found', b'Octave:nonconformant - args',
                          b'n_stn=2 is not supported', b'resample.m: p and q must be positive integers',
                          b'Octave:invalid-index', b'incomplete \'data\' chunk']
-        if sys.version_info[0] == 2:
-            tdoa_filename = "proc_tdoa_" + KHZ_FREQ + ".m"
-            proc = subprocess.Popen(['octave-cli', tdoa_filename], cwd=os.path.join('TDoA'),
-                                    stderr=subprocess.STDOUT,
-                                    stdout=subprocess.PIPE, shell=False)
-        else:
-            tdoa_filename = "proc_tdoa_" + KHZ_FREQ
-            proc = subprocess.Popen(['octave-cli', '--eval', tdoa_filename], cwd=os.path.join('TDoA'),
-                                    stderr=subprocess.STDOUT,
-                                    stdout=subprocess.PIPE, shell=False)
+        tdoa_filename = "proc_tdoa_" + KHZ_FREQ + ".m"
+        proc = subprocess.Popen(['octave-cli', tdoa_filename], cwd=os.path.join('TDoA'), stderr=subprocess.STDOUT,
+                                stdout=subprocess.PIPE, shell=False)
+        # if sys.version_info[0] == 2:
+        #     tdoa_filename = "proc_tdoa_" + KHZ_FREQ + ".m"
+        #     proc = subprocess.Popen(['octave-cli', tdoa_filename], cwd=os.path.join('TDoA'),
+        #                             stderr=subprocess.STDOUT,
+        #                             stdout=subprocess.PIPE, shell=False)
+        # else:
+        #     tdoa_filename = "proc_tdoa_" + KHZ_FREQ
+        #     proc = subprocess.Popen(['octave-cli', '--eval', tdoa_filename], cwd=os.path.join('TDoA'),
+        #                             stderr=subprocess.STDOUT,
+        #                             stdout=subprocess.PIPE, shell=False)
         PROC_PID = proc.pid
         logfile = open(os.path.join('TDoA', 'iq') + os.sep + starttime + tdoa_mode + str(
             FREQUENCY) + os.sep + "TDoA_" + KHZ_FREQ + "_log.txt", 'w')
@@ -571,13 +524,12 @@ class CheckSnr(threading.Thread):
         try:
             socket2_connect = subprocess.Popen(
                 [sys.executable, 'kiwiclient' + os.sep + 'microkiwi_waterfall.py', '-s', self.s_host, '-p',
-                 self.s_port],
-                stdout=PIPE, shell=False)
+                 self.s_port], stdout=PIPE, shell=False)
             APP.gui.writelog("Retrieving " + self.s_host + " waterfall, please wait")
             while True:
                 snr_output = socket2_connect.stdout.readline()
-                if b"received sample" in snr_output:
-                    APP.gui.console_window.insert('end -1c', '.')
+                # if b"received sample" in snr_output:
+                #     APP.gui.console_window.insert('end -1c', '.')
                 if b"SNR" in snr_output:
                     APP.gui.console_window.delete('end -1c linestart', END)
                     APP.gui.console_window.insert('end', '\n')
@@ -1326,8 +1278,11 @@ class GuiCanvas(Frame):
 
     def move_to(self, event):
         """ Move to. """
-        self.canvas.scan_dragto(event.x, event.y, gain=1)
-        self.show_image()  # redraw the image
+        if 'HOST' in globals() and "current" not in self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0]:
+            pass
+        elif "current" in self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0]:
+            self.canvas.scan_dragto(event.x, event.y, gain=1)
+            self.show_image()  # redraw the image
 
     def wheel(self, event):
         """ Routine for mouse wheel actions. """
@@ -2216,8 +2171,18 @@ class MainWindow(Frame):
             self.start_rec_button.configure(text="Start recording", state="normal")
             self.start_tdoa_button.configure(text="", state="disabled")
             self.purge_button.configure(state="normal")
-            os.kill(PROC_PID, signal.SIGTERM)  # kills the octave process
-            os.system("killall -9 gs")  # and ghostscript
+            try:  # kills the octave process
+                os.kill(PROC_PID, signal.SIGTERM)
+            except (NameError, OSError):
+                pass
+            try:  # and ghostscript
+                if platform.system() == "Windows":
+                    if "gs.exe" in os.popen("tasklist").read():
+                        os.system("taskkill /F /IM gs.exe")
+                else:
+                    os.system("killall -9 gs")
+            except (NameError, OSError):
+                pass
             self.writelog("Octave process has been aborted...")
             for wavfiles in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
                 os.remove(wavfiles)
@@ -2362,7 +2327,7 @@ global mlp;
 
             # Adapt the getmap.py arguments if a known place has been set or not
             if platform.system() == "Windows":
-                python_path = '..\\\python\\\python.exe'
+                python_path = '..\\\python\\\pythonw.exe'
             else:
                 python_path = 'python'
             if selectedlat == "" or selectedlon == "":
@@ -2401,7 +2366,7 @@ endfunction
             os.chmod(run_dir + "compute_ultimate.py", 0o777)
             os.chmod(run_dir + "plot_iq.py", 0o777)
             os.chmod(run_dir + "trim_iq.py", 0o777)
-            PlotIQ().start()
+            # PlotIQ().start()
         else:
             copyfile(proc_m_name + ".m", run_dir + "proc_tdoa_" + KHZ_FREQ + ".m")
             if platform.system() == "Windows":
@@ -2410,12 +2375,13 @@ endfunction
 :: This script moves *.wav back to iq directory and proc_tdoa_""" + KHZ_FREQ + """.m to
 :: TDoA directory then opens a file editor so you can modify .m file parameters.
 @echo off
-if not exist *spec.pdf ..\..\..\python\python.exe plot_iq.py
+set PATH=%CD%\..\..\..\octave\\bin;%CD%\..\..\..\python;%PATH%
+if not exist *spec.pdf pythonw.exe plot_iq.py
 copy *.wav ..\\
 copy proc_tdoa_""" + KHZ_FREQ + """.m ..\..\\
 cd ..\..
 start /W notepad "proc_tdoa_""" + KHZ_FREQ + """.m"
-..\octave\\bin\octave-cli.exe proc_tdoa_""" + KHZ_FREQ + """.m
+octave-cli.exe proc_tdoa_""" + KHZ_FREQ + """.m
 del proc_tdoa_""" + KHZ_FREQ + """.m""")
                 recompute.close()
                 copyfile('plot_iq.py', run_dir + "plot_iq.py")
@@ -2430,8 +2396,10 @@ cp ./*.wav ../
 cp proc_tdoa_""" + KHZ_FREQ + """.m ../../
 cd ../..
 $EDITOR proc_tdoa_""" + KHZ_FREQ + """.m
-octave-cli """ + ("--eval " if sys.version_info[0] == 3 else "") + """proc_tdoa_""" + KHZ_FREQ + (".m" if sys.version_info[0] == 2 else "") + """
+octave-cli proc_tdoa_""" + KHZ_FREQ + """.m
 rm -f proc_tdoa_""" + KHZ_FREQ + """.m""")
+                # octave-cli """ + ("--eval " if sys.version_info[0] == 3 else "") + """proc_tdoa_""" + KHZ_FREQ
+                # + (".m" if sys.version_info[0] == 2 else "") + """
                 recompute.close()
                 os.chmod(run_dir + "recompute.sh", 0o777)
                 copyfile('plot_iq.py', run_dir + "plot_iq.py")

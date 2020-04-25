@@ -1,4 +1,4 @@
-# directTDoA v6.00
+# directTDoA v6.10
 
 This software is JUST a python 2/3 GUI designed to compute TDoA runs on shortwave radio transmissions using remote (GPS enabled) KiwiSDR receivers around the World.
 
@@ -12,7 +12,7 @@ Download [directTDoA-windows.zip](https://github.com/llinkz/directTDoA/releases/
 
 Then double-click on `directTDoA.bat`
 
-#### IMPORTANT: This is the only way to launch the program due to files path problems that may occur.
+#### IMPORTANT: You must use this method to launch the program to avoid file path issues.
 
 > Info: this archive contains all the necessary files already patched and compiled and also includes light versions of GNU Octave and python, so no need to install the full versions of the last two on your machine. The unzipped archive is 272 MB, compared to ~2 GB in the other installer way.
 
@@ -94,7 +94,8 @@ Install GNU Octave in Terminal : `brew install octave`
 * v5.10: removed KiwiSDR nodes "names" from .db files + compute_ultimate script has been transformed into GUI with plot_iq now only displaying the selected nodes + adding command arguments to trim_iq.py script (./trim_iq.py -h ,for help)
 * v5.20: "directTDoA_v5.xx" now displayed on the KiwiSDR target's userlist when connected + simplification of the node rec-list management + adding a checkbox to automatically start (or not) _compute_ultimate.py_ script when "Stop Rec" button is clicked + extra command on KiwiSDR first line popup to add the node even if it has _fixes_min=0_
          + new _has_gps_ routine in both _plot_iq.py_ & _compute_ultimate.py_ + bug fix: regexp wrongly detecting LON + bug fix: if Sorcerer TCP client checkbox is unchecked while recording, no more endless record session.
-* v6.00: Listen mode (AM/LSB/USB) is back, to get it working you must apply a patch: `patch -i kiwirecorder_patch.diff ./kiwiclient/kiwirecorder.py` from directTDoA dir and installing sounddevice + samplerate python modules with `python -m pip install sounddevice samplerate` + some python 2 Vs. python 3 bug fixes + bug fixed on map update process + .desktop files creation removed
+* v6.00: Listen mode (AM/LSB/USB) is back, to get it working you must apply a patch: `patch -i kiwirecorder_patch.diff ./kiwiclient/kiwirecorder.py` from directTDoA dir and install sounddevice + samplerate python modules with `python -m pip install sounddevice samplerate` + some python 2 Vs. python 3 bug fixes + bug fixed on map update process + .desktop files creation removed
+* v6.10: Restart GUI routine modified + less CMD windows for Windows OS users (using pythonw instead of python) + bug fix that caused the map to move suddenly far away when selecting a node (problem only noticed on Windows OS) + no more auto-PlotIQ() start on ultimateTDoA runs + modifications of the .bat files for Windows OS users (CPU affinity of the python processes now set towards a single one, the allocation on several generated a delay in the starting of the IQ records)
 ## Thanks
 * Christoph Mayer @ https://github.com/hcab14/TDoA for the main TDoA code, excellent work and thanks for the public release !
 * John Seamons, KiwiSDR developper @ https://github.com/jks-prv
