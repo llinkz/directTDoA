@@ -1674,7 +1674,7 @@ class MainWindow(Frame):
         menubar.add_cascade(label="?", menu=menu_6)
         menu_6.add_command(label="Help", command=self.help)
         menu_6.add_command(label="About", command=self.about)
-        menu_6.add_command(label="Update check", command=self.checkversion)
+        menu_6.add_command(label="Update check", command=lambda *args: self.checkversion(source="from_menu"))
 
         # Various GUI binds
         self.listbox_update(my_info1)
@@ -1685,6 +1685,9 @@ class MainWindow(Frame):
         # Purge all IQ.wav from iq/ directory every time GUI is started
         for wavfiles in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
             os.remove(wavfiles)
+
+        # Check if new version is available at program start
+        self.checkversion(source="at_start")
 
     def redraw(self):
         self.member1.redraw_map_cmd()
@@ -2092,7 +2095,7 @@ class MainWindow(Frame):
         ReadCfg().read_cfg()
 
     @staticmethod
-    def checkversion():
+    def checkversion(source):
         """ Watch on github if a new version has been released (1st line of README.md parsed). """
         try:
             checkver = requests.get('https://raw.githubusercontent.com/llinkz/directTDoA/master/README.md', timeout=2)
@@ -2100,7 +2103,8 @@ class MainWindow(Frame):
             if float(gitsrctext[0][2:].split("v", 1)[1]) > float(VERSION.split("v", 1)[1][:4]):
                 tkMessageBox.showinfo(title="", message=str(gitsrctext[0][2:]) + " released !")
             else:
-                tkMessageBox.showinfo(title="", message="No update found.")
+                if source == "from_menu":
+                    tkMessageBox.showinfo(title="", message="No update found.")
         except (ImportError, requests.RequestException):
             print ("Unable to verify version information. Sorry.")
 
