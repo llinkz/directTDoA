@@ -745,8 +745,11 @@ class GuiCanvas(Frame):
 
     def move_to(self, event):
         """ Move to. """
-        self.canvas.scan_dragto(event.x, event.y, gain=1)
-        self.show_image()  # redraw the image
+        if 'HOST' in globals() and "current" not in self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0]:
+            pass
+        elif "current" in self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0]:
+            self.canvas.scan_dragto(event.x, event.y, gain=1)
+            self.show_image()  # redraw the image
 
     def wheel(self, event):
         """ Routine for mouse wheel actions. """
