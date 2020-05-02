@@ -44,7 +44,7 @@ else:
     from tkinter.colorchooser import askcolor
     from tkinter.simpledialog import askstring, askinteger
 
-VERSION = "directTDoA v6.10"
+VERSION = "directTDoA v6.20"
 
 
 class Restart(object):
@@ -700,16 +700,19 @@ class FillMapWithNodes(object):
                     self.parent.canvas.create_rectangle(tmp_lon - is_delta, tmp_lat - is_delta, tmp_lon + is_delta,
                                                         tmp_lat + is_delta, fill='', outline=HIGHLIGHT,
                                                         tag=node_tag_item + "$#")
+                self.parent.canvas.tag_bind(node_tag_item + "$#", "<Button-1>", self.parent.onclickleft)
 
     def node_selection_inactive(self, node_mac):
         """ Removing additionnal highlight on selected node icon. """
         for node_tag_item in tag_list:
             if node_mac in node_tag_item:
+                self.parent.canvas.tag_unbind(node_tag_item + "$#", "<Button-1>")
                 self.parent.canvas.delete(node_tag_item + "$#")
 
     def node_selection_inactiveall(self):
         """ Removing ALL additionnal highlights on selected nodes icons. """
         for node_tag_item in tag_list:
+            self.parent.canvas.tag_unbind(node_tag_item + "$#", "<Button-1>")
             self.parent.canvas.delete(node_tag_item + "$#")
 
     def after_update(self):
@@ -730,14 +733,14 @@ class SorcererTcpClient(threading.Thread):
             s.settimeout(1.0)
             s.connect((TCPHOST, TCPPORT))
             s.setblocking(False)
-            APP.gui.writelog("TCP Socket to " + str(TCPHOST) + ":" + str(TCPPORT) + " connected...")
+            APP.gui.writelog("TCP Socket connected to " + str(TCPHOST) + ":" + str(TCPPORT) + " ...")
             socket_data = b""
             total_socket_data = b""
             start_time = None
             new_socket_data = False
             while True:
                 if sorcerer.get() == 0:
-                    APP.gui.writelog("TCP Socket to " + str(TCPHOST) + ":" + str(TCPPORT) + " disconnected...")
+                    APP.gui.writelog("TCP Socket disconnected from " + str(TCPHOST) + ":" + str(TCPPORT) + " ...")
                     break
                 try:
                     socket_data = s.recv(2048)
@@ -1012,9 +1015,9 @@ class GuiCanvas(Frame):
             yy0 = (990 + (float(0 - float(y_kwn)) * 11)) - ic_size
             yy1 = (990 + (float(0 - float(y_kwn)) * 11)) + ic_size
         self.canvas.create_rectangle(xx0, yy0, xx1, yy1, fill=POICOLOR, outline="black", activefill=POICOLOR,
-                                     tag=selectedcity.rsplit(' (')[0])
+                                     tag="#POI")
         self.canvas.create_text(xx0, yy0 - 10, text=selectedcity.rsplit(' (')[0].replace("_", " "), justify='center',
-                                fill=POICOLOR, tag=selectedcity.rsplit(' (')[0])
+                                fill=POICOLOR, tag="#POI")
 
     def unselect_allpoint(self):
         """ Calling process that remove additionnal highlight on all selected nodes. """
@@ -1031,25 +1034,59 @@ class GuiCanvas(Frame):
     def onclickleft(self, event):
         """ Left Mouse Click bind on the World map. """
         global HOST
-        HOST = self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0]
-        menu = Menu(self, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')
-        menu2 = Menu(menu, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # enforce menu
-        menu3 = Menu(menu, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # demodulation menu
-        # mykeys = ['mac', 'url', 'id', 'snr', 'lat', 'lon']
-        # n_field    0      1      2     3      4     5
-        n_field = HOST.rsplit("$", 6)
-        # Color gradiant proportionnal to SNR value
-        snr_gradiant = (int(n_field[3]) - 30) * GRAD
-        if n_field[0] in WHITELIST:
-            nodecolor = FAVCOLOR
+        menu0 = Menu(self, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # node overlap list menu
+        menu1 = Menu(self, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # main node menu
+        menu2 = Menu(menu1, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # enforce menu
+        menu3 = Menu(menu1, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # demodulation menu
+        # search for overlapping nodes
+        overlap_range = ICONSIZE * 4
+        overlap_rect = (self.canvas.canvasx(event.x) - overlap_range), (self.canvas.canvasy(event.y) - overlap_range), (
+                    self.canvas.canvasx(event.x) + overlap_range), (self.canvas.canvasy(event.y) + overlap_range)
+        node_overlap_match = self.canvas.find_enclosed(*overlap_rect)
+        overlap_list = []
+        for item_o in list(node_overlap_match):
+            if "$#" not in self.canvas.gettags(self.canvas.find_withtag(item_o))[0]:
+                overlap_list.append(item_o)
+        if len(node_overlap_match) > 1 and len(overlap_list) != 1:  # node icon overlap found, displays menu0
+            for el1, el2 in enumerate(node_overlap_match):
+                if "$#" not in str(self.canvas.gettags(el2)):  # dont display node highlight tags
+                    HOST = self.canvas.gettags(self.canvas.find_withtag(el2))[0]
+                    # mykeys = ['mac', 'url', 'id', 'snr', 'lat', 'lon']
+                    # n_field    0      1      2     3      4     5
+                    n_field = HOST.rsplit("$", 6)
+                    # Color gradiant proportionnal to SNR value
+                    snr_gradiant = (int(n_field[3]) - 30) * GRAD
+                    # rbg = self.color_variant("#FF0000", snr_gradiant)
+                    # Dynamic foreground (adapting font to white or black depending on luminosity)
+                    dfg = self.get_font_color((self.color_variant("#FFFF00", snr_gradiant)))
+                    nodec = BLKCOLOR if n_field[0] in BLACKLIST else FAVCOLOR if n_field[0] in WHITELIST else STDCOLOR
+                    cbg = self.color_variant(nodec, snr_gradiant)
+                    # check if node is already in the TDoA node listing
+                    if len([el for el in fulllist if n_field[0] in el]) != 1:
+                        name = n_field[2]
+                    else:
+                        name = "✔ " + n_field[2]
+                    menu0.add_command(label=name, background=cbg, foreground=dfg,
+                                      command=lambda x=HOST: self.create_node_menu(x, event.x_root, event.y_root, menu1,
+                                                                                   menu2, menu3))
+                else:
+                    pass
+            menu0.tk_popup(event.x_root, event.y_root)
         else:
-            nodecolor = STDCOLOR
+            HOST = self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0]
+            self.create_node_menu(HOST, event.x_root, event.y_root, menu1, menu2, menu3)
+
+    def create_node_menu(self, kiwinodetag, popx, popy, menu, menu2, menu3):
+        n_field = kiwinodetag.rsplit("$", 6)
+        matches = [el for el in fulllist if n_field[0] in el]
+        snr_gradiant = (int(n_field[3]) - 30) * GRAD
+        nodec = BLKCOLOR if n_field[0] in BLACKLIST else FAVCOLOR if n_field[0] in WHITELIST else STDCOLOR
         # Red background
         rbg = self.color_variant("#FF0000", snr_gradiant)
         # Dynamic foreground (adapting font to white or black depending on luminosity)
         dfg = self.get_font_color((self.color_variant("#FFFF00", snr_gradiant)))
-        # Colorized background (depending on Favorite node or not)
-        cbg = self.color_variant(nodecolor, snr_gradiant)
+        # Colorized background (depending on Standard/Favorite/Blacklist)
+        cbg = self.color_variant(nodec, snr_gradiant)
         try:  # check if the node is answering
             chktimeout = 2  # timeout of the node check
             checkthenode = requests.get("http://" + n_field[1] + "/status", timeout=chktimeout)
@@ -1083,15 +1120,19 @@ class GuiCanvas(Frame):
                     menu.add_command(label=n_field[2] + " is offline", background=rbg, foreground=dfg, command=None)
                 # If node had no GPS fix in the last minute :
                 elif i_node[12] == "0":
-                    menu.add_cascade(label=n_field[2] + " is not useful for TDoA" + g_stat + n_stat + s_stat,
-                                     background=rbg, foreground=dfg, menu=menu2)
-                    menu2.add_command(label="add anyway", background=cbg, foreground=dfg,
-                                      command=lambda *args: self.populate("add", "no", n_field))
+                    if len(matches) != 1:
+                        menu.add_cascade(label=n_field[2] + " is not useful for TDoA" + g_stat + n_stat + s_stat,
+                                         background=rbg, foreground=dfg, menu=menu2)
+                        menu2.add_command(label="add anyway", background=cbg, foreground=dfg,
+                                          command=lambda *args: self.populate("add", "no", n_field))
+                    else:
+                        menu.add_command(label=n_field[2] + " is not useful for TDoA" + g_stat + n_stat + s_stat,
+                                         background=rbg, foreground=dfg, command=None)
                     permit_web = True
                 else:  # All is ok for this node and then, permit extra commands
                     permit_web = True
                     gps_ready = True
-                matches = [el for el in fulllist if n_field[0] in el]
+                # matches = [el for el in fulllist if n_field[0] in el]
                 # if node is NOT already listed in the TDoA node group, allow the ADD command
                 if len(matches) != 1 and int(i_node[12]) > 0 and gps_ready:
                     menu.add_command(label="Add " + n_field[2] + " for TDoA process" + g_stat + n_stat + s_stat,
@@ -1109,10 +1150,16 @@ class GuiCanvas(Frame):
         except requests.exceptions.ConnectionError as req_conn_error:
             menu.add_command(label=n_field[2] + " node is not available. " + str(req_conn_error).split('\'')[1::2][1],
                              background=rbg, foreground=dfg, command=None)
+            if len(matches) == 1:
+                menu.add_command(label="Remove " + n_field[2] + " from TDoA process", background=cbg, foreground=dfg,
+                                 font="TkFixedFont 7 bold", command=lambda: self.populate("del", "no", n_field))
             permit_web = False
         except requests.exceptions.RequestException as req_various_error:
             menu.add_command(label=n_field[2] + " node is not available. " + str(req_various_error), background=rbg,
                              foreground=dfg, command=None)
+            if len(matches) == 1:
+                menu.add_command(label="Remove " + n_field[2] + " from TDoA process", background=cbg, foreground=dfg,
+                                 font="TkFixedFont 7 bold", command=lambda: self.populate("del", "no", n_field))
             permit_web = False
 
         # Always try to print out KiwiSDR's full name line
@@ -1126,22 +1173,25 @@ class GuiCanvas(Frame):
             # Add Open in Web browser lines
             menu.add_separator()
             menu.add_command(label="Open " + n_field[2] + " in Web browser", state=NORMAL, background=cbg,
-                             foreground=dfg, command=lambda: self.openinbrowser(0, APP.gui.freq_input.get()))
+                             foreground=dfg, command=lambda: self.openinbrowser(n_field, 0, APP.gui.freq_input.get()))
             menu.add_command(label="Open " + n_field[2] + " in Web browser with pre-set TDoA extension loaded",
                              state=NORMAL, background=cbg, foreground=dfg,
-                             command=lambda: self.openinbrowser(1, APP.gui.freq_input.get()))
+                             command=lambda: self.openinbrowser(n_field, 1, APP.gui.freq_input.get()))
             menu.add_command(label="Open " + n_field[1] + "/status", background=cbg, foreground=dfg,
-                             command=lambda: self.openinbrowser(2, None))
+                             command=lambda: self.openinbrowser(n_field, 2, None))
             if LISTENMODE == "0":
                 # Add demodulation process line
                 menu.add_cascade(label="Listen to that frequency using " + n_field[2], state=NORMAL, background=cbg,
                                  foreground=dfg, menu=menu3)
                 menu3.add_command(label="USB", background=cbg, foreground=dfg,
-                                  command=lambda *args: [self.listenmode("usb"), self.populate("add", "yes", n_field)])
+                                  command=lambda *args: [self.listenmode(n_field, "usb"),
+                                                         self.populate("add", "yes", n_field)])
                 menu3.add_command(label="LSB", background=cbg, foreground=dfg,
-                                  command=lambda *args: [self.listenmode("lsb"), self.populate("add", "yes", n_field)])
+                                  command=lambda *args: [self.listenmode(n_field, "lsb"),
+                                                         self.populate("add", "yes", n_field)])
                 menu3.add_command(label="AM", background=cbg, foreground=dfg,
-                                  command=lambda *args: [self.listenmode("am"), self.populate("add", "yes", n_field)])
+                                  command=lambda *args: [self.listenmode(n_field, "am"),
+                                                         self.populate("add", "yes", n_field)])
             else:
                 menu.add_command(label="Stop Listen Mode", state=NORMAL, background=cbg, foreground=dfg,
                                  command=lambda *args: [self.stoplistenmode(), self.populate("del", "yes", n_field)])
@@ -1150,14 +1200,46 @@ class GuiCanvas(Frame):
                              command=CheckSnr(n_field[1]).start)
         menu.add_separator()
         if n_field[0] in WHITELIST:  # if node is a favorite
-            menu.add_command(label="remove from favorites", background=cbg, foreground=dfg, command=self.remfavorite)
+            menu.add_command(label="remove from favorites", background=cbg, foreground=dfg,
+                             command=lambda x=n_field[0]: self.remfavorite(x))
         elif n_field[0] not in BLACKLIST:
-            menu.add_command(label="add to favorites", background=cbg, foreground=dfg, command=self.addfavorite)
+            menu.add_command(label="add to favorites", background=cbg, foreground=dfg,
+                             command=lambda x=n_field[0]: self.addfavorite(x))
         if n_field[0] in BLACKLIST:  # if node is blacklisted
-            menu.add_command(label="remove from blacklist", background=cbg, foreground=dfg, command=self.remblacklist)
+            menu.add_command(label="remove from blacklist", background=cbg, foreground=dfg,
+                             command=lambda x=n_field[0]: self.remblacklist(x))
         elif n_field[0] not in WHITELIST:
-            menu.add_command(label="add to blacklist", background=cbg, foreground=dfg, command=self.addblacklist)
-        menu.post(event.x_root, event.y_root)  # popup placement // node icon
+            menu.add_command(label="add to blacklist", background=cbg, foreground=dfg,
+                             command=lambda x=n_field[0]: self.addblacklist(x))
+        menu.tk_popup(int(popx), int(popy))  # popup placement // node icon
+
+    @staticmethod
+    def addfavorite(node):
+        """ Add Favorite node submenu entry. """
+        WHITELIST.append(node)
+        SaveCfg().save_cfg("nodes", "whitelist", WHITELIST)
+        APP.gui.redraw()
+
+    @staticmethod
+    def remfavorite(node):
+        """ Remove Favorite node submenu entry. """
+        WHITELIST.remove(node)
+        SaveCfg().save_cfg("nodes", "whitelist", WHITELIST)
+        APP.gui.redraw()
+
+    @staticmethod
+    def addblacklist(node):
+        """ Add Blacklist node submenu entry. """
+        BLACKLIST.append(node)
+        SaveCfg().save_cfg("nodes", "blacklist", BLACKLIST)
+        APP.gui.redraw()
+
+    @staticmethod
+    def remblacklist(node):
+        """ Remove Blacklist node submenu entry. """
+        BLACKLIST.remove(node)
+        SaveCfg().save_cfg("nodes", "blacklist", BLACKLIST)
+        APP.gui.redraw()
 
     @staticmethod
     def get_font_color(font_color):
@@ -1181,51 +1263,22 @@ class GuiCanvas(Frame):
         return "#" + "".join(["0" + hex(i)[2:] if len(hex(i)[2:]) < 2 else hex(i)[2:] for i in new_rgb_int])
 
     @staticmethod
-    def addfavorite():
-        """ Add Favorite node submenu entry. """
-        WHITELIST.append(HOST.rsplit("$", 6)[0])
-        SaveCfg().save_cfg("nodes", "whitelist", WHITELIST)
-        APP.gui.redraw()
-
-    @staticmethod
-    def remfavorite():
-        """ Remove Favorite node submenu entry. """
-        WHITELIST.remove(HOST.rsplit("$", 6)[0])
-        SaveCfg().save_cfg("nodes", "whitelist", WHITELIST)
-        APP.gui.redraw()
-
-    @staticmethod
-    def addblacklist():
-        """ Add Blacklist node submenu entry. """
-        BLACKLIST.append(HOST.rsplit("$", 6)[0])
-        SaveCfg().save_cfg("nodes", "blacklist", BLACKLIST)
-        APP.gui.redraw()
-
-    @staticmethod
-    def remblacklist():
-        """ Remove Blacklist node submenu entry. """
-        BLACKLIST.remove(HOST.rsplit("$", 6)[0])
-        SaveCfg().save_cfg("nodes", "blacklist", BLACKLIST)
-        APP.gui.redraw()
-
-    @staticmethod
-    def openinbrowser(extension, freq):
+    def openinbrowser(node_id, extension, freq):
         """ Web browser call to connect on the node (default = IQ mode & fixed zoom level at 8). """
         if extension == 0:
-            url = "http://" + str(HOST).rsplit("$", 6)[1] + "/?f=" + freq + "iqz8"
+            url = "http://" + node_id[1] + "/?f=" + freq + "iqz8"
         elif extension == 2:
-            url = "http://" + str(HOST).rsplit("$", 6)[1] + "/status"
+            url = "http://" + node_id[1] + "/status"
         else:
-            url = "http://" + str(HOST).rsplit("$", 6)[1] + "/?f=" + freq + "iqz8&ext=tdoa,lat:" + \
-                  str(HOST).rsplit("$", 6)[4] + ",lon:" + str(HOST).rsplit("$", 6)[5] + ",z:5," + \
-                  str(HOST).rsplit("$", 6)[2]
+            url = "http://" + node_id[1] + "/?f=" + freq + "iqz8&ext=tdoa,lat:" + node_id[4] + ",lon:" + node_id[
+                5] + ",z:5," + node_id[2]
         webbrowser.open_new(url)
 
     @staticmethod
-    def listenmode(modulation):
+    def listenmode(node_id, modulation):
         """ Start listen mode process. """
-        server_host = str(HOST).rsplit("$", 6)[1].rsplit(":", 2)[0]
-        server_port = str(HOST).rsplit("$", 6)[1].rsplit(":", 2)[1]
+        server_host = node_id[1].rsplit(":", 2)[0]
+        server_port = node_id[1].rsplit(":", 2)[1]
         server_frequency = APP.gui.freq_input.get()
         demod_thread = StartDemodulation(server_host, server_port, server_frequency, modulation)
         APP.gui.start_rec_button.configure(state="disabled")
@@ -1393,25 +1446,25 @@ class MainWindow(Frame):
 
         # Map Legend
         self.label01 = Label(parent)
-        self.label01.place(x=0, y=0, height=14, width=96)
+        self.label01.place(x=0, y=0, height=14, width=100)
         self.label01.configure(bg="black", font=la_f, anchor="w", fg=STDCOLOR, text="█ Standard")
         self.label02 = Label(parent)
-        self.label02.place(x=0, y=14, height=14, width=96)
+        self.label02.place(x=0, y=14, height=14, width=100)
         self.label02.configure(bg="black", font=la_f, anchor="w", fg=FAVCOLOR, text="█ Favorite")
         self.label03 = Label(parent)
-        self.label03.place(x=0, y=28, height=14, width=96)
+        self.label03.place(x=0, y=28, height=14, width=100)
         self.label03.configure(bg="black", font=la_f, anchor="w", fg=BLKCOLOR, text="█ Blacklisted")
         self.label04 = Label(parent)
-        self.label04.place(x=0, y=42, height=14, width=96)
+        self.label04.place(x=0, y=42, height=14, width=100)
         self.label04.configure(bg="black", font=la_f, anchor="w", fg="white",
                                text="█ Visible: " + str(NODE_COUNT_FILTER) + "/" + str(NODE_COUNT))
         self.label05 = Label(parent)
-        self.label05.place(x=0, y=56, height=14, width=96)
+        self.label05.place(x=0, y=56, height=14, width=100)
         self.label05.configure(bg="black", font=la_f, anchor="w", fg="white", text="█ IQ BW: " + str(IQBW) + " Hz")
 
         # Frequency entry field
         self.freq_input = Entry(parent)
-        self.freq_input.place(relx=0.06, rely=0.892, height=24, relwidth=0.1)
+        self.freq_input.place(x=62, rely=0.892, height=24, relwidth=0.06)
         self.freq_input.configure(bg="#ffffff", disabledforeground=dfgc, font="TkFixedFont", fg="#000000",
                                   insertbackground="#000000", width=214)
         self.freq_input.bind('<Control-a>', self.ctrla)
@@ -1425,7 +1478,7 @@ class MainWindow(Frame):
         self.label1.place(relx=0.01, rely=0.895)
         self.label1.configure(bg=BGC, font="TkFixedFont", fg=FGC, text="Freq:")
         self.label2 = Label(parent)
-        self.label2.place(relx=0.162, rely=0.895)
+        self.label2.place(relx=0.12, rely=0.895)
         self.label2.configure(bg=BGC, font="TkFixedFont", fg=FGC, text="kHz")
 
         # Start/Stop recording button
@@ -1446,56 +1499,53 @@ class MainWindow(Frame):
 
         # Known places search textbox
         self.choice = Entry(parent)
-        self.choice.place(relx=0.01, rely=0.95, height=21, relwidth=0.18)
-        self.choice.insert(0, "TDoA map city/site search here")
+        self.choice.place(relx=0.01, rely=0.95, height=21, relwidth=0.1)
+        self.choice.insert(0, "POI Search")
         self.listbox = Listbox(parent)
-        self.listbox.place(relx=0.2, rely=0.95, height=21, relwidth=0.3)
-
-        # Known places found text label
-        self.label3 = Label(parent)
-        self.label3.place(relx=0.54, rely=0.95, height=21, relwidth=0.3)
-        self.label3.configure(bg=BGC, font="TkFixedFont", fg=FGC, width=214, text="", anchor="w")
+        self.listbox.place(relx=0.12, rely=0.95, height=21, relwidth=0.38)
 
         # Map boundaries information text
         self.label4 = Label(parent)
-        self.label4.place(relx=0.2, rely=0.895, height=21, relwidth=0.55)
-        self.label4.configure(bg=BGC, font="TkFixedFont", fg=FGC, width=214, text="", anchor="w")
+        self.label4.place(relx=0.2, rely=0.894, height=21, relwidth=0.3)
+        self.label4.configure(bg=BGC, font="TkFixedFont 9", fg=FGC, text="", anchor="w")
 
         # UltimateTDoA checkbox
         self.ultimate_checkbox = Checkbutton(parent)
         self.ultimate_checkbox.place(relx=0.507, rely=0.89, height=21, relwidth=0.108)
         self.ultimate_checkbox.configure(bg=BGC, fg=FGC, activebackground=BGC, activeforeground=FGC,
                                          font="TkFixedFont 8", width=214, selectcolor=BGC, text="ultimateTDoA mode",
-                                         anchor="w", variable=ultimate, command=self.checkboxcheck)
+                                         anchor="w", highlightthickness=0, variable=ultimate,
+                                         command=self.checkboxcheck)
 
         # UltimateTDoA (favorites) checkbox
         self.ultimate_fav_checkbox = Checkbutton(parent)
         self.ultimate_fav_checkbox.place(relx=0.617, rely=0.89, height=21, relwidth=0.06)
         self.ultimate_fav_checkbox.configure(bg=BGC, fg=FGC, activebackground=BGC, activeforeground=FGC,
                                              font="TkFixedFont 8", width=214, selectcolor=BGC, text="fav. only",
-                                             anchor="w", state="disabled", variable=ultimatefav)
+                                             anchor="w", state="disabled", highlightthickness=0, variable=ultimatefav)
 
         # UltimateTDoA (run interface) checkbox
         self.run_ultimate_intf_checkbox = Checkbutton(parent)
-        self.run_ultimate_intf_checkbox.place(relx=0.68, rely=0.89, height=21, relwidth=0.077)
+        self.run_ultimate_intf_checkbox.place(relx=0.678, rely=0.89, height=21, relwidth=0.077)
         self.run_ultimate_intf_checkbox.configure(bg=BGC, fg=FGC, activebackground=BGC, activeforeground=FGC,
                                                   font="TkFixedFont 8", width=214, selectcolor=BGC,
                                                   text="run interface", anchor="w", state="disabled",
-                                                  variable=runultimateintf)
+                                                  highlightthickness=0, variable=runultimateintf)
 
         # TCP Client checkbox (for Sorcerer 2G ALE decoding module)
         self.sorcerer_checkbox = Checkbutton(parent)
         self.sorcerer_checkbox.place(relx=0.507, rely=0.922, height=21, relwidth=0.108)
         self.sorcerer_checkbox.configure(bg=BGC, fg=FGC, activebackground=BGC, activeforeground=FGC,
                                          font="TkFixedFont 8", width=214, selectcolor=BGC, text="sorcerer TCP client",
-                                         anchor="w", state="disabled", variable=sorcerer, command=self.sorcerercheck)
+                                         anchor="w", state="disabled", highlightthickness=0, variable=sorcerer,
+                                         command=self.sorcerercheck)
 
         # TCP Client TDoA autorun checkbox (use with standard TDoA mode 3-6 nodes only)
         self.autorun_checkbox = Checkbutton(parent)
         self.autorun_checkbox.place(relx=0.617, rely=0.922, height=21, relwidth=0.055)
         self.autorun_checkbox.configure(bg=BGC, fg=FGC, activebackground=BGC, activeforeground=FGC,
                                         font="TkFixedFont 8", width=214, selectcolor=BGC, text="autorun",
-                                        anchor="w", state="disabled", variable=auto_run_tdoa,
+                                        anchor="w", highlightthickness=0, state="disabled", variable=auto_run_tdoa,
                                         command=self.autorunchoice)
 
         # Restart button
@@ -1537,8 +1587,8 @@ class MainWindow(Frame):
             "Already computed TDoA runs : " + str([len(d) for r, d, folder in os.walk(os.path.join('TDoA', 'iq'))][0]))
         self.writelog("There are " + str(NODE_COUNT) + " KiwiSDRs in the db. Have fun !")
         self.writelog("The default IQ recording bandwidth is set to " + IQBW + " Hz")
-        self.writelog("TDoA settings: plot_kiwi_json=" + PKJ + ", use_constraints=" + UC + ", algo=" + (
-            "standard TDoA calculation method" if TDOAVERSION == "false" else "new TDoA calculation method (2020)"))
+        self.writelog("TDoA default settings : plot_kiwi_json=" + PKJ + " | use_constraints=" + UC + " | " + (
+            "former TDoA calculation method" if TDOAVERSION == "false" else "new TDoA calculation method (2020)"))
 
         # Status window
         self.status_window = Text(parent)
@@ -1773,7 +1823,7 @@ class MainWindow(Frame):
             data = []
             for item in my_info1:
                 if value in item.lower():
-                    data.append(item)
+                    data.append(item + " | " + my_info2[my_info1.index(item)] + " " + my_info3[my_info1.index(item)])
         self.listbox_update(data)
 
     def listbox_update(self, data):
@@ -1788,14 +1838,12 @@ class MainWindow(Frame):
         global selectedlat, selectedlon, selectedcity
         try:
             if event.widget.get(event.widget.curselection()) == " ":
-                tkMessageBox.showinfo(title="  ¯\\_(ツ)_/¯", message="Type something in the left box first !")
+                tkMessageBox.showinfo(title="  ¯\\_(ツ)_/¯", message="Type something in the POI Search box first !")
             else:
-                self.label3.configure(text="LAT: " + str(
-                    my_info2[my_info1.index(event.widget.get(event.widget.curselection()))]) + " LON: " + str(
-                        my_info3[my_info1.index(event.widget.get(event.widget.curselection()))]))
-                selectedlat = str(my_info2[my_info1.index(event.widget.get(event.widget.curselection()))])
-                selectedlon = str(my_info3[my_info1.index(event.widget.get(event.widget.curselection()))])
-                selectedcity = event.widget.get(event.widget.curselection())
+                selectedcity = event.widget.get(event.widget.curselection()).rsplit(" |", 1)[0]
+                selectedlat = str(my_info2[my_info1.index(selectedcity)])
+                selectedlon = str(my_info3[my_info1.index(selectedcity)])
+                self.member1.delete_point(n="#POI")
                 self.member1.create_known_point(selectedlat, selectedlon, selectedcity)
         except:
             pass
@@ -1804,12 +1852,9 @@ class MainWindow(Frame):
         """ Erase previous known location choice from both textbox input and World map icon and name. """
         global selectedcity, selectedlat, selectedlon
         self.choice.delete(0, 'end')
-        self.label3.configure(text="")
         if selectedcity:
-            self.member1.delete_point(selectedcity)
-            selectedcity = ""
-            selectedlat = ""
-            selectedlon = ""
+            self.member1.delete_point(n="#POI")
+            selectedcity = selectedlat = selectedlon = ""
 
     def writelog(self, msg):
         """ The main console log text feed. """
@@ -1954,9 +1999,9 @@ class MainWindow(Frame):
                 SaveCfg().save_cfg("guicolors", "main_b", color_n)
                 APP.gui.writelog("GUI background color is now " + color_n)
                 nums = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-                chg_list = [APP.gui.label0, APP.gui.label1, APP.gui.label2, APP.gui.label3, APP.gui.label4,
-                            APP.gui.ultimate_checkbox, APP.gui.ultimate_fav_checkbox,
-                            APP.gui.run_ultimate_intf_checkbox, APP.gui.sorcerer_checkbox, APP.gui.autorun_checkbox]
+                chg_list = [APP.gui.label0, APP.gui.label1, APP.gui.label2, APP.gui.label4, APP.gui.ultimate_checkbox,
+                            APP.gui.ultimate_fav_checkbox, APP.gui.run_ultimate_intf_checkbox,
+                            APP.gui.sorcerer_checkbox, APP.gui.autorun_checkbox]
                 APP.gui.ultimate_checkbox.configure(activebackground=color_n,
                                                     activeforeground=GuiCanvas.get_font_color(color_n),
                                                     selectcolor=color_n)

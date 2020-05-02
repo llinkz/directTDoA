@@ -1,4 +1,4 @@
-# directTDoA v6.10
+# directTDoA v6.20
 
 This software is JUST a python 2/3 GUI designed to compute TDoA runs on shortwave radio transmissions using remote (GPS enabled) KiwiSDR receivers around the World.
 
@@ -8,7 +8,7 @@ This software is JUST a python 2/3 GUI designed to compute TDoA runs on shortwav
 
 ##### The decision was made not to support installation from the repository.
 
-Download [directTDoA-windows.zip](https://github.com/llinkz/directTDoA/releases/download/v6.10/directTDoA-windows.zip), unzip and extract it
+Download [directTDoA-windows.zip](https://github.com/llinkz/directTDoA/releases/download/v6.20/directTDoA-windows.zip), unzip and extract it
 
 Then double-click on `directTDoA.bat`
 
@@ -96,6 +96,7 @@ Install GNU Octave in Terminal : `brew install octave`
          + new _has_gps_ routine in both _plot_iq.py_ & _compute_ultimate.py_ + bug fix: regexp wrongly detecting LON + bug fix: if Sorcerer TCP client checkbox is unchecked while recording, no more endless record session.
 * v6.00: Listen mode (AM/LSB/USB) is back, to get it working you must apply a patch: `patch -i kiwirecorder_patch.diff ./kiwiclient/kiwirecorder.py` from directTDoA dir and install sounddevice + samplerate python modules with `python -m pip install sounddevice samplerate` + some python 2 Vs. python 3 bug fixes + bug fixed on map update process + .desktop files creation removed
 * v6.10: Restart GUI routine modified + less CMD windows for Windows OS users (using pythonw instead of python) + bug fix that caused the map to move suddenly far away when selecting a node (problem only noticed on Windows OS) + no more auto-PlotIQ() start on ultimateTDoA runs + modifications of the .bat files for Windows OS users (CPU affinity of the python processes now set towards a single one, the allocation on several generated a delay in the starting of the IQ records)
+* v6.20: User demand and personal use: added functionality to manage the overlapping of icons on the map. Now when you click near a cluster of multiple nodes, a menu will appear and allow you to choose the one you really want + some GUI design changes + bug fix on map locations search (avoid multiple displayed)
 ## Thanks
 * Christoph Mayer @ https://github.com/hcab14/TDoA for the main TDoA code, excellent work and thanks for the public release !
 * John Seamons, KiwiSDR developper @ https://github.com/jks-prv
