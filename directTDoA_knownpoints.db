@@ -2,138 +2,175 @@
 ## LAT/LON in decimal format with minus (-) symbol for West & South, don't forget the _ for spaces in the first field and keep the " , , " entry please
 ## Name|Names_with_spaces|Callsign (country|details|whatever|notimportant),LAT,LON     
  , , 
+Ozernoye (Russian MIL Buzzer RUS),60.3113,30.2784
+Naro-Fominsk (Russian MIL Buzzer RUS),55.3268,36.8086
+Khokhlovo (Russian MIL Smolensk RUS),54.6885,31.8483
+Rivne (Ukrainian MIL Velyka Lyubasha UKR),50.9745,26.3741
+RNZN_Irirangi (New Zealand Navy NZL),-39.4613,175.6685
+RNZAF_Whenuipai (New Zealand AF NZL),-36.7854,174.6050
+RJH25 (Russian Navy Bishkek KGZ),42.989,74.455
+RJH63 (Russian Navy Krasnodar RUS),44.773558,39.547275
+RJH66 (Russian Navy Chaldybar KGZ),43.033603,73.617061
+RJH69 (Russian Navy Vileyka BLR),54.466667,26.783333
+RJH77 (Russian Navy Arkhangelsk RUS),64.359358,41.559361
+RJH90 (Russian Navy Nizhny Novgorod RUS),56.166517,43.935178
+RIT (Russian Navy Severomorsk Northern Fleet RUS),69.0588,33.3266
+RMP (Russian Navy Yantarny Baltic Fleet RUS),54.8589,19.9418
+RCV (Russian Navy Sevastopol Black Sea Fleet RUS),44.9247,34.4685
+RIW (Russian Navy Moscow Navy HQ RUS),56.0022,37.1065
+Rumia (Polish Navy POL),54.5547,18.3856
+Balice (Polish AF POL),50.0658,19.7988
+Nostradamus (Ionospheric sounder ONERA OTHR F),48.6416,1.0806
+ZSJ (South African Navy Cape Town AFS),-33.6827,18.7171
+Punta_Arenas (Chilean Navy CHL),-52.9297,-70.8875
+Quintero (Chilean Navy CHL),-32.8016,-71.4849
+Antofagasta (Chilean Navy CHL),-23.4923,-70.4243
 Junglinster (BCE Site, LUX),49.7191,6.2644
-TDF (VLF 162kHz Allouis FRA),47.1695,2.2046
-FUG (Saissac FRA),43.3904,2.099861
-FUX (Reunion Isl FRA),-20.9101,55.5844
-FUJ (Noumea NCL),-22.3054,166.4548
-FUM (Papeete PYF),-17.5060,-149.4827
-FUF (Martinique MTQ),14.5322,-60.9790
-6WW (Dakar SEN),14.7604,-17.2740
-FUV (Djibouti DJI),11.535952,43.155575
-FUE (Pencran FRA),48.4259,-4.2409
-FUO (Toulon FRA),43.1357,6.0600
-FUE_VLF (Kerlouan FRA),48.6342,-4.3506
-HWU_VLF (Rosnay FRA),46.7131,1.2452
-FTA_VLF (Ste Assise FRA),48.5446,2.5794
-HWN (Rosnay FRA),46.7131,1.2453
-Vernon (Main MIL TX site FRA),49.0951,1.5084
-3AC (Monaco Radio MCO),43.7319,7.4276
-DCF77 (VLF Mainflingen DEU),50.0154,9.008
-RIT (Severomorsk Northern Fleet RUS),69.0588,33.3266
-RMP (Yantarny Baltic Fleet RUS),54.8589,19.9418
-RCV (Sevastopol Black Sea Fleet RUS),44.6010,33.5929
-Savolenka (Yukhnov RUS),54.7109,35.3777
-GYN2_VLF (Inskip GBR),53.8300,-2.8342
-MSF_VLF (Anthorn GBR),54.9111,-3.2793
-CKN (Esquimalt CAN),49.1087,-122.2423
-CHU (Ottawa CAN),45.2948,-75.7578
-CYQX (Gander Radio CAN),48.9660,-54.6727
-Debert (VDD MACS Debert CAN),45.4216,-63.5594
-Cardiff (CFB MACS Edmonton Military CAN),53.7852,-113.5390
-Point_Petre (CFB MACS Trenton Military CAN),43.8434,-77.1475
-Matsqui (NRS MARCOM Aldergrove CAN),49.1076,-122.2443
-Halifax (CFH NRS MARCOM Newport_Corner CAN),44.9672,-63.9821
-CTA (Palhais POR),38.6035,-9.0315
-CTP (Sao Miguel Isl AZR),37.8117,-25.5532
-TBO (Izimir TUR),38.4649,27.4665
-TBB (Lalahan TUR),39.9780,33.1342
-BPC_VLF (Shangqiu CHN),34.4565,115.8369
-NSY_VLF (Niscemi ITA),37.1256,14.4364
-TBB_VLF (Bafa TUR),37.4127,27.3233
-NAU_VLF (Ahuada PR),18.3987,-67.1775
-NSY (NRTF Niscemi ITA),37.1172,14.4400
-NAU (NRTF Isabela PR),18.4630,-67.0658
-NPG (NRTF Dixon USA),38.3713,-121.7756
-NDT (NRTF Totsuka JAP),35.3980,139.5017
-NPN (NRTF Guam USA),13.5871,144.8425
-NSS (NRTF Davidsonville USA),38.9667,-76.6830
-NPM (NRTF Lualualei USA),21.4276,-158.1563
-NAS (NRTF Jacksonville USA),30.1951,-81.6947
-NMC (CAMSPAC Point Reyes USA),37.925,-122.733
-NMN (CAMSLANT Chesapeake USA),36.7284,-76.0098
-NMF (COMMSTA Boston USA),41.7156,-70.5016
-NMG (COMMSTA New Orleans USA),29.8812,-89.9440
-NOJ (COMMSTA Kodiak USA),57.7787,-152.5295
-AFRTS_Barrigada (Barrigada Guam USA),13.4782,144.8377
-HFGCS_Lajes (PLA Terceira Azores),38.7111,-27.1507
-HFGCS_Andrews (ADW Andrews USA),38.9667,-76.6830
-HFGCS_Ascension (HAW Georgetown IOT),-7.9173,-14.3895
-HFGCS_Croughton (CRO Badford St John GBR),52.0039,-1.3603
-HFGCS_Diego_Garcia (JDG Diego Garcia IOT),-7.4299,72.4425
-HFGCS_Elmendorf (AED Anchorage USA),61.2478,-149.7225
-HFGCS_Guam (GUA Guam USA),13.5871,144.8425
-HFGCS_Salinas (JNR Salinas PRI),18.0045,-66.2790
-KEA5 (New York Radio Riverhead USA),40.8818,-72.6373
-HFDL_San_Francisco (H01 KNK9 Dixon USA),38.38,-121.7594
-HFDL_Molokai (H02 KXH6 Molokai USA),21.1844,-157.1869
-HFDL_Riverhead (H04 WLK7 Riverhead USA),40.8818,-72.6373
-HFDL_Auckland (H05 ZKG32 Wiroa Island AUS),-37.0155,174.8110
-HFDL_Hat_Yai (H06 Hat Yai THA),6.937,100.3885
-SAQ (Grimeton SWE),57.1131,12.3972
-EBA (Madrid SPA),40.4770,-3.1970
-E?? (Almatriche SPA),28.0867,-15.4567
-PBB (Den Helder NLD),52.9192,4.7436
-PBC (Goeree Isl NLD),51.8073,3.8931
-OSN (Ruiselede BEL),51.0788,3.3355
-Oostende_Radio (Middelkerke BEL),51.1824,2.8076
-JWT (Stavanger NOR),58.9956,5.7144
-JWT (Helgelandsmoen-Oslo NOR),60.1116,10.2119
-JXU (Bodo NOR),67.2025,14.3622
-J?? (Aukra NOR),62.8418,6.7933
-J?? (Andoeya NOR),69.1274,15.6381
-Frederikshavn (Danish navy DNK),57.4085,10.5159
-Aarhus (Danish navy DNK),56.1228,10.2068
-SVO (Olympia Radio Volakas GRC),37.6042,21.4885
-SXA (Athens GRC),37.9751,23.9182
-SXH (Thessalonique GRC),40.5042,22.8249
-IAR (Roma ITA),41.7861,12.4586
-IDR (Roma ITA),41.9800,12.3619
-DDHxx (Pinneberg DEU),53.6733,9.8097
-DHO38_VLF (Saterland-Ramsloh DEU),53.0805,7.6124
-DHJ58 (Hurup DEU),54.7606,9.5499
-DHJ59 (Neuharlingersiel DEU),53.6770,7.6120
-DHM85 (Marlow DEU),54.1430,12.5534
-DHM91 (Albersloh DEU),51.8864,7.7221
-Staberhuk_Radar (German Navy DEU),54.4162,11.3026
-MHFCS_North_West_Cape (Exmouth AUS),-21.9089,114.1319
-MHFCS_Humpty_Doo (Darwin AUS),-12.5344,131.0636
-MHFCS_Townsville (Boyle AUS),-19.2380,146.7222
-MHFCS_Riverina (Lyndoch AUS),-35.1255,146.9794
-WWV (Fort Collins USA),40.6797,-105.0425
-EIP (Shannon Volmet IRL),52.7447,-8.9269
-DHFCS_Ascension (Georgetown IOT),-7.9173,-14.3895
-DHFCS_Akrotiri (Akrotiri CYP),34.6140,32.9369
-DHFCS_Falklands (Mount Pleasant FLK),-51.8106,-58.2949
-DHFCS_Inskip (Inskip GBR),53.8255,-2.8345
-DHFCS_St_Eval (St Eval GBR),50.4786,-5.0004
-DHFCS_Crimond (Crimond GBR),57.6111,-1.8835
-Amici_di_ITALCABLE (Viareggio ITA),43.9141,10.2956
-ZhUOZ (UVB-76 UZB-76 MDZhB Buzzer RUS),55.3268,36.8086
-JORN_Longreach (Longreach AUS),-23.6580,144.1454
-JORN_Leonora (Leonora AUS),-28.3173,122.8434
-JORN_Harts_Range (Harts Range R&D site AUS),-22.9675,134.4479
-JMSDF_Ichihara (JJF Ichihara JAP),35.4460,140.1821
-JMSDF_Mutsu (JJF2 Mutsu JAP),41.1938,141.2855
-JMSDF_Kushira (JJF6 Kushira JAP),31.4603,130.9189
-JFX (Kagoshima Fishing Radio JAP),31.3218,130.5277
-JFW (Iwaki Fishing Radio JAP),36.9511,140.9260
-Bangkok_Radio (Bangkok THA),13.6663,100.6060
-HMNZS_Irirangi (Navy NZL),-39.4613,175.6685
-ZLM (Taupo Radio NZL),-38.868,176.435
-HAARP (Gakona USA),62.3923,-145.1505
-CSY (Santa Maria Azores),36.9950,-25.169
-WI2XAJ_Chicago (Toggle Communications LLC USA),41.8984,-88.2207
-WI2XAJ_New_York (Toggle Communications LLC USA),41.1607,-74.0887
-WI2XNX (10Band LLC USA),41.9262,-88.4997
-WH2XWU (County Information Services LLC USA),41.4571,-86.8591
-Kontainer (29B6 Kovylkino RUS),53.8836,43.9931
-PJK (Willemstad CUW),12.1718,-68.8658
-Klaipeida (LTU navy),55.7316,21.0876
-SDJ (Stockholm Radio Grimeton SWE),57.1029,12.3847
-Ersigen (Murain MFA EMCOM SWI),47.0999,7.5846
-Kernenried (MFA EMCOM SWI),47.0585,7.5447
-HBM46 (Wald MIL SWI),46.8867,7.4782
+Allouis (Civil BC 162kHz F),47.1695,2.2046
+FUG (French Navy Saissac F),43.3904,2.099861
+FUX (French Navy Ste Suzanne REU),-20.9101,55.5844
+FUJ (French Navy Noumea NCL),-22.3054,166.4548
+FUM (French Navy Mahina OCE),-17.506,-149.4827
+FUF (French Navy Riviere-Salee MRT),14.5322,-60.979
+6WW (French Navy Rufisque SEN),14.7604,-17.274
+FUV (French Navy Djibouti DJI),11.535952,43.155575
+FUE (French Navy Pencran F),48.4259,-4.2409
+FUO (French Navy Toulon F),43.1357,6.06
+FUE_VLF (French Navy Kerlouan F),48.6342,-4.3506
+HWU_VLF (French Navy Rosnay F),46.7131,1.2452
+FTA_VLF (French Navy Ste Assise F),48.5446,2.5794
+HWN (French Navy Rosnay F),46.7131,1.2453
+Vernon (French AF/MIL F),49.0951,1.5084
+Circus_Vert (French AF COTAM Vernon F),49.0951,1.5084
+Circus_Orange (French AF COTAM Rufisque SEN),14.7604,-17.274
+Circus_Noisette (French AF COTAM Niamey NGR),13.4892,2.1731
+Circus_Tilleul (French AF COTAM NDjamena, TCD),12.13,15.0155
+Circus_Dore (French AF COTAM Djibouti DJI),11.5343,43.1553
+Circus_Beige (French AF COTAM Bamako MLI),12.5296,-7.9451
+3AC (Civil Maritime Monaco Radio MCO),43.7319,7.4276
+DCF77 (Time Signal VLF Mainflingen D),50.0154,9.008
+Savolenka (Russian MIL OFDM-60 Yukhnov RUS),54.7109,35.3777
+GYN2_VLF (British MIL Inskip G),53.8300,-2.8342
+MSF_VLF (British MIL Anthorn G),54.9111,-3.2793
+CKN (Canadian MIL Esquimalt CAN),49.1087,-122.2423
+CHU (Time Signal Ottawa CAN),45.2948,-75.7578
+CYQX (Civil Aviation Gander Radio CAN),48.9660,-54.6727
+Debert (Canadian MIL VDD MACS Debert CAN),45.4216,-63.5594
+Cardiff (Canadian MIL CFB MACS Edmonton Military CAN),53.7852,-113.5390
+Point_Petre (Canadian MIL CFB MACS Trenton Military CAN),43.8434,-77.1475
+Matsqui (Canadian MIL NRS MARCOM Aldergrove CAN),49.1076,-122.2443
+Halifax (Canadian MIL CFH NRS MARCOM Newport_Corner CAN),44.9672,-63.9821
+CTA_Lisbon (Portuguese Navy Palhais POR),38.6035,-9.0315
+CTA_Santana (Portuguese Navy Sao Miguel AZR),37.8099,-25.5543
+TBO (Turkish Navy Izmir TUR),38.4649,27.4665
+TBB (Turkish Navy Lalabel TUR),39.9753,33.1919
+BPC_VLF (Chinese Navy Shangqiu CHN),34.4565,115.8369
+NSY_VLF (Italian Navy Niscemi I),37.1256,14.4364
+TBB_VLF (Turkish Navy Bafa TUR),37.4127,27.3233
+NAU_VLF (US Navy Ahuada PTR),18.3987,-67.1775
+NSY (US Navy NRTF Niscemi I),37.1172,14.44
+NAU (US Navy NRTF Isabela PTR),18.463,-67.0658
+NPG (US Navy NRTF Dixon USA),38.3713,-121.7756
+NDT (US Navy NRTF Tokorozawa J),35.8077,139.4728
+NPN (US Navy NRTF Guam GUM),13.5871,144.8425
+NSS (US Navy NRTF Davidsonville USA),38.9667,-76.683
+NPM (US Navy NRTF Waianae HWA),21.4276,-158.1563
+NAS (US Navy NRTF Jacksonville USA),30.1951,-81.6947
+NKW (US Navy NRTF Diego Garcia DGA),-7.4299,72.4425
+NMC (USCG CAMSPAC Point Reyes USA),37.925,-122.733
+NMN (USCG CAMSLANT Chesapeake USA),36.7284,-76.0098
+NMF (USCG COMMSTA Boston USA),41.7156,-70.5016
+NMG (USCG COMMSTA New Orleans USA),29.8812,-89.944
+NOJ (USCG COMMSTA Kodiak USA),57.7787,-152.5295
+NMA (USCG COMMSTA Miami USA),25.6239,-80.3856
+NMO (USCG COMMSTA Waianae HWA),21.4276,-158.1563
+HFGCS_Lajes (USAF PLA Terceira AZR),38.7111,-27.1507
+HFGCS_Andrews (USAF ADW Davidsonville USA),38.9667,-76.683
+HFGCS_Ascension (USAF HAW Georgetown ASC),-7.9173,-14.3895
+HFGCS_Croughton (USAF CRO Barford St John G),52.0039,-1.3603
+HFGCS_Diego_Garcia (USAF JDG Diego Garcia DGA),-7.4299,72.4425
+HFGCS_Elmendorf (USAF AED Anchorage USA),61.2478,-149.7225
+HFGCS_Guam (USAF GUA Guam GUM),13.4782,144.8377
+HFGCS_Puerto_Rico (USAF JNR Salinas PTR),18.0045,-66.2790
+HFGCS_Offutt (USAF OFF Elkorn USA),41.3464,-96.2441
+HFGCS_Hickam (USAF HIK Waianae HWA),21.43,-158.1533
+HFGCS_Yokota (USAF JTY Tokorozawa J),35.8077,139.4728
+HFGCS_West_Coast (USAF MCC Dixon USA),38.3713,-121.7756
+Oxford_Junction (US UrgentLink Rockwell Collins, Iowa USA),41.9626,-90.8946
+Landhi (Pakistan Navy Karachi PAK),24.826,67.1917
+Zvolen (Slovakian AF SVK),48.5835,19.0913
+KEA5 (Civil Aviation New York Radio Riverhead USA),40.8818,-72.6373
+HFDL_San_Francisco (Civil Aviation H01 KNK9 Dixon USA),38.38,-121.7594
+HFDL_Molokai (Civil Aviation H02 KXH6 Molokai HWA),21.1844,-157.1869
+HFDL_Riverhead (Civil Aviation H04 WLK7 Riverhead USA),40.8818,-72.6373
+HFDL_Auckland (Civil Aviation H05 ZKG32 Wiroa Island AUS),-37.0155,174.8110
+HFDL_Hat_Yai (Civil Aviation H06 Hat Yai THA),6.937,100.3885
+SAQ (Historical Grimeton S),57.1131,12.3972
+EBA (Spanish Navy Madrid E),40.4770,-3.1970
+EBK (Spanish Navy Almatriche CNR),28.0867,-15.4567
+PBB (Dutch Navy Den Helder HOL),52.9192,4.7436
+PBC (Dutch Navy Goeree Isl HOL),51.8073,3.8931
+PJK (Dutch Navy Willemstad CUW),12.1718,-68.8658
+OSN (Belgium Navy Ruiselede BEL),51.0788,3.3355
+Oostende_Radio (Civil Maritime Middelkerke BEL),51.1824,2.8076
+Stavanger (Norwegian Navy NOR),58.9956,5.7144
+Helgelandsmoen (Norwegian Navy NOR),60.1116,10.2119
+Bodo (Norwegian Navy NOR),67.2025,14.3622
+Aukra (Norwegian Navy NOR),62.8418,6.7933
+Andoeya (Norwegian Navy NOR),69.1274,15.6381
+Frederikshavn (Danish Navy DNK),57.4085,10.5159
+Aarhus (Danish Navy DNK),56.1228,10.2068
+Kangilinnguit (Danish Navy GRL),61.2263,-48.0993
+SVO (Civil Maritime Olympia Radio Volakas GRC),37.6042,21.4885
+SXA (Greek Navy Athens GRC),37.9751,23.9182
+SXH (Greek Navy Thessalonique GRC),40.5042,22.8249
+IAR (Italian Navy Roma I),41.7861,12.4586
+DDH (Civil Maritime Pinneberg D),53.6733,9.8097
+DHO38_VLF (German Navy Saterland-Ramsloh D),53.0805,7.6124
+Hurup (German Navy D),54.7606,9.5499
+Neuharlingersiel (German Navy D),53.6770,7.6120
+Marlow (German Navy D),54.1430,12.5534
+Albersloh (German AF D),51.8864,7.7221
+Staberhuk_Radar (German Navy D),54.4162,11.3026
+MHFCS_North_West_Cape (Australian MIL Exmouth AUS),-21.9089,114.1319
+MHFCS_Humpty_Doo (Australian MIL Darwin AUS),-12.5344,131.0636
+MHFCS_Townsville (Australian MIL Boyle AUS),-19.2380,146.7222
+MHFCS_Riverina (Australian MIL Lyndoch AUS),-35.1255,146.9794
+WWV (Time Signal Fort Collins USA),40.6797,-105.0425
+EIP (Civil Aviation Shannon Volmet IRL),52.7447,-8.9269
+DHFCS_Ascension (British MIL Georgetown ASC),-7.9173,-14.3895
+DHFCS_Akrotiri (British MIL Akrotiri CYP),34.6140,32.9369
+DHFCS_Falklands (British MIL Mount Pleasant FLK),-51.8106,-58.2949
+DHFCS_Inskip (British MIL Inskip G),53.8255,-2.8345
+DHFCS_St_Eval (British MIL St Eval G),50.4786,-5.0004
+DHFCS_Crimond (British MIL Crimond G),57.6111,-1.8835
+Amici_di_ITALCABLE (Time Signal Viareggio I),43.9141,10.2956
+JORN_Longreach (Ionospheric sounder Longreach AUS),-23.6580,144.1454
+JORN_Leonora (Ionospheric sounder Leonora AUS),-28.3173,122.8434
+JORN_Harts_Range (Ionospheric sounder Harts Range R&D site AUS),-22.9675,134.4479
+JMSDF_Ichihara (Japanese MIL JJF Ichihara J),35.4460,140.1821
+JMSDF_Mutsu (Japanese MIL JJF2 Mutsu J),41.1938,141.2855
+JMSDF_Kushira (Japanese MIL JJF6 Kushira J),31.4603,130.9189
+JFX (Civil Maritime Kagoshima Fishing Radio J),31.3218,130.5277
+JFW (Civil Maritime Iwaki Fishing Radio J),36.9511,140.9260
+Bangkok_Radio (Civil Maritime Bangkok THA),13.6663,100.6060
+ZLM (Civil Maritime Taupo Radio NZL),-38.868,176.435
+HAARP (Ionopheric sounder Gakona USA),62.3923,-145.1505
+CSY (Civil Aviation Santa Maria AZR),36.9950,-25.169
+WI2XAJ_Chicago (HF Traders Toggle Communications LLC USA),41.8984,-88.2207
+WI2XAJ_New_York (HF Traders Toggle Communications LLC USA),41.1607,-74.0887
+WI2XNX (HF Traders 10Band LLC USA),41.9262,-88.4997
+WH2XWU (HF Traders County Information Services LLC USA),41.4571,-86.8591
+Kontainer (Russian OTHR 29B6 Kovylkino RUS),53.8836,43.9931
+Klaipeda (Lithuanian Navy LTU),55.7316,21.0876
+SDJ (Civil Aviation Stockholm Radio Grimeton S),57.1029,12.3847
+Gullmarsbasen (Swedish Navy Skredsvik S),58.3962,11.6317
+Gotland (Swedish Navy Ljugarn S),57.3516,18.7316
+Krak (Swedish Navy Karlsborg S),58.485,14.4727
+Kernenried (Swiss ex-MFA EMCOM SUI),47.0585,7.5447
+HBM46 (Swiss MIL Wald SUI),46.8867,7.4782
+Chinese_OTHB_1 (Ionopheric system Zhangwa Zaoyang CHN),32.3375,112.7075
+Chinese_OTHB_2 (Ionopheric system Xinjiancun Baotou CHN),40.3720,111.1107
 Lashkar_Gah (Afghanistan),31.583,64.36
 Kondoz (Afghanistan),36.728,68.8725
 Jalalabad (Afghanistan),34.4415,70.4361
@@ -339,8 +376,6 @@ Calgary (Canada),51.083,-114.08
 Victoria (Canada),48.4333,-123.35
 Ottawa (Canada),45.4167,-75.7
 Quebec (Canada),46.84,-71.2456
-Halifax (Canada),44.65,-63.6
-Edmonton (Canada),53.55,-113.5
 Montreal (Canada),45.5,-73.5833
 Vancouver (Canada),49.2734,-123.1216
 Toronto (Canada),43.7,-79.42
@@ -352,7 +387,6 @@ Talcahuano (Chile),-36.7167,-73.1167
 Temuco (Chile),-38.73,-72.58
 Rancagua (Chile),-34.17,-70.74
 Iquique (Chile),-20.25,-70.13
-Antofagasta (Chile),-23.65,-70.4
 Valparaiso (Chile),-33.0478,-71.621
 Concepcion (Chile),-36.83,-73.05
 Santiago (Chile),-33.45,-70.667
@@ -1105,7 +1139,7 @@ Semey (Kazakhstan),50.435,80.275
 Oskemen (Kazakhstan),49.99,82.6149
 Shymkent (Kazakhstan),42.32,69.595
 Taraz (Kazakhstan),42.9,71.365
-Astana (Kazakhstan),51.1811,71.4278
+Nur-Sultan (Kazakhstan),51.1811,71.4278
 Qaraghandy (Kazakhstan),49.885,73.115
 Almaty (Kazakhstan),43.325,76.915
 Nakuru (Kenya),-0.28,36.07
@@ -1701,7 +1735,6 @@ Makiyivka (Ukraine),48.0297,37.9746
 Horlivka (Ukraine),48.2996,38.0547
 Simferopol (Ukraine),44.9492,34.0987
 Kherson (Ukraine),46.6325,32.6007
-Rivne (Ukraine),50.6166,26.2528
 Chernivtsi (Ukraine),48.3053,25.9216
 Ivano-Frankivsk (Ukraine),48.9348,24.7094
 Ternopil (Ukraine),49.536,25.5821

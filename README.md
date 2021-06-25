@@ -1,4 +1,4 @@
-# directTDoA v6.20
+# directTDoA v7.00
 
 This software is JUST a python 2/3 GUI designed to compute TDoA runs on shortwave radio transmissions using remote (GPS enabled) KiwiSDR receivers around the World.
 
@@ -12,17 +12,19 @@ Download [directTDoA-windows.zip](https://github.com/llinkz/directTDoA/releases/
 
 Then double-click on `directTDoA.bat`
 
-#### IMPORTANT: You must use this method to launch the program to avoid file path issues.
+##### NB: Windows users will get directTDoA v6.20
+
+#### IMPORTANT: You must use only this method to launch the program to avoid file path issues.
 
 > Info: this archive contains all the necessary files already patched and compiled and also includes light versions of GNU Octave and python, so no need to install the full versions of the last two on your machine. The unzipped archive is 272 MB, compared to ~2 GB in the other installer way.
 
 ## INSTALL AND RUN (on LINUX)
 
-Install python (version 2 or 3) and python-pip using your package manager
+Install python 3 and python-pip using your package manager
 
 Install GNU octave
 
-Install git
+Install git, patch, gcc, base-devel, ttf-dejavu, gcc-fortran, tk, portaudio, xdg-utils, epdfview
 
 `git clone --recursive https://github.com/llinkz/directTDoA`
 
@@ -32,7 +34,7 @@ Install git
 
 `./directTDoA.py`
 
-> NOTE: You may need to manually install xdg-utils, liboctave-dev
+> NOTE: on some distros you may need to install liboctave-dev
 
 ## INSTALL AND RUN (on MAC OS X)
 
@@ -48,7 +50,7 @@ Install GNU Octave in Terminal : `brew install octave`
 
 `cd directTDoA`
 
-`./setup.sh`  (this script will install python modules, compile the necessary .oct file and apply patches to some files)
+`./setup.sh`  (this script will install python modules, compile the necessary .oct file and apply patches to some files. Check errors but Ignore warnings)
 
 `./directTDoA.py`
 
@@ -97,14 +99,13 @@ Install GNU Octave in Terminal : `brew install octave`
 * v6.00: Listen mode (AM/LSB/USB) is back, to get it working you must apply a patch: `patch -i kiwirecorder_patch.diff ./kiwiclient/kiwirecorder.py` from directTDoA dir and install sounddevice + samplerate python modules with `python -m pip install sounddevice samplerate` + some python 2 Vs. python 3 bug fixes + bug fixed on map update process + .desktop files creation removed
 * v6.10: Restart GUI routine modified + less CMD windows for Windows OS users (using pythonw instead of python) + bug fix that caused the map to move suddenly far away when selecting a node (problem only noticed on Windows OS) + no more auto-PlotIQ() start on ultimateTDoA runs + modifications of the .bat files for Windows OS users (CPU affinity of the python processes now set towards a single one, the allocation on several generated a delay in the starting of the IQ records)
 * v6.20: User demand and personal use: added functionality to manage the overlapping of icons on the map. Now when you click near a cluster of multiple nodes, a menu will appear and allow you to choose the one you really want + some GUI design changes + bug fix on map locations search (avoid multiple displayed)
+* v7.00: Adding USB/LSB/CW/AM/2kHz/4kHz/6kHz/8kHz IQ BW presets + display bug fix for known places on map + adding recorded nodes Vs selected nodes counter + recording time in file size window + IQ rec length max limit set to 120 seconds (just in case) + TCP client modified, possibility to change the trigger word (regexp supported) + PDF title mods + remember GUI size & position on close + MAP & SNR update only via KiwiSDR.com/public now + nognss.py script added, to remove GNSS ticks from the IQs so files can get opened and demodulated fine
 ## Thanks
 * Christoph Mayer @ https://github.com/hcab14/TDoA for the main TDoA code, excellent work and thanks for the public release !
 * John Seamons, KiwiSDR developper @ https://github.com/jks-prv
 * Dmitry Janushkevich @ https://github.com/dev-zzo/kiwiclient for the code that I've modified to work with the GUI 
 * Marco Cogoni (IS0KYB) for the microkiwi_waterfall.py code that I've modified to work directly via python
-* James Gibbard, Maxim and Bernhard Wagner (stackoverflow.com users) for some parts of code I've used in plot_iq.py
 * Nicolas M. for the MAC OS X directTDoA installing procedure
 
 ## Special Thanks
 * Daniel Ekmann, naturally designated as a beta tester, for the help on coding, feedbacks and suggestions since the beginning.
-* Pierre Ynard (linkfanel) for the listing of available KiwiSDR nodes (and SNR measurements) used as source for the World map update process (http://rx.linkfanel.net)

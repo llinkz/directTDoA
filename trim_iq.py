@@ -22,10 +22,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.widgets import SpanSelector
-
+from matplotlib.ticker import FuncFormatter
 
 TRIM_PROC = 1
-
+FILE_NUMBER = 0
+TOTAL_FILES = len(glob.glob("*.wav"))
+START = 0
+FREQUENCY = float(os.getcwd().rsplit("F", 1)[1])
 GRADIENT = {
     'red': ((0.0, 0.0, 0.0),
             (0.077, 0.0, 0.0),
@@ -51,7 +54,6 @@ GRADIENT = {
              (0.604, 1.0, 1.0),
              (1.0, 1.0, 1.0)),
 }
-
 COLORMAP = LinearSegmentedColormap('SAColorMap', GRADIENT, 1024)
 
 
@@ -61,15 +63,43 @@ def on_press(event):
     plt.close()
 
 
+def on_mouse_move(event):
+    """ Range selection length measurement. """
+
+    if None not in (event.xdata, event.ydata) and START != 0:
+        if -2 <= round(event.xdata - START, 2) <= 2:
+            span.set_visible(True)
+            span2.set_visible(False)
+        else:
+            span.set_visible(False)
+            span2.set_visible(True)
+
+
+def on_mouse_click(event):
+    """ First click on the spectrogram. """
+
+    global START
+    START = event.xdata
+
+
 def onselect(event1, event2):
     """ Drag-select procedure on temp IQ stored in memory. """
 
-    if float(event2 - event1) >= 2:
-        trim_iq(round(event1, 2), round(event2, 2))
-    else:
+    global START
+    if float(event2 - event1) <= 2:
         print ("Period range is too small (less than 2 sec) - deleting " + IQfile)
-        os.remove(IQfile)
         plt.close()
+        os.remove(IQfile)
+    START = 0
+
+
+def onselect2(event10, event20):
+    """ Drag-select procedure on temp IQ stored in memory. """
+
+    global START
+    if float(event20 - event10) > 2:
+        trim_iq(round(event10, 2), round(event20, 2))
+    START = 0
 
 
 def trim_iq(from_block, to_block):
@@ -96,15 +126,15 @@ def trim_iq(from_block, to_block):
     # file result preview if requested by user
     if ARGS.get_preview == "y":
         TRIM_PROC = 0
-        convert_iq_and_plot_from_mem(IQfile)
+        convert_iq_and_plot_from_mem(IQfile, FILE_NUMBER)
     else:
         TRIM_PROC = 1
 
 
-def convert_iq_and_plot_from_mem(in_file):
+def convert_iq_and_plot_from_mem(in_file, number):
     """ remove GNSS data from the IQ file and plot it from memory. """
 
-    global TRIM_PROC
+    global TRIM_PROC, fig, a_x, span, span2
     # Remove GNSS data from the IQ file
     old_f = open(in_file, 'rb')
     old_size = os.path.getsize(in_file)
@@ -122,19 +152,24 @@ def convert_iq_and_plot_from_mem(in_file):
     data = data[0::2] + 1j * data[1::2]
     # Plot the IQ w/o GNSS data
     plt.rcParams['toolbar'] = 'None'
-    # cmap = plt.get_cmap('bone')
     fig, a_x = plt.subplots()
     plt.specgram(data, NFFT=1024, Fs=12000, window=lambda data: data * np.hanning(len(data)), noverlap=512, vmin=10,
                  vmax=200, cmap=COLORMAP)
-    plt.xlabel("time (s)")
-    plt.ylabel("frequency offset (kHz)")
+    plt.xlabel("Time (s)")
+    ticks = FuncFormatter(lambda x, pos: FREQUENCY + (x // 1e3))
+    a_x.yaxis.set_major_formatter(ticks)
+    a_x.set_ybound(-6000.0, 6000.0)
     if TRIM_PROC == 1:
-        plt.title(in_file + " - [original IQ]", fontsize=10)
+        plt.title(in_file.rsplit("_", 2)[1] + " - [" + str(number) + "/" + str(TOTAL_FILES) + "]", fontsize=10)
         span = SpanSelector(a_x, onselect, 'horizontal', useblit=True, rectprops=dict(alpha=0.4, facecolor='red'))
+        span2 = SpanSelector(a_x, onselect2, 'horizontal', useblit=True, rectprops=dict(alpha=0.4, facecolor='green'))
+        fig.canvas.mpl_connect('motion_notify_event', on_mouse_move)
+        fig.canvas.mpl_connect('button_press_event', on_mouse_click)
     else:
         plt.gcf().set_facecolor("yellow")
         fig.canvas.mpl_connect('button_press_event', on_press)
-        plt.title(in_file + " - [trimmed IQ preview]", fontsize=10)
+        plt.title(in_file.rsplit("_", 2)[1] + " - [" + str(number) + "/" + str(
+            TOTAL_FILES) + "]" + " - [trimmed IQ preview]", fontsize=10)
         TRIM_PROC = 1
     plt.show()
 
@@ -145,9 +180,9 @@ if __name__ == '__main__':
                         help='Use original IQ files (default=no)')
     PARSER.add_argument('-v', dest='get_preview', action='store', choices=['y', 'n'], default='n',
                         help='Show preview window (default=no)')
-    PARSER.add_argument('-p', dest='plot_iq', action='store', choices=['y', 'n'], default='y',
+    PARSER.add_argument('-p', dest='plot_iq', action='store', choices=['y', 'n'], default='n',
                         help='Run plot_iq script (default=yes)')
-    PARSER.add_argument('-r', dest='show_result', action='store', choices=['y', 'n'], default='y',
+    PARSER.add_argument('-r', dest='show_result', action='store', choices=['y', 'n'], default='n',
                         help='Show plot_iq PDF result (default=yes)')
     ARGS = PARSER.parse_args()
 
@@ -166,7 +201,8 @@ if __name__ == '__main__':
 
     # Compute all IQ files in the current directory
     for IQfile in glob.glob("*.wav"):
-        convert_iq_and_plot_from_mem(IQfile)
+        FILE_NUMBER += 1
+        convert_iq_and_plot_from_mem(IQfile, FILE_NUMBER)
 
     # Run plot_iq.py to get the spectrogram pdf file using the new trimmed files if requested by user
     if ARGS.plot_iq == "y":

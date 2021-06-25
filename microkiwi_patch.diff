@@ -1,39 +1,40 @@
---- microkiwi_waterfall.py	2020-02-23 00:21:42.029553395 +0100
-+++ microkiwi_waterfall.py	2020-02-23 00:24:00.979702380 +0100
-@@ -1,30 +1,60 @@
+--- microwiki_waterfall.py	2021-01-02 00:19:15.126533594 +0000
++++ microwiki_waterfall.py	2021-01-02 00:19:15.116533784 +0000
+@@ -1,30 +1,61 @@
 -import numpy as np
 -import struct
 +#!/usr/bin/python
 +# -*- coding: utf-8 -*-
-+""" Here is the IS0KYB microkiwi_waterfall script, modified to use python instead of jupyther notebook """
++""" IS0KYB microkiwi_waterfall script, modified to use python instead of jupyther notebook """
 +
 +# python 2/3 compatibility
 +from __future__ import print_function
 +from __future__ import division
 +from __future__ import absolute_import
- 
+
 -import array
 -import logging
-+import numpy as np
  import socket
  import struct
  import time
-+import matplotlib.pyplot as plt
-+from matplotlib.colors import LinearSegmentedColormap
 +import io
  from datetime import datetime
 -
++from optparse import OptionParser
++import numpy as np
++import matplotlib.pyplot as plt
++from matplotlib.colors import LinearSegmentedColormap
++from mpl_toolkits.axes_grid1 import make_axes_locatable
  from kiwi import wsclient
 -
  import mod_pywebsocket.common
  from mod_pywebsocket.stream import Stream
  from mod_pywebsocket.stream import StreamOptions
--
- from optparse import OptionParser
- 
-+processfailed = False
+
+-from optparse import OptionParser
++PROCESSFAILED = False
 +
-+cdict1 = {
++CDICT = {
 +    'red': ((0.0, 0.0, 0.0),
 +            (0.2, 0.0, 0.0),
 +            (0.4, 1.0, 1.0),
@@ -56,8 +57,8 @@
 +             (1.0, 1.0, 1.0)),
 +}
 +
-+cmap = LinearSegmentedColormap('SAColorMap', cdict1, 1024)
-+
++CMAP = LinearSegmentedColormap('SAColorMap', CDICT, 1024)
+
  parser = OptionParser()
 -parser.add_option("-f", "--file", dest="filename", type=str,
 -                  help="write waterfall data to binary FILE", metavar="FILE")
@@ -71,10 +72,10 @@
  parser.add_option("-z", "--zoom", type=int,
                    help="zoom factor", dest="zoom", default=0)
  parser.add_option("-o", "--offset", type=int,
-@@ -32,126 +62,121 @@
+@@ -32,126 +63,121 @@
  parser.add_option("-v", "--verbose", type=int,
                    help="whether to print progress and debug info", dest="verbosity", default=0)
-                   
+
 -
  options = vars(parser.parse_args()[0])
 -
@@ -130,18 +131,18 @@
 +now = b'(datetime.now()'
  header = [center_freq, span, now]
  header_bin = struct.pack("II26s", *header)
- 
+
 -print "Trying to contact server..."
  try:
      mysocket = socket.socket()
      mysocket.connect((host, port))
  except:
 -    print "Failed to connect"
--    exit()   
+-    exit()
 -print "Socket open..."
 +    print("Failed to connect")
 +    exit()
- 
+
  uri = '/%d/%s' % (int(time.time()), 'W/F')
  handshake = wsclient.ClientHandshakeProcessor(mysocket, host, port)
  handshake.handshake(uri)
@@ -156,7 +157,7 @@
  mystream = Stream(request, stream_option)
 -print "Data stream active..."
 -
- 
+
  # send a sequence of messages to the server, hardcoded for now
  # max wf speed, no compression
 -msg_list = ['SET auth t=kiwi p=', 'SET zoom=%d start=%d'%(zoom,offset),\
@@ -182,10 +183,10 @@
 +    try:
 +        tmp = mystream.receive_message()
 +    except:
-+        processfailed = True
++        PROCESSFAILED = True
 +        break
 +    if b'W/F' in tmp:  # this is one waterfall line
-+        tmp = tmp[16:]  # remove some header from each msg
++        tmp = tmp[16:].replace(b"7", b"\xa0")  # remove some header from each msg
 +        print("received sample")
          if options['verbosity']:
 -            print time,
@@ -195,8 +196,7 @@
 -            binary_wf_list.append(tmp) # append binary data to be saved to file
 -        #wf_data[time, :] = spectrum-255 # mirror dBs
 +            print(time),
-+        spectrum = np.array(struct.unpack('%dB' % len(tmp), tmp))  # convert from binary data to uint8
-+        # spectrum = np.ndarray(len(tmp), dtype='B', buffer=tmp)  # convert from binary data to uint8
++        spectrum = np.array(struct.unpack('%dB' % len(tmp), tmp))  # convert binary data to uint8
 +        binary_wf_list.append(tmp)  # append binary data to be saved to file
 +        # wf_data[time, :] = spectrum-255 # mirror dBs
          wf_data[time, :] = spectrum
@@ -207,7 +207,7 @@
 -        #print tmp
 +    else:  # this is chatter between client and server
          pass
- 
+
  try:
      mystream.close_connection(mod_pywebsocket.common.STATUS_GOING_AWAY)
      mysocket.close()
@@ -217,19 +217,17 @@
 -
 -avg_wf = np.mean(wf_data, axis=0) # average over time
 +    print("exception: %s" % e)
- 
+
 +avg_wf = np.mean(wf_data, axis=0)  # average over time
  p95 = np.percentile(avg_wf, 95)
  median = np.percentile(avg_wf, 50)
 +maxsig = np.max(wf_data)
 +minsig = np.min(wf_data)
- 
+
 -print "Average SNR computation..."
 -print "Waterfall with %d bins: median= %f dB, p95= %f dB - SNR= %f rbw= %f kHz" % (bins, median, p95,p95-median, rbw)
 -
-+# print "Waterfall with %d bins: median= %f dB, p95= %f dB - SNR= %f rbw= %f kHz" % (bins, median, p95,p95-median, rbw)
-+print("SNR: %i dB [median: %i dB, p95: %i dB, high: %i dBm, low: %i dBm]" % (p95 - median, median, p95, maxsig, minsig))
- 
+-
 -if filename:
 -    print "Saving binary data to file..."
 -    with open(filename, "wb") as fd:
@@ -241,9 +239,9 @@
 +fd.write(header_bin)  # write the header info at the top
 +for line in binary_wf_list:
 +    fd.write(line)
-+
 +fd.seek(0)
 +buff = fd.read()
++
 +header_len = 8 + 26  # 2 unsigned int for center_freq and span: 8 bytes PLUS 26 bytes for datetime
 +length = len(buff[header_len:])
 +n_t = length // bins
@@ -255,11 +253,16 @@
 +plt.yticks(np.arange(0, 0, step=1))
 +plt.xlabel('MHz')
 +plt.xticks(np.linspace(0, bins, 31), np.linspace(0, 30, num=31, endpoint=True, dtype=int))
-+plt.pcolormesh(waterfall_array[:, 1:], cmap=cmap, vmin=minsig+30, vmax=maxsig+30)
-+if processfailed:
++plt.pcolormesh(waterfall_array[:, 1:], cmap=CMAP, vmin=minsig+30, vmax=maxsig+30)
++if PROCESSFAILED:
 +    plt.title("Sorry, measurement failed on this Kiwi, no slot available, try later")
 +else:
 +    plt.title("HF waterfall @ " + str(host) + " - [SNR: %i dB" % (p95 - median) + "]")
-+clb = plt.colorbar()
++divider = make_axes_locatable(plt.gca())
++cax = divider.append_axes("right", "2%", pad="1%")
++clb = plt.colorbar(cax=cax)
 +clb.ax.set_title('dBm')
++plt.tight_layout()
 +plt.show()
++print("SNR: %i dB [median: %i dB, p95: %i dB, high: %i dBm, low: %i dBm]" % (p95 - median, median, p95, maxsig, minsig))
++

@@ -1,24 +1,22 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""" This python script removes GNSS data from KiwiSDR IQ files then convert
-them into png spectrogram pictures and then combines all of them in a single png file.
-credits: Daniel Ekmann & linkz with some code source from James Gibbard / Maxim / Bernhard Wagner
-usage ./plot_iq.py """
+""" Removes GNSS datas from KiwiSDR IQ files, do a SNR check and plot all into a single .pdf file.
+credits: Daniel Ekmann & linkz - usage ./plot_iq.py """
 
 # python 2/3 compatibility
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import struct
-import os
 import glob
-import sys
+import math
+import os
+import re
+from io import BytesIO
 import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
-from PIL import Image
+import matplotlib.colors as clr
+# import matplotlib.ticker as tkr
 
 GRADIENT = {
     'red': ((0.0, 0.0, 0.0),
@@ -45,82 +43,58 @@ GRADIENT = {
              (0.604, 1.0, 1.0),
              (1.0, 1.0, 1.0)),
 }
-
-COLORMAP = LinearSegmentedColormap('SAColorMap', GRADIENT, 1024)
-
-
-def plotspectrogram(source):
-    """ Create spectrogram of the IQ file, using specgram and save it to file. """
-    old_f = open(source, 'rb')
-    new_f = open(source + '.nogps', 'wb')
-    old_size = os.path.getsize(source)
-    data_size = 2048 * ((old_size - 36) // 2074)
-    new_f.write(old_f.read(36))
-    new_f.write(b'data')
-    new_f.write(struct.pack('<i', data_size))
-    for i in range(62, old_size, 2074):
-        old_f.seek(i)
-        new_f.write(old_f.read(2048))
-    new_f.close()
-    old_f.close()
-    with open(source + '.nogps', "rb") as no_gps:
-        no_gps.seek(0, 0)
-        data = np.fromfile(no_gps, dtype='int16')
-        data = data[0::2] + 1j * data[1::2]
-    fig, a_x = plt.subplots()
-    plt.specgram(data, NFFT=1024, Fs=12000, window=lambda data: data * np.hanning(len(data)), noverlap=512, vmin=10,
-                 vmax=200, cmap=COLORMAP)
-    freq = str((float(wavfiles.rsplit("_", 3)[1]) / 1000))
-    plt.title(source.rsplit("_", 3)[2] + " - [CF=" + freq + " kHz] - GPS:" + str(has_gps(source)))
-    plt.xlabel("time (s)")
-    plt.ylabel("frequency offset (kHz)")
-    ticks = matplotlib.ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x // 1e3))
-    a_x.yaxis.set_major_formatter(ticks)
-    plt.savefig(source + '.png')
-    os.remove(source + '.nogps')
+COLORMAP = clr.LinearSegmentedColormap('SAColorMap', GRADIENT, 1024)
 
 
-def has_gps(source):
-    """ Detect if IQ file has GPS GNSS data (in test). """
-    gpslast = 0
-    f_wav = open(source, 'rb')
-    for i in range(2118, os.path.getsize(source), 2074):
-        f_wav.seek(i)
-        if sys.version_info[0] < 3:
-            gpslast = max(gpslast, ord(f_wav.read(1)[0]))
-        else:
-            gpslast = max(gpslast, f_wav.read(1)[0])
-    return 0 < gpslast < 254
+def load(path):
+    """ IQ loading. """
+    buf = BytesIO()
+    with open(path, 'rb') as iq_file:
+        size = os.path.getsize(path)
+        for i in range(62, size, 2074):
+            iq_file.seek(i)
+            buf.write(iq_file.read(2048))
+    data = np.frombuffer(buf.getvalue(), dtype='int16')
+    data = data[0::2] + 1j * data[1::2]
+    return data
 
 
-def pil_grid(images, filename, max_horiz=np.iinfo(int).max):
-    """ Make a poster of png files. """
-    n_images = len(images)
-    n_horiz = min(n_images, max_horiz)
-    h_sizes, v_sizes = [0] * n_horiz, [0] * ((n_images // n_horiz) + (1 if n_images % n_horiz > 0 else 0))
-    for i, im_v1 in enumerate(images):
-        h_var, v_var = i % n_horiz, i // n_horiz
-        h_sizes[h_var] = max(h_sizes[h_var], im_v1.size[0])
-        v_sizes[v_var] = max(v_sizes[v_var], im_v1.size[1])
-    h_sizes, v_sizes = np.cumsum([0] + h_sizes), np.cumsum([0] + v_sizes)
-    im_grid = Image.new('RGB', (h_sizes[-1], v_sizes[-1]), color='white')
-    for i, im_v2 in enumerate(images):
-        im_grid.paste(im_v2, (h_sizes[i % n_horiz], v_sizes[i // n_horiz]))
-    im_grid.save(filename, resolution=153.5)  # adjust res to ~900x600
-    return im_grid
+def score(data):
+    """ SNR scoring. """
+    max_snr = 0.0
+    for offset in range(12000, len(data), 512):
+        snr = np.std(np.fft.fft(data[offset:], n=1024))
+        if snr > max_snr:
+            max_snr = snr
+    return max_snr
+
+
+def plot(files, order, cols):
+    """ Plotting. """
+    rows = int(math.ceil(len(files) / cols))
+    fig, axs = plt.subplots(ncols=cols, nrows=rows)
+    fig.set_figwidth(cols * 6.4)
+    fig.set_figheight(rows * 4.8)
+    for i, (path, _) in enumerate(order):
+        a_x = axs.flat[i]
+        a_x.specgram(files[path], NFFT=1024, Fs=12000, window=lambda data: data * np.hanning(len(data)), noverlap=512,
+                     vmin=10, vmax=200, cmap=COLORMAP)
+        a_x.set_title(path.rsplit('_', 3)[2])
+        a_x.axes.get_yaxis().set_visible(False)
+        # a_x.get_yaxis().set_major_formatter(tkr.FuncFormatter(lambda x, pos: '{0:g}'.format(x // 1e3)))
+        # a_x.set_ybound(-6000.0, 6000.0)
+    for i in range(len(scores), len(axs.flat)):
+        fig.delaxes(axs.flat[i])
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    for mfile in glob.glob('*.*m*'):
+        oct_file = open(mfile, 'r')
+        file_d = oct_file.read()
+        oct_file.close()
+        fig.suptitle(re.search(r".+title.+\'(.+)\'", file_d).group(1), fontsize=20)
+    fig.savefig('TDoA_' + path.rsplit('_', 3)[1] + '_spec.pdf', bbox_inches='tight', dpi=50)
 
 
 if __name__ == '__main__':
-
-    plt.rcParams.update({'figure.max_open_warning': 0})
-    COUNT = 1
-    TOTALCOUNT = len(glob.glob("*.wav"))
-    for wavfiles in glob.glob("*.wav"):
-        print(str(COUNT) + "/" + str(TOTALCOUNT) + " ... [" + wavfiles.rsplit("_", 3)[2] + "]")
-        plotspectrogram(wavfiles)
-        COUNT += 1
-    IMAGES = [Image.open(x) for x in glob.glob("*.png")]
-    FINALNAME = 'TDoA_' + str(wavfiles.rsplit("_", 3)[1]) + '_spec.pdf'
-    pil_grid(IMAGES, FINALNAME, 3)  # last parameter = the number of images displayed horizontally
-    for imgfiles in glob.glob("*.wav.png"):
-        os.remove(imgfiles)
+    files = {path: load(path) for path in glob.glob('*.wav*')}
+    scores = sorted([(path, score(data)) for path, data in files.items()], key=lambda item: item[1], reverse=True)
+    plot(files, scores, cols=3)

@@ -14,6 +14,7 @@ import shutil
 import platform
 from io import BytesIO
 import requests
+import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 if sys.version_info[0] == 2:
     import urllib
@@ -47,9 +48,7 @@ for wavfiles in glob.glob(sys.argv[6].rsplit(os.sep, 1)[0] + os.sep + "*.wav"):
             DATA_LATLON['lat'] = data2[0].rsplit("[", 1)[1].rsplit("]", 1)[0].rsplit(",", 1)[0]
             DATA_LATLON['size'] = "small"
             DATA_LATLON['symbol'] = "triangle"
-            filent = open(os.getcwd() + os.sep + "proc_tdoa_" +
-                          str(float(sys.argv[6].rsplit("_F", 1)[1].rsplit(os.sep, 1)[0]) * 1000).rsplit(".", 1)[
-                              0] + ".m", 'r')
+            filent = open(os.getcwd() + os.sep + sys.argv[7], 'r')
             if wavfiles.rsplit("_", 2)[1] in filent.read():
                 DATA_LATLON['color'] = "#ff0"
                 DATA_L.append(DATA_LATLON)
@@ -102,6 +101,19 @@ else:
     GEOJSON = urllib.parse.quote(GEOJSON)
 
 
+def haversine_distance(lat1, lon1, lat2, lon2):
+    """ code source from Dario Radečić https://medium.com/@radecicdario
+    https://towardsdatascience.com/heres-how-to-calculate-distance-between-2-geolocations-in-python-93ecab5bbba4 """
+    r = 6371
+    phi1 = np.radians(lat1)
+    phi2 = np.radians(lat2)
+    delta_phi = np.radians(lat2 - lat1)
+    delta_lambda = np.radians(lon2 - lon1)
+    a = np.sin(delta_phi / 2)**2 + np.cos(phi1) * np.cos(phi2) * np.sin(delta_lambda / 2)**2
+    res = r * (2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a)))
+    return np.round(res, 2)
+
+
 class GetMaps(threading.Thread):
     """ Curl processing routine """
 
@@ -126,8 +138,6 @@ class GetMaps(threading.Thread):
             NB_OF_FILES += 1
             if NB_OF_FILES == 4:
                 draw = ImageDraw.Draw(NEW_IMAGE)
-                draw.line((900, 0, 900, 1200), fill="#000")
-                draw.line((0, 600, 1800, 600), fill="#000")
                 text_length = 10.5 * len(sys.argv[1] + " " + sys.argv[2])
                 draw.polygon([(395, 255), (395, 235), (395 + text_length, 235), (395 + text_length, 255)], fill="#222")
                 draw.polygon([(1295, 255), (1295, 235), (1295 + text_length, 235), (1295 + text_length, 255)],
@@ -137,6 +147,15 @@ class GetMaps(threading.Thread):
                              fill="#222")
                 [(draw.text((x, y), sys.argv[1] + " " + sys.argv[2], fill="#fff", font=FONT)) for x in [400, 1300] for y
                  in [235, 835]]
+                # distance between most likely & known point red rectangle label
+                if sys.argv[3] != "-90" and sys.argv[4] != "180":
+                    distance = "Distance between TDoA most likely location and map marker = " + str(
+                        haversine_distance(float(sys.argv[1]), float(sys.argv[2]), float(sys.argv[3]),
+                                           float(sys.argv[4]))) + " km"
+                    draw.polygon([(0, 0), (900, 0), (900, 20), (0, 20)], fill="#FFF")
+                    draw.text((0, 0), distance, fill="#000", font=FONT)
+                draw.line((900, 0, 900, 1200), fill="#000")
+                draw.line((0, 600, 1800, 600), fill="#000")
                 NEW_IMAGE.save(sys.argv[6].replace("_[[]", "_[").replace("[]]_", "]_").replace(".png", ".pdf"), "PDF",
                                resolution=144, append_images=[NEW_IMAGE])
 

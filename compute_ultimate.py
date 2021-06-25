@@ -17,12 +17,12 @@ import signal
 import subprocess
 import threading
 import time
-import struct
+import math
 import platform
+import webbrowser
 from io import BytesIO
 from collections import OrderedDict
 import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from PIL import Image, ImageTk
@@ -30,15 +30,33 @@ from PIL import Image, ImageTk
 # python 2/3 compatibility
 if sys.version_info[0] == 2:
     import tkMessageBox
-    from Tkinter import Checkbutton, CURRENT, NORMAL, IntVar, Listbox
+    from Tkinter import Checkbutton, CURRENT, IntVar, Listbox
     from Tkinter import Entry, Text, Menu, Label, Button, Frame, Tk, Canvas
+    from tkFont import Font
 
 else:
     import tkinter.messagebox as tkMessageBox
-    from tkinter import Checkbutton, CURRENT, NORMAL, IntVar, Listbox
+    from tkinter import Checkbutton, CURRENT, IntVar, Listbox
     from tkinter import Entry, Text, Menu, Label, Button, Frame, Tk, Canvas
+    from tkinter.font import Font
 
-VERSION = "ultimateTDoA interface"
+VERSION = "ultimateTDoA interface v2.00 "
+for mfi_le in glob.glob('*.*m*'):
+    ff = open(mfi_le, 'r')
+    fi_le_d = ff.read()
+    ff.close()
+    FREQUENCY = re.search(r".+title.+\'(.+)\s-\sR.+\'", fi_le_d).group(1)
+ALEID = ""
+CLICKEDNODE = ""
+if str(os.getcwd().rsplit("_", 2)[1]) == "UA":
+    for ale_file in glob.glob(os.getcwd() + os.sep + "ALE*.txt"):
+        a = open(ale_file, 'r')
+        aledata = a.read()
+        a.close()
+        try:
+            ALEID = " [ALE ID: " + str(re.search(r".+\[(TWS|TIS)\]\[(.*)\]\[", aledata).group(2)) + "]"
+        except AttributeError:
+            ALEID = " [ALE]"
 
 cdict1 = {
     'red': ((0.0, 0.0, 0.0),
@@ -91,14 +109,13 @@ class Restart(object):
             os.execv(sys.executable, [sys.executable] + sys.argv)
 
 
-class ReadKnownPointFile(object):
+class ReadKnownPointFile(threading.Thread):
     """ Read known location list routine (see directTDoA_knownpoints.db file). """
 
     def __init__(self):
-        pass
+        super(ReadKnownPointFile, self).__init__()
 
-    @staticmethod
-    def run():
+    def run(self):
         """ Read known location list routine (see directTDoA_knownpoints.db file). """
         with open(up(up(up(os.getcwd()))) + os.sep + "directTDoA_knownpoints.db") as h:
             global my_info1, my_info2, my_info3
@@ -124,10 +141,10 @@ class ReadCfg(object):
 
     @staticmethod
     def read_cfg():
-        """ DirectTDoA configuration file read process. """
-        global CFG, DX0, DY0, DX1, DY1, DMAP, WHITELIST, BLACKLIST
-        global STDCOLOR, FAVCOLOR, BLKCOLOR, POICOLOR, ICONSIZE, ICONTYPE, HIGHLIGHT
-        global BGC, FGC, GRAD, THRES, CONS_B, CONS_F, MAP_BOX
+        """ compute_ultimate.py configuration file read process. """
+        global CFG, DX0, DY0, DX1, DY1, DMAP
+        global POICOLOR, ICONSIZE, ICONTYPE, HIGHLIGHT
+        global BGC, FGC, CONS_B, CONS_F, MAP_BOX
         try:
             # Read the config file v5.0 format and declare variables
             with open(up(up(up(os.getcwd()))) + os.sep + 'directTDoA.cfg', 'r') as config_file:
@@ -135,13 +152,11 @@ class ReadCfg(object):
             DX0, DX1 = CFG["map"]["x0"], CFG["map"]["x1"]
             DY0, DY1 = CFG["map"]["y0"], CFG["map"]["y1"]
             DMAP, ICONSIZE = CFG["map"]["file"], CFG["map"]["iconsize"]
-            STDCOLOR, FAVCOLOR, BLKCOLOR = CFG["map"]["std"], CFG["map"]["fav"], CFG["map"]["blk"]
             POICOLOR, ICONTYPE = CFG["map"]["poi"], CFG["map"]["icontype"]
-            WHITELIST, BLACKLIST = CFG["nodes"]["whitelist"], CFG["nodes"]["blacklist"]
             HIGHLIGHT = CFG["map"]["hlt"]
-            BGC, FGC, GRAD = CFG["guicolors"]["main_b"], CFG["guicolors"]["main_f"], CFG["guicolors"]["grad"]
+            BGC, FGC = CFG["guicolors"]["main_b"], CFG["guicolors"]["main_f"]
             CONS_B, CONS_F = CFG["guicolors"]["cons_b"], CFG["guicolors"]["cons_f"]
-            THRES, MAP_BOX = CFG["guicolors"]["thres"], CFG["map"]["mapbox"]
+            MAP_BOX = CFG["map"]["mapbox"]
         except (ImportError, ValueError):
             sys.exit("config file not found")
 
@@ -155,16 +170,16 @@ class TrimIQ(threading.Thread):
 
     def run(self):
         APP.gui.writelog("trim_iq.py script started.")
-        APP.gui.writelog("Usage:")
-        APP.gui.writelog("Click and Drag : Select a time portion of the IQ record that you want to keep.")
-        APP.gui.writelog("Click to close window : No changes on the entire IQ recording.")
-        APP.gui.writelog("One click on the spectrogram OR less than 2 seconds selected : Deletes the IQ recording.")
+        APP.gui.writelog("Click & drag : Select the time portion of the IQ record that you want to keep.")
+        APP.gui.writelog("Close window : No change made to the IQ.")
+        APP.gui.writelog("Single click : Deletes IQ.")
+        APP.gui.writelog("< 2 seconds  : Deletes IQ.")
         subprocess.call([sys.executable, 'trim_iq.py'], cwd=self.tdoa_rootdir, shell=False)
         Restart().run()
 
 
 class PlotIQ(threading.Thread):
-    """ plot_iq.py processing routine """
+    """ Plot_iq, enhanced version with SNR ranking. """
 
     def __init__(self, iqfile, mode, filelist):
         super(PlotIQ, self).__init__()
@@ -173,82 +188,85 @@ class PlotIQ(threading.Thread):
         self.filelist = filelist
 
     def run(self):
+        global scores
         plt.rcParams.update({'figure.max_open_warning': 0})
+        # mode 0 = GUI display preview
+        # mode 1 = temp.pdf (for a run with 3 < nodes < 6)
         if self.plot_mode == 1:
-            for wavfiles in self.filelist:
-                self.plotspectrogram(wavfiles)
-            images = [Image.open(x) for x in glob.glob("*.png")]
-            finalname = 'TDoA_' + str(wavfiles.rsplit("_", 3)[1]) + '_temp.pdf'
-            self.pil_grid(images, finalname, 3)  # last parameter = the number of images displayed horizontally
-            for imgfiles in glob.glob("*.wav.png"):
-                os.remove(imgfiles)
+            files = {path: self.load(path) for path in self.filelist}
+            scores = sorted([(path, self.score(data)) for path, data in files.items()], key=lambda item: item[1],
+                            reverse=True)
+            self.plot(files, scores, cols=3, iqfile=files)
         else:
-            self.plotspectrogram(self.iqfile)
+            self.plot(self.load(self.iqfile), order=None, cols=1, iqfile=self.iqfile)
 
-    def plotspectrogram(self, source):
-        global gps_status
-        old_f = open(source, 'rb')
-        new_f = open(source + '.nogps', 'wb')
-        old_size = os.path.getsize(source)
-        data_size = 2048 * ((old_size - 36) // 2074)
-        new_f = BytesIO()
-        new_f.write(old_f.read(36))
-        new_f.write(b'data')
-        new_f.write(struct.pack('<i', data_size))
-        for i in range(62, old_size, 2074):
-            old_f.seek(i)
-            new_f.write(old_f.read(2048))
-        old_f.close()
-        new_f.seek(0, 0)
-        data = np.frombuffer(new_f.getvalue(), dtype='int16')
+    @staticmethod
+    def load(path):
+        """ Remove GNSS from IQ recordings. """
+        buf = BytesIO()
+        with open(path, 'rb') as f:
+            size = os.path.getsize(path)
+            for i in range(62, size, 2074):
+                f.seek(i)
+                buf.write(f.read(2048))
+        data = np.frombuffer(buf.getvalue(), dtype='int16')
         data = data[0::2] + 1j * data[1::2]
-        fig, ax = plt.subplots()
-        plt.specgram(data, NFFT=1024, Fs=12000, window=lambda data: data * np.hanning(len(data)), noverlap=512, vmin=10,
-                     vmax=200, cmap=COLORMAP)
-        gps_status = self.has_gps(source)
-        plt.title(source.rsplit("_", 3)[2] + " - [CF=" + str(
-            (float(source.rsplit("_", 3)[1]) / 1000)) + " kHz] - GPS:" + str(gps_status))
-        plt.xlabel("time (s)")
-        plt.ylabel("frequency offset (kHz)")
-        ticks = matplotlib.ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x // 1e3))
-        ax.yaxis.set_major_formatter(ticks)
-        plt.savefig(source + '.png')
-        os.remove(source + '.nogps')
-        if self.plot_mode == 0:
-            im_temp = Image.open(source + '.png')
-            im_temp = im_temp.resize((320, 240), Image.ANTIALIAS)
-            img = ImageTk.PhotoImage(im_temp)
-            APP.gui.plot_iq_button.configure(image=img)
-            APP.gui.plot_iq_button.image = img
-            os.remove(source + '.png')
+        return data
 
-    def pil_grid(self, images, filename, max_horiz=np.iinfo(int).max):
-        """ Make a poster of png files. """
-        n_images = len(images)
-        n_horiz = min(n_images, max_horiz)
-        h_sizes, v_sizes = [0] * n_horiz, [0] * ((n_images // n_horiz) + (1 if n_images % n_horiz > 0 else 0))
-        for i, im in enumerate(images):
-            h, v = i % n_horiz, i // n_horiz
-            h_sizes[h] = max(h_sizes[h], im.size[0])
-            v_sizes[v] = max(v_sizes[v], im.size[1])
-        h_sizes, v_sizes = np.cumsum([0] + h_sizes), np.cumsum([0] + v_sizes)
-        im_grid = Image.new('RGB', (h_sizes[-1], v_sizes[-1]), color='white')
-        for i, im in enumerate(images):
-            im_grid.paste(im, (h_sizes[i % n_horiz], v_sizes[i // n_horiz]))
-        im_grid.save(filename, resolution=153.5)  # adjust res to ~900x600
-        return im_grid
+    @staticmethod
+    def score(data):
+        """ IQ SNR calculation. """
+        max_snr = 0.0
+        for offset in range(12000, len(data), 512):
+            snr = np.std(np.fft.fft(data[offset:], n=1024))
+            if snr > max_snr:
+                max_snr = snr
+        return max_snr
 
-    def has_gps(self, source):
+    @staticmethod
+    def has_gps(path):
         """ Detect if IQ file has GPS GNSS data (in test). """
         gpslast = 0
-        f_wav = open(source, 'rb')
-        for i in range(2118, os.path.getsize(source), 2074):
+        f_wav = open(path, 'rb')
+        for i in range(2118, os.path.getsize(path), 2074):
             f_wav.seek(i)
             if sys.version_info[0] < 3:
                 gpslast = max(gpslast, ord(f_wav.read(1)[0]))
             else:
                 gpslast = max(gpslast, f_wav.read(1)[0])
         return 0 < gpslast < 254
+
+    @staticmethod
+    def plot(files, order, cols, iqfile):
+        if not order:
+            # mode 0
+            global CLICKEDNODE
+            CLICKEDNODE = iqfile.rsplit('_', 3)[2]
+            buf = BytesIO()
+            fig, a_x = plt.subplots()
+            a_x.specgram(files, NFFT=1024, Fs=12000, window=lambda data: data * np.hanning(len(data)), noverlap=512,
+                         vmin=10, vmax=200, cmap=COLORMAP)
+            a_x.set_title(iqfile.rsplit('_', 3)[2])
+            a_x.axes.get_yaxis().set_visible(False)
+            plt.savefig(buf, bbox_inches='tight')
+            img = ImageTk.PhotoImage(Image.open(buf).resize((320, 240), Image.ANTIALIAS))
+            APP.gui.plot_iq_button.configure(image=img)
+            APP.gui.plot_iq_button.image = img
+        else:
+            # mode 1
+            rows = int(math.ceil(len(files) / cols))
+            fig, axs = plt.subplots(ncols=cols, nrows=rows)
+            fig.set_figwidth(cols * 5.27)
+            fig.set_figheight(rows * 3)
+            for i, (path, _) in enumerate(order):
+                a_x = axs.flat[i]
+                a_x.specgram(files[path], NFFT=1024, Fs=12000, window=lambda data: data * np.hanning(len(data)),
+                             noverlap=512, vmin=10, vmax=200, cmap=COLORMAP)
+                a_x.set_title(path.rsplit('_', 3)[2])
+                a_x.axes.get_yaxis().set_visible(False)
+            for i in range(len(scores), len(axs.flat)):
+                fig.delaxes(axs.flat[i])
+            fig.savefig('TDoA_' + str(path.rsplit("_", 3)[1]) + '_temp.pdf', bbox_inches='tight')
 
 
 class OctaveProcessing(threading.Thread):
@@ -262,19 +280,14 @@ class OctaveProcessing(threading.Thread):
 
     def run(self):
         global PROC_PID  # stdout
+        APP.gui.console_window.configure(bg=CONS_B, fg=CONS_F)
         octave_errors = [b'index-out-of-bounds', b'< 2 good stations found', b'Octave:nonconformant - args',
                          b'n_stn=2 is not supported', b'resample.m: p and q must be positive integers',
-                         b'Octave:invalid-index', b'incomplete \'data\' chunk']
+                         b'Octave:invalid-index', b'incomplete \'data\' chunk',
+                         b'reshape: can\'t reshape 0x0 array to 242x258 array', b'malformed filename:',
+                         b'element number 1 undefined in return list']
         proc = subprocess.Popen(['octave-cli', self.m_file_to_process], cwd=self.tdoa_rootdir, stderr=subprocess.STDOUT,
                                 stdout=subprocess.PIPE, shell=False)
-        # if sys.version_info[0] == 2:
-        #     tdoa_filename = self.m_file_to_process
-        #     proc = subprocess.Popen(['octave-cli', tdoa_filename], cwd=self.tdoa_rootdir, stderr=subprocess.STDOUT,
-        #                             stdout=subprocess.PIPE, shell=False)
-        # else:
-        #     tdoa_filename = self.m_file_to_process.replace(".m", "")
-        #     proc = subprocess.Popen(['octave-cli', '--eval', tdoa_filename], cwd=self.tdoa_rootdir,
-        #                             stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=False)
         PROC_PID = proc.pid
         if PROC_PID:
             APP.gui.writelog("ultimateTDoA process started.")
@@ -283,6 +296,7 @@ class OctaveProcessing(threading.Thread):
             for octave_output in proc.stdout:
                 logfile.write(octave_output)
                 if any(x in octave_output for x in octave_errors):
+                    APP.gui.console_window.configure(bg='#800000', fg='white')
                     ProcessFailed(octave_output).start()
                     proc.terminate()
                 if b"finished" in octave_output:
@@ -293,6 +307,7 @@ class OctaveProcessing(threading.Thread):
             octave_output = proc.communicate()[0]
             logfile.write(str(octave_output, 'utf-8'))
             if any(x in octave_output for x in octave_errors):
+                APP.gui.console_window.configure(bg='#800000', fg='white')
                 ProcessFailed(octave_output).start()
                 proc.terminate()
             if b"finished" in octave_output:
@@ -311,8 +326,9 @@ class ProcessFailed(threading.Thread):
 
     def run(self):
         global tdoa_in_progress  # TDoA process status
-        APP.gui.writelog("TDoA process error.")
-        APP.gui.writelog(self.Returned_error.decode())
+        APP.gui.writelog(
+            "TDoA process error.\n" + bytes.decode(self.Returned_error).rsplit(",\n\t\"stack", 1)[0].replace(
+                "{\n\t\"identifier\": \"\",\n\t", ""))
         APP.gui.compute_button.configure(text="Compute")
         tdoa_in_progress = 0
 
@@ -349,39 +365,49 @@ class ProcessFinished(threading.Thread):
             os.remove(spec_file)
 
 
-class FillMapWithNodes(object):
+class FillMapWithNodes(threading.Thread):
     """ process to display the nodes on the World Map. """
 
     def __init__(self, parent):
+        super(FillMapWithNodes, self).__init__()
         self.parent = parent
 
     def run(self):
         """ ultimate interface process to display the nodes on the World Map. """
-        global tag_list, node_list, node_file
+        global tag_list, node_file, node_list, deleted_file, ranking_scale
         tag_list = []
-        server_lists = [up(up(up(os.getcwd()))) + os.sep + "directTDoA_server_list.db",
-                        up(up(up(os.getcwd()))) + os.sep + "directTDoA_static_server_list.db"]
         node_list = []
         node_file = []
-        for wavfiles in glob.glob(os.getcwd() + os.sep + "*.wav"):
-            tdoa_id = re.search(r'(.*)_(.*)_iq.wav', wavfiles)
-            node_list.append(tdoa_id.group(2))
-            node_file.append(wavfiles)
-        for server_list in server_lists:
-            with open(server_list) as node_db:
-                db_data = json.load(node_db)
-                for node_index in range(len(db_data)):
-                    if db_data[node_index]["id"].replace("/", "") in node_list:
-                        # Change icon color of fav, black and standards nodes and apply a gradiant // SNR
-                        perc = (int(db_data[node_index]["snr"]) - 30) * GRAD
-                        if db_data[node_index]["mac"] in WHITELIST:
-                            node_color = (self.color_variant(FAVCOLOR, perc))
-                        elif db_data[node_index]["mac"] in BLACKLIST:
-                            node_color = (self.color_variant(BLKCOLOR, perc))
-                        else:
-                            node_color = (self.color_variant(STDCOLOR, perc))
-                        self.add_point(node_index, node_color, db_data)
-        self.parent.show_image()
+        deleted_file = 0
+        ranking_scale = []
+        point_list = []
+        for wavfiles in glob.glob('*.wav'):
+            if PlotIQ.has_gps(wavfiles):
+                node_snr_rank = PlotIQ.score(PlotIQ.load(wavfiles))
+                ranking_scale.append(node_snr_rank)
+                tdoa_id = re.search(r'(.*)_(.*)_iq.wav', wavfiles)
+                node_list.append(tdoa_id.group(2))
+                node_file.append(wavfiles)
+                with open(up(up(os.getcwd())) + os.sep + "gnss_pos" + os.sep + tdoa_id.group(2) + ".txt", "rt") as gnss:
+                    contents = gnss.read()
+                    info = re.search(r'd\.(.+?)\s.+\W.\[(.*),(.*)\], \'host\', \'(.+?)\', \'port\', (.+?)\);', contents)
+                nodeinfo = dict(
+                    url=(info.group(4) + ":" + info.group(5)),
+                    lat=info.group(2),
+                    lon=info.group(3),
+                    id=info.group(1),
+                    snr=str(node_snr_rank)
+                )
+                point_list.append([nodeinfo, node_snr_rank])
+            else:
+                os.rename(wavfiles, wavfiles + ".nogps")
+                deleted_file += 1
+        if 'APP' in globals():
+            APP.gui.writelog(str(len(node_file)) + " nodes are available for this run.")
+        if deleted_file > 0:
+            APP.gui.writelog(str(deleted_file) + " node(s) excluded because of missing GPS data.")
+        for it in point_list:
+            self.add_point(it[0], (it[1] - min(ranking_scale)) * (1/(max(ranking_scale) - min(ranking_scale)) * 255))
 
     @staticmethod
     def convert_lat(lat):
@@ -397,31 +423,23 @@ class FillMapWithNodes(object):
         """ Convert the real node longitude coordinates to adapt to GUI window map geometry. """
         return 1910 + ((float(lon) * 1910) / 180)
 
-    @staticmethod
-    def color_variant(hex_color, brightness_offset=1):
-        """ Process that changes the brightness (only) of a specific RGB color.
-        chase-seibert.github.io/blog/2011/07/29/python-calculate-lighterdarker-rgb-colors.html """
-        rgb_hex = [hex_color[x:x + 2] for x in [1, 3, 5]]
-        new_rgb_int = [int(hex_value, 16) + brightness_offset for hex_value in rgb_hex]
-        new_rgb_int = [min([255, max([0, i])]) for i in new_rgb_int]
-        return "#" + "".join(["0" + hex(i)[2:] if len(hex(i)[2:]) < 2 else hex(i)[2:] for i in new_rgb_int])
-
-    def add_point(self, node_index_data, node_color, node_db_data):
+    def add_point(self, node_db_data, snr_rank):
         """ Process that add node icons over the World map. """
         global tag_list
-        mykeys = ['mac', 'url', 'id', 'snr', 'lat', 'lon']
-        node_lat = self.convert_lat(node_db_data[node_index_data]["lat"])
-        node_lon = self.convert_lon(node_db_data[node_index_data]["lon"])
-        node_tag = str('$'.join([node_db_data[node_index_data][x] for x in mykeys]))
+        mykeys = ['url', 'id', 'lat', 'lon', 'snr']
+        node_lat = self.convert_lat(node_db_data["lat"])
+        node_lon = self.convert_lon(node_db_data["lon"])
+        node_tag = str('$'.join([node_db_data[x] for x in mykeys]))
+        node_tag = node_tag.rsplit('$', 1)[0] + "$%g" % round(snr_rank, 0)
         ic_size = int(ICONSIZE)
         try:
             if ICONTYPE == 0:
                 self.parent.canvas.create_oval(node_lon - ic_size, node_lat - ic_size, node_lon + ic_size,
-                                               node_lat + ic_size, fill=node_color, tag=node_tag)
+                                               node_lat + ic_size, fill=self.color_variant(snr=snr_rank), tag=node_tag)
             else:
-
                 self.parent.canvas.create_rectangle(node_lon - ic_size, node_lat - ic_size, node_lon + ic_size,
-                                                    node_lat + ic_size, fill=node_color, tag=node_tag)
+                                                    node_lat + ic_size, fill=self.color_variant(snr=snr_rank),
+                                                    tag=node_tag)
             self.parent.canvas.tag_bind(node_tag, "<Button-1>", self.parent.onclickleft)
             tag_list.append(node_tag)
         except NameError:
@@ -431,20 +449,30 @@ class FillMapWithNodes(object):
         """ Map presets deletion process. """
         self.parent.canvas.delete(map_definition)
 
-    def redraw_map(self):
-        """ Redraw all icons on the World Map. """
-        for node_tag_item in tag_list:
-            self.parent.canvas.delete(node_tag_item)
-        ReadCfg().read_cfg()
-        FillMapWithNodes.run(self)
+    @staticmethod
+    def color_variant(snr):
+        green_val = min([255, max([0, int(snr)])])
+        return "#00" + "".join("0" + hex(green_val)[2:] if len(hex(green_val)[2:]) < 2 else hex(green_val)[2:]) + "00"
+
+    @staticmethod
+    def get_font_color(font_color):
+        """ Adapting the foreground font color regarding background luminosity.
+        stackoverflow questions/946544/good-text-foreground-color-for-a-given-background-color """
+        rgb_hex = [font_color[x:x + 2] for x in [1, 3, 5]]
+        threshold = 120  # default = 120
+        if int(rgb_hex[0], 16) * 0.299 + int(rgb_hex[1], 16) * 0.587 + int(rgb_hex[2], 16) * 0.114 > threshold:
+            return "#000000"
+        # else:
+        return "#ffffff"
+        # if (red*0.299 + green*0.587 + blue*0.114) > 186 use #000000 else use #ffffff
 
     def node_sel_active(self, node_mac):
         """ Adding additionnal highlight on node icon. """
         for node_tag_item in tag_list:
             if node_mac in node_tag_item:
-                tmp_latlon = node_tag_item.rsplit("$", 6)
-                tmp_lat = self.convert_lat(tmp_latlon[4])
-                tmp_lon = self.convert_lon(tmp_latlon[5])
+                tmp_latlon = node_tag_item.rsplit("$", 4)
+                tmp_lat = self.convert_lat(tmp_latlon[2])
+                tmp_lon = self.convert_lon(tmp_latlon[3])
                 is_delta = int(ICONSIZE) + 1
                 if ICONTYPE == 0:
                     self.parent.canvas.create_oval(tmp_lon - is_delta, tmp_lat - is_delta, tmp_lon + is_delta,
@@ -454,16 +482,19 @@ class FillMapWithNodes(object):
                     self.parent.canvas.create_rectangle(tmp_lon - is_delta, tmp_lat - is_delta, tmp_lon + is_delta,
                                                         tmp_lat + is_delta, fill='', outline=HIGHLIGHT,
                                                         tag=node_tag_item + "$#")
+                self.parent.canvas.tag_bind(node_tag_item + "$#", "<Button-1>", self.parent.onclickleft)
 
     def node_selection_inactive(self, node_mac):
         """ Removing additionnal highlight on selected node icon. """
         for node_tag_item in tag_list:
             if node_mac in node_tag_item:
+                self.parent.canvas.tag_unbind(node_tag_item + "$#", "<Button-1>")
                 self.parent.canvas.delete(node_tag_item + "$#")
 
     def node_selection_inactiveall(self):
         """ Removing ALL additionnal highlights on selected nodes icons. """
         for node_tag_item in tag_list:
+            self.parent.canvas.tag_unbind(node_tag_item + "$#", "<Button-1>")
             self.parent.canvas.delete(node_tag_item + "$#")
 
 
@@ -509,14 +540,17 @@ class GuiCanvas(Frame):
         self.rect = None
         self.start_x = None
         self.start_y = None
-        self.canvas.scan_dragto(-int(DX0.split('.')[0]), -int(DY0.split('.')[0]), gain=1)
-        self.show_image()
-        time.sleep(0.2)
-        FillMapWithNodes(self).run()
-        for mfile in glob.glob(os.getcwd() + os.sep + "proc*.empty"):
-            f = open(mfile, 'r')
-            filedata = f.read()
-            f.close()
+        for mfil_e in glob.glob(os.getcwd() + os.sep + "proc*.empty"):
+            m = open(mfil_e, 'r')
+            filedata = m.read()
+            m.close()
+            try:
+                mapposx = re.search(r"##\s(.*),(.*)", filedata)
+                tdoa_x0 = mapposx.group(1)
+                tdoa_y0 = mapposx.group(2)
+            except AttributeError:
+                tdoa_x0 = DX0
+                tdoa_y0 = DY0
             lat = re.search(r"lat_range', \[([-]?[0-9]{1,2}(\.[0-9]*)?) ?([-]?[0-9]{1,2}(\.[0-9]*|))?\]", filedata)
             lon = re.search(r"lon_range', \[([-]?[0-9]{1,3}(\.[0-9]*)?) ?([-]?[0-9]{1,3}(\.[0-9]*|))?\]", filedata)
             lat_min_map = lat.group(1)
@@ -526,12 +560,13 @@ class GuiCanvas(Frame):
             place_regexp_coords = re.search(r"('known_location', struct\('coord', \[([-]?[0-9]{1,2}(\.[0-9]*)?|0) ?([-]?[0-9]{1,3}(\.[0-9]*)?|0)\],)", filedata)
             selectedlat = place_regexp_coords.group(2)
             selectedlon = place_regexp_coords.group(4)
-            place_regexp_name = re.search(r"('name',\s '(.+)'\),)", filedata)
-            selectedcity = place_regexp_name.group(2)
+            selectedcity = re.search(r"('name',\s '(.+)'\),)", filedata).group(2)
             self.canvas.create_rectangle(self.convert_lon(lon_min_map), self.convert_lat(lat_max_map),
                                          self.convert_lon(lon_max_map), self.convert_lat(lat_min_map), outline='red',
                                          tag="mappreset")
             self.create_known_point(selectedlat, selectedlon, selectedcity)
+        self.canvas.scan_dragto(-int(tdoa_x0.split('.')[0]), -int(tdoa_y0.split('.')[0]), gain=1)
+        FillMapWithNodes(self).start()
 
     @staticmethod
     def convert_lat(lat):
@@ -607,11 +642,6 @@ class GuiCanvas(Frame):
                     self.canvas.yview_scroll(1, 'units')
                 elif event.y < 0.02 * h_canva:
                     self.canvas.yview_scroll(-1, 'units')
-                try:
-                    APP.gui.label4.configure(text="[LAT] range: " + str(lat_min_map) + "° " + str(
-                        lat_max_map) + "°  [LON] range: " + str(lon_min_map) + "° " + str(lon_max_map) + "°")
-                except NameError:
-                    pass
                 # expand rectangle as you drag the mouse
                 self.canvas.coords(self.rect, self.start_x, self.start_y, cur_x, cur_y)
                 self.show_image()
@@ -621,9 +651,9 @@ class GuiCanvas(Frame):
     @staticmethod
     def on_button_release(event):
         """ When Mouse right button is released (map boundaries set or ultimateTDoA set). """
+
         global mapboundaries_set, map_preset  # lon_min_map, lon_max_map, lat_min_map, lat_max_map
         global map_manual
-
         if map_preset == 1 and map_manual == 0:
             pass
         else:
@@ -646,17 +676,13 @@ class GuiCanvas(Frame):
             yy0 = (990 + (float(0 - float(y_kwn)) * 11)) - ic_size
             yy1 = (990 + (float(0 - float(y_kwn)) * 11)) + ic_size
         self.canvas.create_rectangle(xx0, yy0, xx1, yy1, fill=POICOLOR, outline="black", activefill=POICOLOR,
-                                     tag=selectedcity.rsplit(' (')[0])
+                                     tag="#POI")
         self.canvas.create_text(xx0, yy0 - 10, text=selectedcity.rsplit(' (')[0].replace("_", " "), justify='center',
-                                fill=POICOLOR, tag=selectedcity.rsplit(' (')[0])
+                                fill=POICOLOR, tag="#POI")
 
     def unselect_allpoint(self):
         """ Calling process that remove additionnal highlight on all selected nodes. """
         FillMapWithNodes(self).node_selection_inactiveall()
-
-    def redraw_map_cmd(self):
-        """ Calling process that redraw all icons on the World map. """
-        FillMapWithNodes(self).redraw_map()
 
     def delete_point(self, n):
         """ KnownPoint deletion process. """
@@ -664,80 +690,77 @@ class GuiCanvas(Frame):
 
     def onclickleft(self, event):
         """ Left Mouse Click bind on the World map. """
-        global HOST, node_file, node_list, gps_status
-        HOST = self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0]
-        menu = Menu(self, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')
-        # menu2 = Menu(menu, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # demodulation menu
-        # mykeys = ['mac', 'url', 'id', 'snr', 'lat', 'lon']
-        # n_field    0      1      2     3      4      5
-        n_field = HOST.rsplit("$", 6)
-        # Color gradiant proportionnal to SNR value
-        snr_gradiant = (int(n_field[3]) - 30) * GRAD
-        if n_field[0] in WHITELIST:
-            nodecolor = FAVCOLOR
+        global HOST, node_file, node_list
+        menu0 = Menu(self, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # node overlap list menu
+        menu1 = Menu(self, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')
+        # search for overlapping nodes
+        overlap_range = ICONSIZE * 4
+        overlap_rect = (self.canvas.canvasx(event.x) - overlap_range), (self.canvas.canvasy(event.y) - overlap_range), (
+                self.canvas.canvasx(event.x) + overlap_range), (self.canvas.canvasy(event.y) + overlap_range)
+        node_overlap_match = self.canvas.find_enclosed(*overlap_rect)
+        overlap_list = []
+        for item_o in list(node_overlap_match):
+            if "$#" not in self.canvas.gettags(self.canvas.find_withtag(item_o))[0]:
+                overlap_list.append(item_o)
+        if len(node_overlap_match) > 1 and len(overlap_list) != 1:  # node icon overlap found, displays menu0
+            for el1, el2 in enumerate(node_overlap_match):
+                if "$#" not in str(self.canvas.gettags(el2)):  # dont display node highlight tags
+                    HOST = self.canvas.gettags(self.canvas.find_withtag(el2))[0]
+                    # mykeys = ['url', 'id', 'lat', 'lon', 'snr']
+                    # n_field    0      1      2     3     4
+                    n_field = HOST.rsplit("$", 4)
+                    cbg = FillMapWithNodes.color_variant(snr=n_field[4])
+                    dfg = FillMapWithNodes.get_font_color(cbg)
+                    # check if node is already in the TDoA node listing
+                    if len([el for el in fulllist if n_field[1] == el.rsplit("$", 3)[2]]) != 1:
+                        name = n_field[1]
+                    else:
+                        name = "✔ " + n_field[1]
+                    menu0.add_command(label=name, background=cbg, foreground=dfg,
+                                      command=lambda x=HOST: self.create_node_menu(x, event.x_root, event.y_root,
+                                                                                   menu1))
+                else:
+                    pass
+            menu0.tk_popup(event.x_root, event.y_root)
         else:
-            nodecolor = STDCOLOR
-        # Dynamic foreground (adapting font to white or black depending on luminosity)
-        dfg = self.get_font_color((self.color_variant("#FFFF00", snr_gradiant)))
-        # Colorized background (depending on Favorite node or not)
-        cbg = self.color_variant(nodecolor, snr_gradiant)
-        # Get spectrogram of the node recorded IQ file
-        PlotIQ(node_file[node_list.index(n_field[2].replace("/", ""))], 0, 1).run()
-        matches = [el for el in fulllist if n_field[0] in el]
-        if gps_status:
-            if len(matches) != 1:
-                menu.add_command(label="Add " + n_field[2] + " for TDoA process", background=cbg, foreground=dfg,
-                                 font="TkFixedFont 7 bold", command=lambda *args: self.populate("add", n_field))
-            elif len(matches) == 1:
-                menu.add_command(label="Remove " + n_field[2] + " from TDoA process", background=cbg, foreground=dfg,
-                                 font="TkFixedFont 7 bold", command=lambda: self.populate("del", n_field))
-        else:
-            menu.add_command(label=n_field[2] + " is not usable for this run (no recent GPS timestamps in the IQ)",
-                             background="red", foreground=dfg, font="TkFixedFont 7 bold", command=None)
-        menu.add_command(label="SNR: " + n_field[3] + " dB", state=NORMAL, background=cbg, foreground=dfg, command=None)
-        menu.post(event.x_root, event.y_root)  # popup placement // node icon
+            HOST = self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0]
+            self.create_node_menu(HOST, event.x_root, event.y_root, menu1)
 
-    @staticmethod
-    def get_font_color(font_color):
-        """ Adapting the foreground font color regarding background luminosity.
-        stackoverflow questions/946544/good-text-foreground-color-for-a-given-background-color """
-        rgb_hex = [font_color[x:x + 2] for x in [1, 3, 5]]
-        threshold = THRES  # default = 186
-        if int(rgb_hex[0], 16) * 0.299 + int(rgb_hex[1], 16) * 0.587 + int(rgb_hex[2], 16) * 0.114 > threshold:
-            return "#000000"
-        # else:
-        return "#ffffff"
-        # if (red*0.299 + green*0.587 + blue*0.114) > 186 use #000000 else use #ffffff
-
-    @staticmethod
-    def color_variant(hex_color, brightness_offset=1):
-        """ Routine used to change color brightness according to SNR scaled value.
-        chase-seibert.github.io/blog/2011/07/29/python-calculate-lighterdarker-rgb-colors.html """
-        rgb_hex = [hex_color[x:x + 2] for x in [1, 3, 5]]
-        new_rgb_int = [int(hex_value, 16) + brightness_offset for hex_value in rgb_hex]
-        new_rgb_int = [min([255, max([0, i])]) for i in new_rgb_int]
-        return "#" + "".join(["0" + hex(i)[2:] if len(hex(i)[2:]) < 2 else hex(i)[2:] for i in new_rgb_int])
+    def create_node_menu(self, kiwinodetag, popx, popy, menu):
+        n_field = kiwinodetag.rsplit("$", 5)
+        matches = [el for el in fulllist if n_field[1] == el.rsplit("$", 3)[2]]
+        cbg = FillMapWithNodes.color_variant(snr=n_field[4])
+        dfg = FillMapWithNodes.get_font_color(cbg)
+        # show IQ spectrogram in GUI (PlotIQ mode 0)
+        PlotIQ(node_file[node_list.index(n_field[1].replace("/", ""))], 0, 0).run()
+        if len(matches) != 1:
+            menu.add_command(label="Add " + n_field[1] + " for TDoA process", background=cbg, foreground=dfg,
+                             font="TkFixedFont 7 bold", command=lambda *args: self.populate("add", n_field))
+        elif len(matches) == 1:
+            menu.add_command(label="Remove " + n_field[1] + " from TDoA process]", background=cbg, foreground=dfg,
+                             font="TkFixedFont 7 bold", command=lambda: self.populate("del", n_field))
+        menu.tk_popup(int(popx), int(popy))  # popup placement // node icon
 
     def populate(self, action, sel_node_tag):
         """ TDoA listing node populate/depopulate process. """
         if action == "add":
             if len(fulllist) < 6:
                 fulllist.append(
-                    sel_node_tag[1].rsplit(':')[0] + "$" + sel_node_tag[1].rsplit(':')[1] + "$" + sel_node_tag[
-                        0] + "$" + sel_node_tag[2].replace("/", ""))
+                    sel_node_tag[0].rsplit(':')[0] + "$" + sel_node_tag[0].rsplit(':')[1] + "$" + sel_node_tag[
+                        1].replace("/", ""))
                 FillMapWithNodes(self).node_sel_active(sel_node_tag[0])
             else:
                 tkMessageBox.showinfo(title="  ¯\\_(ツ)_/¯", message="6 nodes Maximum !")
         elif action == "del":
             fulllist.remove(
-                sel_node_tag[1].rsplit(':')[0] + "$" + sel_node_tag[1].rsplit(':')[1] + "$" + sel_node_tag[0] + "$" +
-                sel_node_tag[2].replace("/", ""))
+                sel_node_tag[0].rsplit(':')[0] + "$" + sel_node_tag[0].rsplit(':')[1] + "$" + sel_node_tag[1].replace(
+                    "/", ""))
             FillMapWithNodes(self).node_selection_inactive(sel_node_tag[0])
         if fulllist:
-            APP.title(VERSION + " - Selected nodes [" + str(len(fulllist)) + "] : " + '/'.join(
-                str(p).rsplit('$')[3] for p in fulllist))
+            APP.title(VERSION + "| " + FREQUENCY + ALEID + " - Selected nodes [" + str(
+                len(fulllist)) + "] : " + '/'.join(str(p).rsplit('$')[2] for p in fulllist))
         else:
-            APP.title(VERSION)
+            APP.title(VERSION + "| " + FREQUENCY + ALEID)
 
     def move_from(self, event):
         """ Move from. """
@@ -823,17 +846,13 @@ class MainWindow(Frame):
     def __init__(self, parent):
         Frame.__init__(self, parent)
         self.member1 = GuiCanvas(parent)
-        ReadKnownPointFile().run()
+        ReadKnownPointFile().start()
         global image_scale, node_file
         global map_preset, tdoa_in_progress, open_pdf
         global lat_min_map, lat_max_map, lon_min_map, lon_max_map
-        # bgc = '#d9d9d9'  # GUI background color
-        # fgc = '#000000'  # GUI foreground color
         dfgc = '#a3a3a3'  # GUI (disabled) foreground color
         image_scale = 1
-        # selectedlat = ""
-        # selectedlon = ""
-        # selectedcity = ""
+        la_f = Font(family="TkFixedFont", size=7, weight="bold")
         map_preset = 0
         tdoa_in_progress = 0
         open_pdf = IntVar(self, value=1)
@@ -841,11 +860,6 @@ class MainWindow(Frame):
         self.label0 = Label(parent)
         self.label0.place(relx=0, rely=0.64, relheight=0.4, relwidth=1)
         self.label0.configure(bg=BGC, fg=FGC, width=214)
-
-        # Map boundaries information text
-        self.label4 = Label(parent)
-        self.label4.place(relx=0.005, rely=0.895, height=21, relwidth=0.55)
-        self.label4.configure(bg=BGC, font="TkFixedFont", fg=FGC, width=214, text="", anchor="w")
 
         # Compute button
         self.compute_button = Button(parent)
@@ -855,21 +869,21 @@ class MainWindow(Frame):
                                       highlightcolor="#000000", pady="0", text="Compute",
                                       command=self.start_stop_tdoa)
 
-        # Purge node listing button
-        self.purge_button = Button(parent)
-        self.purge_button.place(relx=0.61, rely=0.75, height=24, relwidth=0.115)
-        self.purge_button.configure(activebackground="#d9d9d9", activeforeground="#000000", bg="orange",
-                                    disabledforeground=dfgc, fg="#000000", highlightbackground="#d9d9d9",
-                                    highlightcolor="#000000", pady="0", text="Purge Nodes", command=self.purgenode,
-                                    state="normal")
-
         # Trim_iq button
         self.trim_iq_button = Button(parent)
-        self.trim_iq_button.place(relx=0.61, rely=0.80, height=24, relwidth=0.115)
+        self.trim_iq_button.place(relx=0.61, rely=0.75, height=24, relwidth=0.115)
         self.trim_iq_button.configure(activebackground="#d9d9d9", activeforeground="#000000", bg="lightblue",
                                       disabledforeground=dfgc, fg="#000000", highlightbackground="#d9d9d9",
                                       highlightcolor="#000000", pady="0", text="Run trim_iq.py",
                                       command=TrimIQ(os.getcwd()).start, state="normal")
+
+        # Purge node listing button
+        self.purge_button = Button(parent)
+        self.purge_button.place(relx=0.61, rely=0.8, height=24, relwidth=0.115)
+        self.purge_button.configure(activebackground="#d9d9d9", activeforeground="#000000", bg="orange",
+                                    disabledforeground=dfgc, fg="#000000", highlightbackground="#d9d9d9",
+                                    highlightcolor="#000000", pady="0", text="Purge Nodes", command=self.purgenode,
+                                    state="normal")
 
         # Restart button
         self.restart_button = Button(parent)
@@ -878,6 +892,13 @@ class MainWindow(Frame):
                                       disabledforeground=dfgc, fg="#000000", highlightbackground="#d9d9d9",
                                       highlightcolor="#000000", pady="0", text="Restart GUI", command=Restart().run,
                                       state="normal")
+
+        # Auto open TDoA PDF result file
+        self.open_pdf_checkbox = Checkbutton(parent)
+        self.open_pdf_checkbox.place(relx=0.62, rely=0.9, height=21, relwidth=0.11)
+        self.open_pdf_checkbox.configure(bg=BGC, fg=FGC, activebackground=BGC, activeforeground=FGC,
+                                         font="TkFixedFont 8", width=214, selectcolor=BGC, text="auto-open result",
+                                         anchor="w", variable=open_pdf, command=None)
 
         # Known places search textbox
         self.choice = Entry(parent)
@@ -893,26 +914,19 @@ class MainWindow(Frame):
 
         # Console window
         self.console_window = Text(parent)
-        self.console_window.place(relx=0.005, rely=0.65, relheight=0.23, relwidth=0.6)
+        self.console_window.place(relx=0.005, rely=0.65, relheight=0.285, relwidth=0.6)
         self.console_window.configure(bg=CONS_B, font="TkTextFont", fg=CONS_F, highlightbackground=BGC,
                                       highlightcolor=FGC, insertbackground=FGC, selectbackground="#c4c4c4",
                                       selectforeground=FGC, undo="1", width=970, wrap="word")
 
-        # Auto open TDoA PDF result file
-        self.open_pdf_checkbox = Checkbutton(parent)
-        self.open_pdf_checkbox.place(relx=0.62, rely=0.9, height=21, relwidth=0.11)
-        self.open_pdf_checkbox.configure(bg=BGC, fg=FGC, activebackground=BGC, activeforeground=FGC,
-                                         font="TkFixedFont 8", width=214, selectcolor=BGC, text="auto-open result",
-                                         anchor="w", variable=open_pdf, command=None)
-
-        # plot IQ preview
-        self.plot_iq_button = Button(parent)
+        # plot IQ preview window
+        self.plot_iq_button = Button(parent, command=lambda: APP.gui.openinbrowser(
+            [tag_list[tag_list.index(x)].rsplit("$", 4)[0] for x in tag_list if CLICKEDNODE in x],
+            ''.join(re.match(r"(\d.+)\s\[(.+)\s", FREQUENCY).groups())))
         self.plot_iq_button.place(relx=0.73, rely=0.65, height=240, width=320)
-        self.plot_iq_button.configure(command=None, state="normal")
 
         # Adding some texts to console window at program start
         self.writelog("This is " + VERSION + ", a GUI written for python 2/3 with Tk")
-        self.writelog(str(len(node_file)) + " nodes are available for this run.")
 
         # GUI topbar menus
         menubar = Menu(self)
@@ -949,14 +963,13 @@ class MainWindow(Frame):
         sm9 = Menu(menu_3, tearoff=0)
         sm10 = Menu(menu_3, tearoff=0)
         menu_3.add_cascade(label='plot_kiwi_json', menu=sm8, underline=0)
+        menu_3.add_cascade(label='algorithm', menu=sm10, underline=0)
         sm8.add_command(label="yes", command=lambda *args: self.tdoa_settings(0))
         sm8.add_command(label="no", command=lambda *args: self.tdoa_settings(1))
-        menu_3.add_cascade(label='use_constraints', menu=sm9, underline=0)
-        sm9.add_command(label="yes", command=lambda *args: self.tdoa_settings(2))
-        sm9.add_command(label="no", command=lambda *args: self.tdoa_settings(3))
-        menu_3.add_cascade(label='tdoa calculation mode', menu=sm10, underline=0)
-        sm10.add_command(label="standard", command=lambda *args: self.tdoa_settings(4))
-        sm10.add_command(label="new (2020)", command=lambda *args: self.tdoa_settings(5))
+        sm9.add_command(label="option: use_constraints = 1", command=lambda *args: self.tdoa_settings(2))
+        sm9.add_command(label="option: use_constraints = 0", command=lambda *args: self.tdoa_settings(3))
+        sm10.add_cascade(label='former (2018)', menu=sm9, underline=0)
+        sm10.add_command(label="new (2020)", command=lambda *args: self.tdoa_settings(4))
 
         # Various GUI binds
         self.listbox_update(my_info1)
@@ -964,11 +977,11 @@ class MainWindow(Frame):
         self.choice.bind('<FocusIn>', self.resetcity)
         self.choice.bind('<KeyRelease>', self.on_keyrelease)
 
-        try:
-            self.label4.configure(text="[LAT] range: " + str(lat_min_map) + "° " + str(
-                lat_max_map) + "°  [LON] range: " + str(lon_min_map) + "° " + str(lon_max_map) + "°")
-        except NameError:
-            pass
+    @staticmethod
+    def openinbrowser(host_port, freq_and_mode):
+        """ Web browser call to connect on the node (default = IQ mode & fixed zoom level at 8). """
+        if len(host_port) == 1:
+            webbrowser.open_new("http://" + str("".join(host_port)) + "/?f=" + freq_and_mode)
 
     def mapbox_style(self, value):
         global MAP_BOX
@@ -978,23 +991,21 @@ class MainWindow(Frame):
     def tdoa_settings(self, value):
         global plot_kiwi_json_new, use_constraints_new, algo_new
         if value == 0:
-            self.writelog("OPTION: plot_kiwi_json set to YES")
+            self.writelog("OPTION: plot_kiwi_json set to YES.")
             plot_kiwi_json_new = "true"
         if value == 1:
-            self.writelog("OPTION: plot_kiwi_json set to NO")
+            self.writelog("OPTION: plot_kiwi_json set to NO.")
             plot_kiwi_json_new = "false"
         if value == 2:
-            self.writelog("OPTION: use_constraints set to YES")
+            self.writelog("OPTION: former TDoA algorithm selected w/ option \'use_constraints\' set to YES.")
+            algo_new = "false"
             use_constraints_new = "true"
         if value == 3:
-            self.writelog("OPTION: use_constraints set to NO")
+            self.writelog("OPTION: former TDoA algorithm selected w/ option \'use_constraints\' set to NO.")
+            algo_new = "false"
             use_constraints_new = "false"
         if value == 4:
-            self.writelog("OPTION: former TDoA algorithm selected")
-            algo_new = "false"
-        if value == 5:
-            self.writelog("OPTION: new TDoA algorithm selected")
-            self.writelog("OPTION: use_constraints automaticaly set to NO")
+            self.writelog("OPTION: new TDoA algorithm selected.")
             algo_new = "true"
             use_constraints_new = "false"
 
@@ -1025,14 +1036,8 @@ class MainWindow(Frame):
             mapboundaries_set = 1
             map_preset = 1
             map_manual = 0
-            self.label4.configure(
-                text="[LAT] range: " + str(lat_min_map) + "° " + str(lat_max_map) + "°  [LON] range: " + str(
-                    lon_min_map) + "° " + str(lon_max_map) + "°")
         else:
             self.writelog("ERROR : The boundaries selection is forbidden unless map un-zoomed.")
-
-    def redraw(self):
-        self.member1.redraw_map_cmd()
 
     def on_keyrelease(self, event):
         """ Known place location listing search management. """
@@ -1059,14 +1064,12 @@ class MainWindow(Frame):
         global selectedlat, selectedlon, selectedcity
         try:
             if event.widget.get(event.widget.curselection()) == " ":
-                tkMessageBox.showinfo(title="  ¯\\_(ツ)_/¯", message="Type something in the left box first !")
+                tkMessageBox.showinfo(title="  ¯\\_(ツ)_/¯", message="Type something in the POI Search box first !")
             else:
-                self.label3.configure(text="LAT: " + str(
-                    my_info2[my_info1.index(event.widget.get(event.widget.curselection()))]) + " LON: " + str(
-                        my_info3[my_info1.index(event.widget.get(event.widget.curselection()))]))
-                selectedlat = str(my_info2[my_info1.index(event.widget.get(event.widget.curselection()))])
-                selectedlon = str(my_info3[my_info1.index(event.widget.get(event.widget.curselection()))])
-                selectedcity = event.widget.get(event.widget.curselection())
+                selectedcity = event.widget.get(event.widget.curselection()).rsplit(" |", 1)[0]
+                selectedlat = str(my_info2[my_info1.index(selectedcity)])
+                selectedlon = str(my_info3[my_info1.index(selectedcity)])
+                self.member1.delete_point(n="#POI")
                 self.member1.create_known_point(selectedlat, selectedlon, selectedcity)
         except:
             pass
@@ -1075,12 +1078,11 @@ class MainWindow(Frame):
         """ Erase previous known location choice from both textbox input and World map icon and name. """
         global selectedcity, selectedlat, selectedlon
         self.choice.delete(0, 'end')
-        self.label3.configure(text="")
         if selectedcity:
-            self.member1.delete_point(selectedcity)
+            self.member1.delete_point(n="#POI")
             selectedcity = " "
-            selectedlat = "0"
-            selectedlon = "0"
+            selectedlat = "-90"
+            selectedlon = "180"
 
     def writelog(self, msg):
         """ The main console log text feed. """
@@ -1093,9 +1095,8 @@ class MainWindow(Frame):
         """ Purge ultimateTDoA list process. """
         global fulllist
         fulllist = []
-        APP.title(VERSION)
+        APP.title(VERSION + "| " + FREQUENCY + ALEID)
         self.member1.unselect_allpoint()
-        self.writelog("ultimateTDoA node listing has been cleared.")
 
     def start_stop_tdoa(self):
         """ Actions to perform when Compute button is clicked. """
@@ -1133,19 +1134,17 @@ class MainWindow(Frame):
                     file_d = f.read()
                     f.close()
                     # get values from the original .empty proc file
-                    set_plot_kiwi = re.search(r"(\s{16}'plot_kiwi_json', (.+),)", file_d)
-                    plot_kiwi_json_origin = set_plot_kiwi.group(2)
-                    set_usec = re.search(r"(\s{16}'use_constraints', (.+),)", file_d)
-                    use_constraints_origin = set_usec.group(2)
-                    set_algo = re.search(r"(\s{16}'new', (.+))", file_d)
-                    algo_origin = set_algo.group(2)
+                    plot_kiwi_json_origin = re.search(r"(\s{16}'plot_kiwi_json', (.+),)", file_d).group(2)
+                    use_constraints_origin = re.search(r"(\s{16}'use_constraints', (.+),)", file_d).group(2)
+                    algo_origin = re.search(r"(\s{16}'new', (.+))", file_d).group(2)
+                    dir_origin = re.search(r".+/(.+)/", file_d).group(1)
                     # Fill the .m file with selected node listing
                     i = 1
                     for node in fulllist:
                         new_nodes.append("    input(" + str(i) + ").fn    = fullfile('iq', '" + os.path.basename(
-                            os.path.dirname(mfile)) + "', '" + os.path.basename(
-                            "".join(node_file[node_list.index(node.rsplit("$", 3)[3])].split(os.sep, 1)[1:])) + "\');")
-                        file_list.append(node_file[node_list.index(node.rsplit("$", 3)[3])])
+                            os.path.dirname(mfile)) + "', '" + node_file[
+                                             node_list.index(node.rsplit("$", 4)[2])] + "\');")
+                        file_list.append(node_file[node_list.index(node.rsplit("$", 4)[2])])
                         i += 1
                     file_d = file_d.replace("  # nodes", "\n".join(new_nodes))
                     # Create new config block
@@ -1156,7 +1155,7 @@ class MainWindow(Frame):
     config = struct('lat_range', [""" + str(lat_min_map) + " " + str(lat_max_map) + """],
                     'lon_range', [""" + str(lon_min_map) + " " + str(lon_max_map) + """],
                     'known_location', struct('coord', [""" + selectedlat + " " + selectedlon + """],
-                                             'name',  '""" + selectedcity.rsplit(' (')[0] + """'),
+                                             'name',  '""" + selectedcity.rsplit(' (')[0].replace('_', ' ') + """'),
                     'dir', 'png',
                     'plot_kiwi', false,
                     'plot_kiwi_json', """ + pkjn + """,
@@ -1164,10 +1163,12 @@ class MainWindow(Frame):
                     'new', """ + al + """
                    );"""
                     new_mapbox = "lon, \" " + selectedlat + "\", \" " + selectedlon + "\", \" " + MAP_BOX + " \", \"iq"
+                    dir_new = os.path.basename(os.path.dirname(mfile)) if os.path.basename(os.path.dirname(mfile)) != dir_origin else dir_origin
                     # replace old config block by the new one
                     file_d = re.sub('(\n    config = struct(.*)(\n(.*)){9})', new_config, file_d, flags=re.M)
                     file_d = re.sub(r'lon(.*)iq', new_mapbox, file_d)
                     file_d = file_d.replace("spec.pdf", "temp.pdf")
+                    file_d = file_d.replace(os.sep + dir_origin, os.sep + dir_new)
                     # get some file names and directory
                     logfile = os.path.basename(mfile).replace("empty", "txt")
                     tdoa_rootdir = up(up(up(mfile)))
@@ -1176,6 +1177,7 @@ class MainWindow(Frame):
                     f = open(newfile, 'w')
                     f.write(file_d)
                     f.close()
+                    # get only selected nodes for a TDoA run (PlotIQ mode 1)
                     PlotIQ(None, 1, file_list).run()
                     OctaveProcessing(os.path.basename(mfile).replace("empty", "m"), tdoa_rootdir, logfile).start()
                     self.compute_button.configure(text="Abort TDoA")
@@ -1203,6 +1205,6 @@ def on_closing():
 
 if __name__ == '__main__':
     APP = MainW()
-    APP.title(VERSION)
+    APP.title(VERSION + "| " + FREQUENCY + ALEID)
     APP.protocol("WM_DELETE_WINDOW", on_closing)
     APP.mainloop()

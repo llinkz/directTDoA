@@ -32,49 +32,22 @@ from PIL import Image, ImageTk
 if sys.version_info[0] == 2:
     import tkFileDialog
     import tkMessageBox
+    import ttk
     from Tkinter import Checkbutton, END, CURRENT, NORMAL, Message, Scale, IntVar, Listbox
     from Tkinter import Entry, Text, Menu, Label, Button, Frame, Tk, Canvas, PhotoImage
     from tkColorChooser import askcolor
     from tkSimpleDialog import askstring, askinteger
+    from tkFont import Font
 else:
     import tkinter.filedialog as tkFileDialog
     import tkinter.messagebox as tkMessageBox
     from tkinter import Checkbutton, END, CURRENT, NORMAL, Message, Scale, IntVar, Listbox
-    from tkinter import Entry, Text, Menu, Label, Button, Frame, Tk, Canvas, PhotoImage
+    from tkinter import Entry, Text, Menu, Label, Button, Frame, Tk, Canvas, PhotoImage, ttk
     from tkinter.colorchooser import askcolor
     from tkinter.simpledialog import askstring, askinteger
+    from tkinter.font import Font
 
-VERSION = "directTDoA v6.20"
-
-
-class Restart(object):
-    """ GUI Restart routine. """
-
-    def __init__(self):
-        pass
-
-    def __str__(self):
-        return self.__class__.__name__
-
-    @staticmethod
-    def run():
-        """ GUI Restart routine. """
-        try:  # to kill octave-cli process if exists
-            os.kill(PROC_PID, signal.SIGTERM)
-        except (NameError, OSError):
-            pass
-        try:  # to kill kiwirecorder.py process if exists
-            os.kill(PROC2_PID, signal.SIGTERM)
-        except (NameError, OSError):
-            pass
-        try:  # to kill kiwirecorder.py in LISTENING MODE
-            os.kill(kiwisdrclient_pid, signal.SIGTERM)
-        except (NameError, OSError):
-            pass
-        if platform.system() == "Windows":
-            os.execlp("pythonw.exe", "pythonw.exe", "directTDoA.py")
-        else:
-            os.execv(sys.executable, [sys.executable] + sys.argv)
+VERSION = "directTDoA v7.00"
 
 
 class ReadKnownPointFile(object):
@@ -99,7 +72,6 @@ class ReadKnownPointFile(object):
                 my_info2.append(inforegexp.group(2))
                 my_info3.append(inforegexp.group(3))
                 i += 1
-        h.close()
 
 
 class ReadCfg(object):
@@ -112,9 +84,9 @@ class ReadCfg(object):
     def read_cfg():
         """ DirectTDoA configuration file read process. """
         global CFG, DX0, DY0, DX1, DY1, DMAP, MAPFL, WHITELIST, BLACKLIST
-        global STDCOLOR, FAVCOLOR, BLKCOLOR, POICOLOR, ICONSIZE, IQBW, ICONTYPE, HIGHLIGHT
+        global STDCOLOR, FAVCOLOR, BLKCOLOR, POICOLOR, ICONSIZE, ICONTYPE, HIGHLIGHT
         global BGC, FGC, GRAD, THRES, CONS_B, CONS_F, STAT_B, STAT_F, MAP_BOX
-        global TCPHOST, TCPPORT, IQDURATION, PKJ, UC, TDOAVERSION
+        global TCPHOST, TCPPORT, TCPTRIGGER, IQDURATION, PKJ, UC, TDOAVERSION, GUI
         try:
             # Read the config file and declare variables
             with open('directTDoA.cfg', 'r') as config_file:
@@ -123,7 +95,7 @@ class ReadCfg(object):
             DY0, DY1 = CFG["map"]["y0"], CFG["map"]["y1"]
             DMAP, MAPFL, ICONSIZE = CFG["map"]["file"], CFG["map"]["mapfl"], CFG["map"]["iconsize"]
             STDCOLOR, FAVCOLOR, BLKCOLOR = CFG["map"]["std"], CFG["map"]["fav"], CFG["map"]["blk"]
-            POICOLOR, IQBW, ICONTYPE = CFG["map"]["poi"], CFG["iq"]["bw"], CFG["map"]["icontype"]
+            POICOLOR, ICONTYPE = CFG["map"]["poi"], CFG["map"]["icontype"]
             WHITELIST, BLACKLIST = CFG["nodes"]["whitelist"], CFG["nodes"]["blacklist"]
             HIGHLIGHT = CFG["map"]["hlt"]
             BGC, FGC, GRAD = CFG["guicolors"]["main_b"], CFG["guicolors"]["main_f"], CFG["guicolors"]["grad"]
@@ -131,6 +103,16 @@ class ReadCfg(object):
             STAT_B, STAT_F = CFG["guicolors"]["stat_b"], CFG["guicolors"]["stat_f"]
             THRES, MAP_BOX = CFG["guicolors"]["thres"], CFG["map"]["mapbox"]
             TCPHOST, TCPPORT, IQDURATION = CFG["tcp"]["host"], CFG["tcp"]["port"], CFG["tcp"]["duration"]
+            try:
+                TCPTRIGGER = CFG["tcp"]["word"]
+            except KeyError:
+                SaveCfg().save_cfg("tcp", "word", "")
+                TCPTRIGGER = CFG["tcp"]["word"]
+            try:
+                GUI = CFG["map"]["gui"]
+            except KeyError:
+                SaveCfg().save_cfg("map", "gui", "1200x700+150+10")
+                GUI = CFG["map"]["gui"]
             PKJ, UC, TDOAVERSION = CFG["iq"]["pkj"], CFG["iq"]["uc"], CFG["iq"]["mode"]
         except (ImportError, ValueError):
             # If config file is not valid json
@@ -159,28 +141,27 @@ class SaveCfg(object):
 
 
 class CheckUpdate(threading.Thread):
-    """ Check if the sources are up before running the RunUpdate process. """
+    """ Check if the source is up before running the RunUpdate process. """
 
     def __init__(self):
         super(CheckUpdate, self).__init__()
 
     def run(self):
-        chk_linkf = 0
-        APP.gui.writelog("Checking if rx.linkfanel.net is up ...")
+        APP.gui.writelog("Checking if http://kiwisdr.com/public is up ...")
         try:
-            requests.get("http://rx.linkfanel.net/kiwisdr_com.js", timeout=2)
-            requests.get("http://rx.linkfanel.net/snr.js", timeout=2)
-            chk_linkf = 1
-        except requests.ConnectionError:
-            APP.gui.writelog("Sorry Pierre's website is not reachable. try again later.")
-            APP.gui.update_button.configure(state="normal")
-        if chk_linkf == 1:
+            requests.get("http://kiwisdr.com/public", timeout=2)
             APP.gui.writelog("Ok looks good, KiwiSDR node listing update started ...")
             RunUpdate().run()
+        except requests.ConnectionError:
+            APP.gui.writelog("http://kiwisdr.com/public is not reachable. try again later.")
+            APP.gui.start_rec_button.configure(state="normal")
+            APP.gui.start_tdoa_button.configure(state="normal")
+            APP.gui.update_button.configure(state="normal")
+            APP.gui.purge_button.configure(state="normal")
 
 
 class RunUpdate(threading.Thread):
-    """ Update map process """
+    """ Update map process. """
 
     def __init__(self, parent=None):
         super(RunUpdate, self).__init__()
@@ -188,121 +169,166 @@ class RunUpdate(threading.Thread):
 
     def run(self):
         try:
-            tdoa_id_index = 1
-            # Get the node list from linkfanel website
-            nodelist = requests.get("http://rx.linkfanel.net/kiwisdr_com.js")
-            # Convert that listing to fit a JSON format (also removing bad/incomplete node entries)
-            kiwilist = re.sub(r"{\n(.*?),\n(.*?),\n\t\},", "", re.sub(r"},\n]\n;", "\t}\n]", re.sub(
-                r"(//.+\n)+\n.+", "", nodelist.text, 0), 0), 0)
-            json_data = json.loads(kiwilist)
-            # Get the SNR list from linkfanel website
-            snrlist = requests.get("http://rx.linkfanel.net/snr.js")
-            snrvar = snrlist.text
-            # Convert that listing to fit a JSON format
-            snrlist = re.sub(r"(//.+\n){2}\n.+", "", re.sub(r",\n}\n;", "\t}\n", snrlist.text, 0), 0)  # from fev 2020
-            # snrlist = snrvar.replace('var snr = ', '').replace(':', ':\"').replace(',', '\",').replace(',\n};', '\n}')
-            json_data2 = json.loads(snrlist)
-            # Remove the existing node database
-            if os.path.isfile('directTDoA_server_list.db'):
-                os.remove('directTDoA_server_list.db')
-            # Open a new database
-            with codecs.open('directTDoA_server_list.db', 'wb', encoding='utf8') as db_file:
+            out = []
+            tdoa_id_list = []
+            # Get data from website source
+            req = requests.get("http://kiwisdr.com/public/")
+            # Get kiwisdr listing from kiwisdr.com/public and convert to JSON
+            for html in req.text.split("<div class='cl-entry'>")[1:]:
+                rx = {}
+                for m in re.finditer("<!-- (id|fixes_min|tdoa_id|gps|name|snr)=(.*) -->", html):
+                    rx[m.group(1)] = m.group(2)
+                for n in re.finditer("<a href='http://(.*)' .+<br>", html):
+                    rx['url'] = n.group(1).strip()
+                if rx["fixes_min"] > "20":
+                    out.append(rx)
+            json_kiwisdr = json.dumps(out, ensure_ascii=False)
+            json_data = json.loads(json_kiwisdr)
+
+            # Analyse the kiwisdr.com/public JSON and create directTDoA db file
+            with codecs.open('directTDoA_server_list.tmp', 'wb', encoding='utf8') as db_file:
                 db_file.write("[\n")
-                # Parse linkfanel listing, line per line
+                # line by line
                 for i in range(len(json_data)):
-                    if "GPS" in json_data[i]['sdr_hw'] and json_data[i]['tdoa_ch'] != "-1":
-                        # Adding display in the console window (* char for each node)
-                        APP.gui.console_window.insert('end -1 lines', "*")
-                        APP.gui.console_window.see('end')
-                        time.sleep(0.005)
-                        # Check if the "tdoa_id" field of the node has been filled by the admin
-                        if json_data[i]['tdoa_id'] == '':
-                            node_id = json_data[i]['url'].split('//', 1)[1].split(':', 1)[0].replace(".", "").replace(
-                                "-", "").replace("proxykiwisdrcom", "").replace("ddnsnet", "")
-                            try:
-                                # Search for an IP in the hostname, becomes the node ID name if OK
-                                ipfield = re.search(r'\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
-                                                    r'(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
-                                                    r'(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
-                                                    r'(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))\b'
-                                                    , json_data[i]['url'].split('//', 1)[1].split(':', 1)[0])
-                                node_id = "ip" + str(ipfield.group(1)).replace(".", "")
-                            except:
-                                pass
-                            try:
-                                # Search for a Hamcall in the name, becomes the node ID name if OK - first call found.
-                                hamcallfield = re.search(
-                                    r"(.*?)(\s|,|/|^)([A-Za-z]{1,2}[0-9][A-Za-z]{1,3})(\s|,|/|@|-)(.*)",
-                                    json_data[i]['name'])
-                                node_id = hamcallfield.group(3).upper()
-                            except:
-                                pass
-                        else:
-                            # Else we are using the TDoA field entry set by the KiwiSDR hosters
-                            node_id = json_data[i]['tdoa_id']
+                    # Add progress bar in the console window (* char for each node)
+                    APP.gui.console_window.insert('end -1 lines', "*")
+                    APP.gui.console_window.see('end')
+                    time.sleep(0.005)
+
+                    # Check if the "tdoa_id" field of the node has not been filled by the admin
+                    if not json_data[i]['tdoa_id']:
                         try:
-                            # Parse the geographical coordinates
-                            gpsfield = re.search(r'([-+]?[0-9]{1,2}(\.[0-9]*)?)(,| ) '
-                                                 r'?([-+]?[0-9]{1,3}(\.[0-9]*))?', json_data[i]['gps'][1:-1])
-                            nodelat = gpsfield.group(1)
-                            nodelon = gpsfield.group(4)
-                        except:
-                            # For admins not respecting GPS field format (nn.nnnnnn, nn.nnnnnn)
-                            # => nodes will be shown at 0°LAT 0°LON
-                            print ("*** Error reading <gps> field")
-                            nodelat = nodelon = "0"
-                        # Now create a json-type line for the kiwiSDR node listing
+                            # Convert GPS data to maidenhead QRA locator, becomes the default tdoa_id
+                            gps_data = re.search(r'([-+]?[0-9]{1,2}(\.[0-9]*)?)(,|\s) 'r'?([-+]?[0-9]{1,3}(\.[0-9]*))?',
+                                                 json_data[i]['gps'][1:-1])
+                            tdoa_id = self.to_grid(float(gps_data.group(1)), float(gps_data.group(4)))
+                        except Exception as error:
+                            print(error)
                         try:
-                            # Check if node has been measured by linkfanel's SNR script
-                            try:
-                                snr_search = str(int(round(float(json_data2[json_data[i]['id']]))))
-                            except KeyError:
-                                snr_search = "15"
-                            if node_id[0].isdigit():
-                                node_id = "h" + node_id
-                            # Check if TDoA id already exists in the db, then change it with an incremental index
-                            with codecs.open('directTDoA_server_list.db', 'rb', encoding='utf8') as db_file2:
-                                if "\"" + node_id + "\"" in db_file2.read():
-                                    node_id = node_id + "/" + str(tdoa_id_index)
-                                    tdoa_id_index += 1
-                            nodeinfo = dict(
-                                mac=json_data[i]['id'],
-                                url=json_data[i]['url'].split('//', 1)[1],
-                                id=node_id,
-                                lat=nodelat,
-                                lon=nodelon,
-                                snr=snr_search
-                            )
-                            ordered_dict = ['mac', 'url', 'id', 'snr', 'lat', 'lon']
-                            nodelist = [(key, nodeinfo[key]) for key in ordered_dict]
-                            nodeinfo = OrderedDict(nodelist)
-                            json1 = json.dumps(nodeinfo, ensure_ascii=False)
-                            db_file.write(json1 + ",\n")
-                        except Exception as node_error:
-                            print (str(node_error))
+                            # Try to get a Ham callsign from the name field, if success becomes the tdoa_id
+                            hamcallfield = re.search(r"([A-Za-z]{1,2}[0-9]{1,2}[A-Za-z]{1,3})(\s|,|/|@|-)",
+                                                     json_data[i]['name'])
+                            tdoa_id = hamcallfield.group(1).upper()
+                        except (IndexError, AttributeError):
                             pass
                     else:
-                        pass
+                        tdoa_id = json_data[i]['tdoa_id']
+
+                    # TDoA code is not supporting tdoa_id starting with a digit, so insert letter h at start
+                    if tdoa_id[:1].isdigit():
+                        tdoa_id = "h" + tdoa_id
+
+                    # If tdoa_id already existing in the db, add a "/" + last digit from the port number
+                    if tdoa_id in tdoa_id_list:
+                        tdoa_id = tdoa_id + "/" + str(json_data[i]['url'][-1:])
+                    tdoa_id_list.append(tdoa_id)
+
+                    # Parse the geographical coordinates to get lat & lon values
+                    try:
+                        gpsfield = re.search(r'([-+]?[0-9]{1,2}(\.[0-9]*)?)(,|\s) 'r'?([-+]?[0-9]{1,3}(\.[0-9]*))?',
+                                             json_data[i]['gps'][1:-1])
+                        nodelat = gpsfield.group(1)
+                        nodelon = gpsfield.group(4)
+                    except Exception as gps_field_error:
+                        # For admins not respecting GPS field format (nn.nnnnnn, nn.nnnnnn)
+                        # => nodes will be shown at 0 LAT 0 LON
+                        print("*** Error reading <gps> field : " + str(gps_field_error))
+                        nodelat = nodelon = "0"
+
+                    # Get the SNR score: [0] is 0-30 MHz [1] is 1.8-30 MHz - default to 15 if not available
+                    try:
+                        snr_search = json_data[i]['snr'].rsplit(",")[1]
+                    except KeyError:
+                        snr_search = "15"
+
+                    # Build directTDoA db by writing a dict to the .tmp file
+                    nodeinfo = dict(mac=json_data[i]['id'], url=json_data[i]['url'], id=tdoa_id, lat=nodelat,
+                                    lon=nodelon,
+                                    snr=snr_search)
+                    # Order the line before writing it (necessary for rest of the code)
+                    ordered_dict = ['mac', 'url', 'id', 'snr', 'lat', 'lon']
+                    nodelist = [(key, nodeinfo[key]) for key in ordered_dict]
+                    nodeinfo = OrderedDict(nodelist)
+                    json_db = json.dumps(nodeinfo, ensure_ascii=False)
+                    db_file.write(json_db + ",\n")
                 db_file.seek(-2, os.SEEK_END)
                 db_file.truncate()
                 db_file.write("\n]")
                 db_file.close()
-                # If update process finish normally, we can make a backup copy of the server listing
-                copyfile("directTDoA_server_list.db", "directTDoA_server_list.db.bak")
-                # Then we restart the GUI
+
+                # Now look at db differences between before & after update process
+                old_kiwi_data = json.load(open('directTDoA_server_list.db', 'r'))
+                new_kiwi_data = json.load(open('directTDoA_server_list.tmp', 'r'))
+                new_node = []
+                for new in new_kiwi_data:
+                    new_entry = dict(new)
+                    new_in_old = next((old for old in old_kiwi_data if new["mac"] == old["mac"]), None)
+                    if not new_in_old:
+                        new_node.append(new_entry)
+                old_node = []
+                for old in old_kiwi_data:
+                    old_entry = dict(old)
+                    old_in_new = next((new for new in new_kiwi_data if old["mac"] == new["mac"]), None)
+                    if not old_in_new:
+                        old_node.append(old_entry)
+                gain = []
+                for x in range(len(new_node)):
+                    gain.append(new_node[x]["id"])
+                loss = []
+                for y in range(len(old_node)):
+                    loss.append(old_node[y]["id"])
+                # If there are differences between before and after update
+                if len(gain) != 0 and len(loss) != 0:
+                    # python3 > display a YES/NO tkMessageBox window
+                    if sys.version_info[0] == 3:
+                        update_question = tkMessageBox.askquestion('Update ?', "added node(s): " + str(
+                            " ".join(gain)) + "\n\nremoved node(s): " + str(" ".join(loss)) + "\n\nNew db size: " + str(
+                            len(new_kiwi_data)) + "\nOld db size: " + str(len(old_kiwi_data)), icon='warning')
+                        if update_question == 'yes':
+                            APP.gui.writelog("The KiwiSDR listing update has been accepted.")
+                            copyfile("directTDoA_server_list.tmp", "directTDoA_server_list.db")
+                        else:
+                            APP.gui.writelog("The KiwiSDR listing update has been aborted.")
+                    # python2 > finish the process considering a YES answer but log infos
+                    elif sys.version_info[0] == 2:
+                        copyfile("directTDoA_server_list.tmp", "directTDoA_server_list.db")
+                else:
+                    APP.gui.writelog("No recent change reported between db sizes.")
                 APP.gui.console_window.delete('end -1c linestart', END)
                 APP.gui.console_window.insert('end', '\n')
-                APP.gui.writelog("The KiwiSDR listing update has been successfully completed.")
         except Exception as update_error:
-            APP.gui.console_window.delete('end -1c linestart', END)
-            APP.gui.console_window.insert('end', '\n')
             APP.gui.writelog("UPDATE FAIL - ERROR : " + str(update_error))
-            copyfile("directTDoA_server_list.db.bak", "directTDoA_server_list.db")
         APP.gui.redraw()
         APP.gui.update_button.configure(state="normal")
         APP.gui.start_rec_button.configure(state="normal")
         APP.gui.start_tdoa_button.configure(state="normal")
         APP.gui.purge_button.configure(state="normal")
+        os.remove("directTDoA_server_list.tmp")
+
+    @staticmethod
+    def to_grid(dec_lat, dec_lon):
+        """ convert decimal lat/lon to maidenhead grid
+        source: Walter Underwood K6WRU @ ham.stackexchange.com """
+
+        upper = 'ABCDEFGHIJKLMNOPQRSTUVWX'
+        lower = 'abcdefghijklmnopqrstuvwx'
+        if not (-180 <= dec_lon < 180):
+            sys.stderr.write('longitude must be -180<=lon<180, given %f\n' % dec_lon)
+            sys.exit(32)
+        if not (-90 <= dec_lat < 90):
+            sys.stderr.write('latitude must be -90<=lat<90, given %f\n' % dec_lat)
+            sys.exit(33)  # can't handle north pole, sorry, [A-R]
+        adj_lat = dec_lat + 90.0
+        adj_lon = dec_lon + 180.0
+        grid_lat_sq = upper[int(adj_lat / 10)]
+        grid_lon_sq = upper[int(adj_lon / 20)]
+        grid_lat_field = str(int(adj_lat % 10))
+        grid_lon_field = str(int((adj_lon / 2) % 10))
+        adj_lat_remainder = (adj_lat - int(adj_lat)) * 60
+        adj_lon_remainder = (adj_lon - int(adj_lon / 2) * 2) * 60
+        grid_lat_subsq = lower[int(adj_lat_remainder / 2.5)]
+        grid_lon_subsq = lower[int(adj_lon_remainder / 5)]
+        return grid_lon_sq + grid_lat_sq + grid_lon_field + grid_lat_field + grid_lon_subsq + grid_lat_subsq
 
 
 class StartRecording(threading.Thread):
@@ -329,9 +355,9 @@ class StartRecording(threading.Thread):
                                   ','.join(str(p).rsplit('$')[0] for p in which_list), '-p',
                                   ','.join(str(p).rsplit('$')[1] for p in which_list),
                                   '--station=' + ','.join(str(p).rsplit('$')[3] for p in which_list), '-f',
-                                  str(FREQUENCY), '-L', str(0 - lpcut), '-H', str(hpcut), '-m', 'iq', '-u',
-                                  client_type.replace(' ', '_'), '-w', '-d', os.path.join('TDoA', 'iq')], stdout=PIPE,
-                                 shell=False)
+                                  str(FREQUENCY), '-L', str(lpcut), '-H', str(hpcut), '-m', 'iq', '--tlimit', '120',
+                                  '-u', client_type.replace(' ', '_'), '-w', '-d', os.path.join('TDoA', 'iq')],
+                                 stdout=PIPE, shell=False)
         self.parent.writelog(which_action)
         PROC2_PID = proc2.pid
 
@@ -344,26 +370,26 @@ class CheckFileSize(threading.Thread):
 
     def run(self):
         APP.gui.purge_button.configure(state="disabled")
-        APP.gui.restart_button.configure(state="disabled")
         APP.gui.update_button.configure(state="disabled")
+        wav_container = []
+        rec_time = -1
         while True:
             for wavfiles in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
+                if wavfiles not in wav_container:
+                    wav_container.append(wavfiles)
                 try:
-                    if (ultimate.get()) == 1:
-                        APP.gui.status_window.insert('end -1 lines',
-                                                     wavfiles.rsplit(os.sep, 1)[1].rsplit("_", 3)[2] + "|" + str(
-                                                         os.path.getsize(wavfiles) // 1024) + "KB   ")
-                    else:
-                        APP.gui.status_window.insert('end -1 lines', wavfiles.rsplit(os.sep, 1)[1] + " - " + str(
-                            os.path.getsize(wavfiles) // 1024) + "KB\n")
+                    APP.gui.status_window.insert('end -1 lines',
+                                                 wavfiles.rsplit(os.sep, 1)[1].rsplit("_", 3)[2] + "|" + str(
+                                                     os.path.getsize(wavfiles) // 1024) + "KB   ")
                 except OSError:
                     APP.gui.status_window.insert('end -1 lines', "\n")
+            APP.gui.status_window.insert("end", "\n[" + str(len(wav_container)) + '/' + str(len(fulllist)) + "] ~" + str(rec_time) + "s")
             APP.gui.status_window.see('end')
             time.sleep(0.5)
+            rec_time += 0.5
             APP.gui.status_window.delete("0.0", END)
             if rec_in_progress == 0:
                 APP.gui.purge_button.configure(state="normal")
-                APP.gui.restart_button.configure(state="normal")
                 APP.gui.update_button.configure(state="normal")
                 break
 
@@ -402,20 +428,11 @@ class OctaveProcessing(threading.Thread):
         global tdoa_position, PROC_PID  # stdout
         octave_errors = [b'index-out-of-bounds', b'< 2 good stations found', b'Octave:nonconformant - args',
                          b'n_stn=2 is not supported', b'resample.m: p and q must be positive integers',
-                         b'Octave:invalid-index', b'incomplete \'data\' chunk']
+                         b'Octave:invalid-index', b'incomplete \'data\' chunk',
+                         b'reshape: can\'t reshape 0x0 array to 242x258 array', b'malformed filename:']
         tdoa_filename = "proc_tdoa_" + KHZ_FREQ + ".m"
         proc = subprocess.Popen(['octave-cli', tdoa_filename], cwd=os.path.join('TDoA'), stderr=subprocess.STDOUT,
                                 stdout=subprocess.PIPE, shell=False)
-        # if sys.version_info[0] == 2:
-        #     tdoa_filename = "proc_tdoa_" + KHZ_FREQ + ".m"
-        #     proc = subprocess.Popen(['octave-cli', tdoa_filename], cwd=os.path.join('TDoA'),
-        #                             stderr=subprocess.STDOUT,
-        #                             stdout=subprocess.PIPE, shell=False)
-        # else:
-        #     tdoa_filename = "proc_tdoa_" + KHZ_FREQ
-        #     proc = subprocess.Popen(['octave-cli', '--eval', tdoa_filename], cwd=os.path.join('TDoA'),
-        #                             stderr=subprocess.STDOUT,
-        #                             stdout=subprocess.PIPE, shell=False)
         PROC_PID = proc.pid
         logfile = open(os.path.join('TDoA', 'iq') + os.sep + starttime + tdoa_mode + str(
             FREQUENCY) + os.sep + "TDoA_" + KHZ_FREQ + "_log.txt", 'w')
@@ -557,15 +574,23 @@ class StartDemodulation(threading.Thread):
 
     def run(self):
         global LISTENMODE, kiwisdrclient_pid
-        if self.s_mod == "am":
-            low_cut = "-5000"
-            hi_cut = "5000"
-        elif self.s_mod == "lsb":
-            low_cut = "-3600"
-            hi_cut = "0"
-        else:
+        if self.s_mod == "USB":
             low_cut = "0"
             hi_cut = "3600"
+        elif self.s_mod == "LSB":
+            low_cut = "-3600"
+            hi_cut = "0"
+        elif self.s_mod == "CW":
+            low_cut = "-500"
+            hi_cut = "500"
+            self.s_freq = str(float(self.s_freq) - 0.5)
+        elif self.s_mod == "AM":
+            low_cut = "-5000"
+            hi_cut = "5000"
+        else:
+            self.s_mod = "USB"
+            low_cut = "300"
+            hi_cut = "3300"
         try:
             if platform.system() == "Windows":
                 client_type = VERSION + ' [win/listen]'
@@ -580,7 +605,7 @@ class StartDemodulation(threading.Thread):
             kiwisdrclient_pid = proc8.pid
             LISTENMODE = "1"
             APP.gui.writelog(
-                "Starting Listen mode   [ " + self.s_host + " / " + self.s_freq + " kHz / " + self.s_mod.upper() + " ] - to stop: use same command.")
+                "Starting Listen mode   [ " + self.s_host + " / " + self.s_freq + " kHz / " + self.s_mod.upper() + " ] - to stop: use same command from any node popup menu.")
         except Exception as demodulation_Error:
             print ("Unable to demodulate this node - Error: " + str(demodulation_Error))
             LISTENMODE = "0"
@@ -604,8 +629,8 @@ class FillMapWithNodes(object):
                 db_data = json.load(node_db)
                 for node_index in range(len(db_data)):
                     NODE_COUNT += 1
-                    # Change icon color of fav, black and standards nodes and apply a gradiant // SNR
-                    perc = (int(db_data[node_index]["snr"]) - 30) * GRAD
+                    # Change icon color of fav, black and standards nodes and apply a gradient // SNR
+                    perc = (int(db_data[node_index]["snr"]) - 40) * GRAD
                     if db_data[node_index]["mac"] in WHITELIST:
                         node_color = (self.color_variant(FAVCOLOR, perc))
                     elif db_data[node_index]["mac"] in BLACKLIST:
@@ -658,20 +683,20 @@ class FillMapWithNodes(object):
         mykeys = ['mac', 'url', 'id', 'snr', 'lat', 'lon']
         node_lat = self.convert_lat(node_db_data[node_index_data]["lat"])
         node_lon = self.convert_lon(node_db_data[node_index_data]["lon"])
-        node_tag = str('$'.join([node_db_data[node_index_data][x] for x in mykeys]))
-        ic_size = int(ICONSIZE)
-        try:
-            if ICONTYPE == 0:
-                self.parent.canvas.create_oval(node_lon - ic_size, node_lat - ic_size, node_lon + ic_size,
-                                               node_lat + ic_size, fill=node_color, tag=node_tag)
-            else:
-
-                self.parent.canvas.create_rectangle(node_lon - ic_size, node_lat - ic_size, node_lon + ic_size,
-                                                    node_lat + ic_size, fill=node_color, tag=node_tag)
-            self.parent.canvas.tag_bind(node_tag, "<Button-1>", self.parent.onclickleft)
-            tag_list.append(node_tag)
-        except NameError:
-            print ("OOPS - Error in adding the point to the map")
+        if not any(node_db_data[node_index_data]["mac"] in s for s in tag_list):
+            node_tag = str('$'.join([node_db_data[node_index_data][x] for x in mykeys]))
+            ic_size = int(ICONSIZE)
+            try:
+                if ICONTYPE == 0:
+                    self.parent.canvas.create_oval(node_lon - ic_size, node_lat - ic_size, node_lon + ic_size,
+                                                   node_lat + ic_size, fill=node_color, tag=node_tag)
+                else:
+                    self.parent.canvas.create_rectangle(node_lon - ic_size, node_lat - ic_size, node_lon + ic_size,
+                                                        node_lat + ic_size, fill=node_color, tag=node_tag)
+                self.parent.canvas.tag_bind(node_tag, "<Button-1>", self.parent.onclickleft)
+                tag_list.append(node_tag)
+            except NameError:
+                print ("OOPS - Error in adding the point to the map")
 
     def delete_point(self, map_definition):
         """ Map presets deletion process. """
@@ -720,103 +745,96 @@ class FillMapWithNodes(object):
         FillMapWithNodes.run(self)
 
 
-class SorcererTcpClient(threading.Thread):
-    """ TCP Client for the Sorcerer decoding software (only for 2G ALE). """
-
-    def __init__(self):
+class TcpClient(threading.Thread):
+    def __init__(self, trigger):
         threading.Thread.__init__(self)
+        self.trigger = trigger
 
     def run(self):
         global TCPHOST, TCPPORT, IQDURATION
+
         try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s = socket.socket()
             s.settimeout(1.0)
             s.connect((TCPHOST, TCPPORT))
             s.setblocking(False)
-            APP.gui.writelog("TCP Socket connected to " + str(TCPHOST) + ":" + str(TCPPORT) + " ...")
-            socket_data = b""
-            total_socket_data = b""
-            start_time = None
-            new_socket_data = False
-            while True:
-                if sorcerer.get() == 0:
-                    APP.gui.writelog("TCP Socket disconnected from " + str(TCPHOST) + ":" + str(TCPPORT) + " ...")
-                    break
+            APP.gui.writelog("TCP client connected to " + TCPHOST + ":" + str(TCPPORT) + " | trigger word : " + str(
+                TCPTRIGGER) + " | duration : " + str(IQDURATION) + "s")
+            if self.trigger == "":
+                APP.gui.writelog(
+                    "Warning, with blank trigger word the recording will start on any event appearing on TCP server side and the recordings will follow each other in a loop if TCP data flow is continuous")
+        except (socket.error, socket.gaierror, socket.timeout) as e:
+            APP.gui.writelog("TCP client connection to " + TCPHOST + ":" + str(TCPPORT) + " failed - " + str(e))
+            tcpclient.set(0)
+            return
+
+        data = b""
+        while True:
+            if not tcpclient.get():
+                APP.gui.writelog("TCP client disconnected from " + TCPHOST + ":" + str(TCPPORT))
+                break
+
+            try:
+                data += s.recv(2048)
+            except:
+                pass
+
+            if not rec_in_progress and data and (not self.trigger or re.search(self.trigger, data.decode('utf-8'))):
+                start_time = time.time()
+                APP.gui.writelog("### TCP data received ###")
+                APP.gui.start_stop_rec()
+
+            if rec_in_progress and time.time() - start_time >= IQDURATION:
                 try:
-                    socket_data = s.recv(2048)
-                    new_socket_data = True
-                except socket.error:
-                    time.sleep(0.001)  # prevent CPU hogging
-                    new_socket_data = False
+                    if "[NORMAL MODE]" in data.decode('utf-8'):
+                        PrintALE(data, reset=0).start()
+                except UnicodeDecodeError:
+                    PrintALE(data, reset=1).start()
+                data = b""
+                APP.gui.start_stop_rec()
+                if auto_run_tdoa.get() == 1:
+                    APP.gui.start_stop_tdoa()
 
-                if not start_time and new_socket_data and b"[NORMAL MODE]" in socket_data:
-                    APP.gui.writelog(" ### ALE detected ###")
-                    start_time = time.time()
-                    if tdoa_in_progress != 1:
-                        APP.gui.start_stop_rec()
-                        rec_in_progress == 1
-                    else:
-                        tdoa_in_progress == 1
-                        APP.gui.start_stop_tdoa()
-                        APP.gui.start_stop_rec()
-
-                if start_time:
-                    if new_socket_data:
-                        total_socket_data += socket_data
-                    if time.time() - start_time >= IQDURATION:
-                        PrintALE(total_socket_data).start()
-                        if auto_run_tdoa.get() == 0:
-                            APP.gui.start_stop_rec()
-                        else:
-                            tdoa_in_progress == 0
-                            APP.gui.start_stop_tdoa()
-                        start_time = None
-                        socket_data = b""
-                        total_socket_data = b""
-
-        except (socket.error, socket.gaierror, socket.timeout) as socket_error:
-            APP.gui.writelog(
-                "TCP Socket connection to " + str(TCPHOST) + ":" + str(TCPPORT) + " failed - " + str(socket_error))
-            sorcerer.set(0)
-            auto_run_tdoa.set(0)
-            APP.gui.autorun_checkbox.configure(state="disabled")
+            time.sleep(0.001)
 
 
 class PrintALE(threading.Thread):
     """ 2G ALE WORDS management. """
 
-    def __init__(self, data):
+    def __init__(self, data, reset):
         threading.Thread.__init__(self)
         self.ale_data = data
+        self.reset = reset
 
     def run(self):
-        """ Get 2G ALE words. """
+        """ Get 2G ALE words or reset the buffer in case of other decoded digimodes. """
         global ale_file_name, ale_file_data
-        to_addr = ""
-        tis_addr = ""
-        tws_addr = ""
-        ale_file_name = "ALE [partial decode].txt"
-        ale_file_data = self.ale_data
-        for addr in re.findall(r'\[TO\]\[(.*?)\]', self.ale_data.decode('utf-8')):
-            if len(addr) > len(to_addr):
-                to_addr = addr
-        for addr in re.findall(r'\[TIS\]\[(.*?)\]', self.ale_data.decode('utf-8')):
-            if len(addr) > len(tis_addr):
-                tis_addr = addr
-        for addr in re.findall(r'\[TWS\]\[(.*?)\]', self.ale_data.decode('utf-8')):
-            if len(addr) > len(tws_addr):
-                tws_addr = addr
-        if to_addr and tis_addr and not tws_addr:
-            APP.gui.writelog(" ### ALE CALL ### [TO]" + to_addr + " [TIS]" + tis_addr)
-            ale_file_name = "ALE CALL [TO]" + to_addr + " [TIS]" + tis_addr + ".txt"
-            return
-        if to_addr and tws_addr and not tis_addr:
-            APP.gui.writelog(" ### ALE CLOSING ### [TO]" + to_addr + " [TWS]" + tws_addr)
-            ale_file_name = "ALE CLOSE [TO]" + to_addr + " [TWS]" + tws_addr + ".txt"
-            return
-        if tws_addr and not to_addr and not tis_addr:
-            APP.gui.writelog(" ### ALE SOUNDING ### [TWS]" + tws_addr)
-            ale_file_name = "ALE SOUNDING [TWS]" + tws_addr + ".txt"
+        if self.reset == 1:
+            ale_file_data = ""
+        else:
+            to_addr = tis_addr = tws_addr = ""
+            ale_file_name = "ALE [partial decode].txt"
+            ale_file_data = self.ale_data
+            for addr in re.findall(r'\[TO\]\[(.*?)\]', self.ale_data.decode('utf-8')):
+                if len(addr) > len(to_addr):
+                    to_addr = addr
+            for addr in re.findall(r'\[TIS\]\[(.*?)\]', self.ale_data.decode('utf-8')):
+                if len(addr) > len(tis_addr):
+                    tis_addr = addr
+            for addr in re.findall(r'\[TWS\]\[(.*?)\]', self.ale_data.decode('utf-8')):
+                if len(addr) > len(tws_addr):
+                    tws_addr = addr
+            if to_addr and tis_addr and not tws_addr:
+                APP.gui.writelog(" ### ALE CALL ### [TO]" + to_addr + " [TIS]" + tis_addr)
+                ale_file_name = "ALE CALL [TO]" + to_addr + " [TIS]" + tis_addr + ".txt"
+                return
+            if to_addr and tws_addr and not tis_addr:
+                APP.gui.writelog(" ### ALE CLOSING ### [TO]" + to_addr + " [TWS]" + tws_addr)
+                ale_file_name = "ALE CLOSE [TO]" + to_addr + " [TWS]" + tws_addr + ".txt"
+                return
+            if tws_addr and not to_addr and not tis_addr:
+                APP.gui.writelog(" ### ALE SOUNDING ### [TWS]" + tws_addr)
+                ale_file_name = "ALE SOUNDING [TWS]" + tws_addr + ".txt"
 
 
 class GuiCanvas(Frame):
@@ -826,7 +844,7 @@ class GuiCanvas(Frame):
     def __init__(self, parent):
         Frame.__init__(self, parent=None)
         # tip: GuiCanvas is member1
-        parent.geometry("1200x700+150+10")
+
         img = PhotoImage(file='icon.gif')
         parent.after(50, parent.call('wm', 'iconphoto', parent, img))
         global fulllist, LISTENMODE, mapboundaries_set
@@ -834,6 +852,7 @@ class GuiCanvas(Frame):
         LISTENMODE = "0"
         mapboundaries_set = None
         ReadCfg().read_cfg()
+        parent.geometry(GUI)
         self.x = self.y = 0
         # Create canvas and put image on it
         self.canvas = Canvas(self.master, highlightthickness=0)
@@ -930,12 +949,6 @@ class GuiCanvas(Frame):
                     self.canvas.yview_scroll(1, 'units')
                 elif event.y < 0.02 * h_canva:
                     self.canvas.yview_scroll(-1, 'units')
-                try:
-                    APP.gui.label4.configure(text="[LAT] range: " + str(lat_min_map) + "° " + str(
-                        lat_max_map) + "°  [LON] range: " + str(lon_min_map) + "° " + str(lon_max_map) + "°")
-                except NameError:
-                    pass
-                # expand rectangle as you drag the mouse
                 self.canvas.coords(self.rect, self.start_x, self.start_y, cur_x, cur_y)
                 self.show_image()
         else:
@@ -971,9 +984,6 @@ class GuiCanvas(Frame):
                                         db_data2[y]["url"].rsplit(':')[0] + "$" + db_data2[y]["url"].rsplit(':')[
                                             1] + "$" + db_data2[y]["mac"] + "$" + db_data2[y]["id"].replace("/", ""))
                                     FillMapWithNodes(self).node_sel_active(node_mac=db_data2[y]["mac"])
-
-            APP.gui.label4.configure(text="[LAT] range: " + str(lat_min_map) + "° " + str(
-                lat_max_map) + "°  [LON] range: " + str(lon_min_map) + "° " + str(lon_max_map) + "°")
             if fulllist:
                 APP.gui.writelog(str(len(fulllist)) + " KiwiSDR(s) found within this area.")
                 APP.title(VERSION + " - ultimateTDoA nodes [" + str(len(fulllist)) + "] : " + '/'.join(
@@ -987,20 +997,15 @@ class GuiCanvas(Frame):
             if map_preset == 1 and map_manual == 0:
                 pass
             else:
-                try:
-                    APP.gui.label4.configure(text="[LAT] range: " + str(lat_min_map) + "° " + str(
-                        lat_max_map) + "°  [LON] range: " + str(lon_min_map) + "° " + str(lon_max_map) + "°")
-                    mapboundaries_set = 1
-                    map_manual = 1
-                except NameError:
-                    pass
+                mapboundaries_set = 1
+                map_manual = 1
         if len(fulllist) >= 3 and APP.gui.freq_input.get() != "" and 5 < float(
                 APP.gui.freq_input.get()) < 30000:
-            APP.gui.sorcerer_checkbox.configure(state="normal")
+            APP.gui.tcpclient_checkbox.configure(state="normal")
             if (ultimate.get()) == 0:
                 APP.gui.autorun_checkbox.configure(state="normal")
         else:
-            APP.gui.sorcerer_checkbox.configure(state="disabled")
+            APP.gui.tcpclient_checkbox.configure(state="disabled")
 
     def create_known_point(self, y_kwn, x_kwn, n):
         """ Map known place creation process, works only when self.imscale = 1.0 """
@@ -1037,7 +1042,6 @@ class GuiCanvas(Frame):
         menu0 = Menu(self, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # node overlap list menu
         menu1 = Menu(self, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # main node menu
         menu2 = Menu(menu1, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # enforce menu
-        menu3 = Menu(menu1, tearoff=0, fg="black", bg=BGC, font='TkFixedFont 7')  # demodulation menu
         # search for overlapping nodes
         overlap_range = ICONSIZE * 4
         overlap_rect = (self.canvas.canvasx(event.x) - overlap_range), (self.canvas.canvasy(event.y) - overlap_range), (
@@ -1054,13 +1058,13 @@ class GuiCanvas(Frame):
                     # mykeys = ['mac', 'url', 'id', 'snr', 'lat', 'lon']
                     # n_field    0      1      2     3      4     5
                     n_field = HOST.rsplit("$", 6)
-                    # Color gradiant proportionnal to SNR value
-                    snr_gradiant = (int(n_field[3]) - 30) * GRAD
-                    # rbg = self.color_variant("#FF0000", snr_gradiant)
+                    # Color gradient proportionnal to SNR value
+                    snr_gradient = (int(n_field[3]) - 40) * GRAD
+                    # rbg = self.color_variant("#FF0000", snr_gradient)
                     # Dynamic foreground (adapting font to white or black depending on luminosity)
-                    dfg = self.get_font_color((self.color_variant("#FFFF00", snr_gradiant)))
+                    dfg = self.get_font_color((self.color_variant("#FFFF00", snr_gradient)))
                     nodec = BLKCOLOR if n_field[0] in BLACKLIST else FAVCOLOR if n_field[0] in WHITELIST else STDCOLOR
-                    cbg = self.color_variant(nodec, snr_gradiant)
+                    cbg = self.color_variant(nodec, snr_gradient)
                     # check if node is already in the TDoA node listing
                     if len([el for el in fulllist if n_field[0] in el]) != 1:
                         name = n_field[2]
@@ -1068,25 +1072,25 @@ class GuiCanvas(Frame):
                         name = "✔ " + n_field[2]
                     menu0.add_command(label=name, background=cbg, foreground=dfg,
                                       command=lambda x=HOST: self.create_node_menu(x, event.x_root, event.y_root, menu1,
-                                                                                   menu2, menu3))
+                                                                                   menu2))
                 else:
                     pass
             menu0.tk_popup(event.x_root, event.y_root)
         else:
             HOST = self.canvas.gettags(self.canvas.find_withtag(CURRENT))[0]
-            self.create_node_menu(HOST, event.x_root, event.y_root, menu1, menu2, menu3)
+            self.create_node_menu(HOST, event.x_root, event.y_root, menu1, menu2)
 
-    def create_node_menu(self, kiwinodetag, popx, popy, menu, menu2, menu3):
+    def create_node_menu(self, kiwinodetag, popx, popy, menu, menu2):
         n_field = kiwinodetag.rsplit("$", 6)
         matches = [el for el in fulllist if n_field[0] in el]
-        snr_gradiant = (int(n_field[3]) - 30) * GRAD
+        snr_gradient = (int(n_field[3]) - 40) * GRAD
         nodec = BLKCOLOR if n_field[0] in BLACKLIST else FAVCOLOR if n_field[0] in WHITELIST else STDCOLOR
         # Red background
-        rbg = self.color_variant("#FF0000", snr_gradiant)
+        rbg = self.color_variant("#FF0000", snr_gradient)
         # Dynamic foreground (adapting font to white or black depending on luminosity)
-        dfg = self.get_font_color((self.color_variant("#FFFF00", snr_gradiant)))
+        dfg = self.get_font_color(self.color_variant("#FFFF00", snr_gradient))
         # Colorized background (depending on Standard/Favorite/Blacklist)
-        cbg = self.color_variant(nodec, snr_gradiant)
+        cbg = self.color_variant(nodec, snr_gradient)
         try:  # check if the node is answering
             chktimeout = 2  # timeout of the node check
             checkthenode = requests.get("http://" + n_field[1] + "/status", timeout=chktimeout)
@@ -1173,25 +1177,19 @@ class GuiCanvas(Frame):
             # Add Open in Web browser lines
             menu.add_separator()
             menu.add_command(label="Open " + n_field[2] + " in Web browser", state=NORMAL, background=cbg,
-                             foreground=dfg, command=lambda: self.openinbrowser(n_field, 0, APP.gui.freq_input.get()))
+                             foreground=dfg,
+                             command=lambda: self.openinbrowser(n_field, 0, APP.gui.freq_input.get(), mode))
             menu.add_command(label="Open " + n_field[2] + " in Web browser with pre-set TDoA extension loaded",
                              state=NORMAL, background=cbg, foreground=dfg,
-                             command=lambda: self.openinbrowser(n_field, 1, APP.gui.freq_input.get()))
+                             command=lambda: self.openinbrowser(n_field, 1, APP.gui.freq_input.get(), mode))
             menu.add_command(label="Open " + n_field[1] + "/status", background=cbg, foreground=dfg,
-                             command=lambda: self.openinbrowser(n_field, 2, None))
+                             command=lambda: self.openinbrowser(n_field, 2, None, None))
             if LISTENMODE == "0":
                 # Add demodulation process line
-                menu.add_cascade(label="Listen to that frequency using " + n_field[2], state=NORMAL, background=cbg,
-                                 foreground=dfg, menu=menu3)
-                menu3.add_command(label="USB", background=cbg, foreground=dfg,
-                                  command=lambda *args: [self.listenmode(n_field, "usb"),
-                                                         self.populate("add", "yes", n_field)])
-                menu3.add_command(label="LSB", background=cbg, foreground=dfg,
-                                  command=lambda *args: [self.listenmode(n_field, "lsb"),
-                                                         self.populate("add", "yes", n_field)])
-                menu3.add_command(label="AM", background=cbg, foreground=dfg,
-                                  command=lambda *args: [self.listenmode(n_field, "am"),
-                                                         self.populate("add", "yes", n_field)])
+                menu.add_command(label="Listen to that frequency using " + n_field[2], state=NORMAL, background=cbg,
+                                 foreground=dfg,
+                                 command=lambda *args: [self.listenmode(n_field, APP.gui.modulation_box.get()),
+                                                        self.populate("add", "yes", n_field)])
             else:
                 menu.add_command(label="Stop Listen Mode", state=NORMAL, background=cbg, foreground=dfg,
                                  command=lambda *args: [self.stoplistenmode(), self.populate("del", "yes", n_field)])
@@ -1263,16 +1261,16 @@ class GuiCanvas(Frame):
         return "#" + "".join(["0" + hex(i)[2:] if len(hex(i)[2:]) < 2 else hex(i)[2:] for i in new_rgb_int])
 
     @staticmethod
-    def openinbrowser(node_id, extension, freq):
-        """ Web browser call to connect on the node (default = IQ mode & fixed zoom level at 8). """
+    def openinbrowser(node_id, extension, freq, modul):
+        """ Web browser call to connect on the node. """
         if extension == 0:
-            url = "http://" + node_id[1] + "/?f=" + freq + "iqz8"
+            webbrowser.open_new("http://" + node_id[1] + "/?f=" + freq + modul)
         elif extension == 2:
-            url = "http://" + node_id[1] + "/status"
+            webbrowser.open_new("http://" + node_id[1] + "/status")
         else:
-            url = "http://" + node_id[1] + "/?f=" + freq + "iqz8&ext=tdoa,lat:" + node_id[4] + ",lon:" + node_id[
-                5] + ",z:5," + node_id[2]
-        webbrowser.open_new(url)
+            webbrowser.open_new(
+                "http://" + node_id[1] + "/?f=" + freq + modul + "&ext=tdoa,lat:" + node_id[4] + ",lon:" + node_id[
+                    5] + ",z:5," + node_id[2])
 
     @staticmethod
     def listenmode(node_id, modulation):
@@ -1417,20 +1415,19 @@ class MainWindow(Frame):
         self.member1 = GuiCanvas(parent)
         ReadKnownPointFile().run()
         global image_scale, selectedcity, selectedlat, selectedlon
-        global lpcut, hpcut, currentbw, sorcerer, auto_run_tdoa, tdoa_mode
+        global lpcut, hpcut, tcpclient, auto_run_tdoa, tdoa_mode, mode
         global ultimate, ultimatefav, runultimateintf, map_preset, rec_in_progress, tdoa_in_progress
         ultimate = IntVar(self)
         ultimatefav = IntVar(self)
         runultimateintf = IntVar(self)
-        sorcerer = IntVar(self)
+        tcpclient = IntVar(self)
         auto_run_tdoa = IntVar(self)
         tdoa_mode = "_S_F"
-        # bgc = '#d9d9d9'  # GUI background color
-        # fgc = '#000000'  # GUI foreground color
         dfgc = '#a3a3a3'  # GUI (disabled) foreground color
         la_f = "TkFixedFont 7 bold"
-        currentbw = IQBW
-        lpcut = hpcut = int(currentbw) / 2
+        mode = "USB"
+        lpcut = 0
+        hpcut = 3600
         image_scale = 1
         selectedlat = ""
         selectedlon = ""
@@ -1446,40 +1443,46 @@ class MainWindow(Frame):
 
         # Map Legend
         self.label01 = Label(parent)
-        self.label01.place(x=0, y=0, height=14, width=100)
+        self.label01.place(x=0, y=0, height=14, width=105)
         self.label01.configure(bg="black", font=la_f, anchor="w", fg=STDCOLOR, text="█ Standard")
         self.label02 = Label(parent)
-        self.label02.place(x=0, y=14, height=14, width=100)
+        self.label02.place(x=0, y=14, height=14, width=105)
         self.label02.configure(bg="black", font=la_f, anchor="w", fg=FAVCOLOR, text="█ Favorite")
         self.label03 = Label(parent)
-        self.label03.place(x=0, y=28, height=14, width=100)
+        self.label03.place(x=0, y=28, height=14, width=105)
         self.label03.configure(bg="black", font=la_f, anchor="w", fg=BLKCOLOR, text="█ Blacklisted")
         self.label04 = Label(parent)
-        self.label04.place(x=0, y=42, height=14, width=100)
+        self.label04.place(x=0, y=42, height=14, width=105)
         self.label04.configure(bg="black", font=la_f, anchor="w", fg="white",
                                text="█ Visible: " + str(NODE_COUNT_FILTER) + "/" + str(NODE_COUNT))
         self.label05 = Label(parent)
-        self.label05.place(x=0, y=56, height=14, width=100)
-        self.label05.configure(bg="black", font=la_f, anchor="w", fg="white", text="█ IQ BW: " + str(IQBW) + " Hz")
+        self.label05.place(x=0, y=56, height=14, width=105)
+        self.label05.configure(bg="black", font=la_f, anchor="w", fg="white", text="█ USB BW: 3.6 kHz")
 
         # Frequency entry field
         self.freq_input = Entry(parent)
-        self.freq_input.place(x=62, rely=0.892, height=24, relwidth=0.06)
-        self.freq_input.configure(bg="#ffffff", disabledforeground=dfgc, font="TkFixedFont", fg="#000000",
-                                  insertbackground="#000000", width=214)
+        self.freq_input.place(x=105, rely=0.892, height=24, width=Font(family="TkFixedFont").measure("30000.0"))
+        self.freq_input.configure(bg="#ffffff", disabledforeground=dfgc, fg="#000000", font="TkFixedFont",
+                                  insertbackground="#000000")
         self.freq_input.bind('<Control-a>', self.ctrla)
         self.freq_input.bind('<Return>', self.return_key)
         self.freq_input.bind('<KP_Enter>', self.return_key)
         self.freq_input.bind('<Key>', lambda x: self.freqbox())
+        self.freq_input.bind('<FocusIn>', self.ctrla)
         self.freq_input.focus_set()
 
         # Frequency entry legend
         self.label1 = Label(parent)
         self.label1.place(relx=0.01, rely=0.895)
-        self.label1.configure(bg=BGC, font="TkFixedFont", fg=FGC, text="Freq:")
-        self.label2 = Label(parent)
-        self.label2.place(relx=0.12, rely=0.895)
-        self.label2.configure(bg=BGC, font="TkFixedFont", fg=FGC, text="kHz")
+        self.label1.configure(bg=BGC, font="TkFixedFont", fg=FGC, text="Freq (kHz)")
+
+        # Modulation Combobox
+        self.modulation_box = ttk.Combobox(parent, state="readonly")
+        self.modulation_box.place(x=180, rely=0.892, height=24, width=Font(family="TkFixedFont").measure("abcdefg"))
+        self.modulation_box.configure(font="TkTextFont",
+                                      values=["USB", "LSB", "CW", "AM", "IQ 2kHz", "IQ 4kHz", "IQ 6kHz", "IQ 8kHz"])
+        self.modulation_box.current(0)
+        self.modulation_box.bind("<<ComboboxSelected>>", self.modechoice)
 
         # Start/Stop recording button
         self.start_rec_button = Button(parent)
@@ -1504,11 +1507,6 @@ class MainWindow(Frame):
         self.listbox = Listbox(parent)
         self.listbox.place(relx=0.12, rely=0.95, height=21, relwidth=0.38)
 
-        # Map boundaries information text
-        self.label4 = Label(parent)
-        self.label4.place(relx=0.2, rely=0.894, height=21, relwidth=0.3)
-        self.label4.configure(bg=BGC, font="TkFixedFont 9", fg=FGC, text="", anchor="w")
-
         # UltimateTDoA checkbox
         self.ultimate_checkbox = Checkbutton(parent)
         self.ultimate_checkbox.place(relx=0.507, rely=0.89, height=21, relwidth=0.108)
@@ -1532,13 +1530,13 @@ class MainWindow(Frame):
                                                   text="run interface", anchor="w", state="disabled",
                                                   highlightthickness=0, variable=runultimateintf)
 
-        # TCP Client checkbox (for Sorcerer 2G ALE decoding module)
-        self.sorcerer_checkbox = Checkbutton(parent)
-        self.sorcerer_checkbox.place(relx=0.507, rely=0.922, height=21, relwidth=0.108)
-        self.sorcerer_checkbox.configure(bg=BGC, fg=FGC, activebackground=BGC, activeforeground=FGC,
-                                         font="TkFixedFont 8", width=214, selectcolor=BGC, text="sorcerer TCP client",
-                                         anchor="w", state="disabled", highlightthickness=0, variable=sorcerer,
-                                         command=self.sorcerercheck)
+        # TCP Client checkbox
+        self.tcpclient_checkbox = Checkbutton(parent)
+        self.tcpclient_checkbox.place(relx=0.507, rely=0.922, height=21, relwidth=0.108)
+        self.tcpclient_checkbox.configure(bg=BGC, fg=FGC, activebackground=BGC, activeforeground=FGC,
+                                          font="TkFixedFont 8", width=214, selectcolor=BGC, text="TCP client",
+                                          anchor="w", state="disabled", highlightthickness=0, variable=tcpclient,
+                                          command=self.tcpclientcheck)
 
         # TCP Client TDoA autorun checkbox (use with standard TDoA mode 3-6 nodes only)
         self.autorun_checkbox = Checkbutton(parent)
@@ -1547,14 +1545,6 @@ class MainWindow(Frame):
                                         font="TkFixedFont 8", width=214, selectcolor=BGC, text="autorun",
                                         anchor="w", highlightthickness=0, state="disabled", variable=auto_run_tdoa,
                                         command=self.autorunchoice)
-
-        # Restart button
-        self.restart_button = Button(parent)
-        self.restart_button.place(relx=0.81, rely=0.94, height=24, relwidth=0.08)
-        self.restart_button.configure(activebackground="#d9d9d9", activeforeground="#000000", bg="red",
-                                      disabledforeground=dfgc, fg="#000000", highlightbackground="#d9d9d9",
-                                      highlightcolor="#000000", pady="0", text="Restart GUI", command=Restart().run,
-                                      state="normal")
 
         # Update button
         self.update_button = Button(parent)
@@ -1566,7 +1556,7 @@ class MainWindow(Frame):
 
         # Purge node listing button
         self.purge_button = Button(parent)
-        self.purge_button.place(relx=0.72, rely=0.94, height=24, relwidth=0.08)
+        self.purge_button.place(relx=0.81, rely=0.94, height=24, relwidth=0.08)
         self.purge_button.configure(activebackground="#d9d9d9", activeforeground="#000000", bg="orange",
                                     disabledforeground=dfgc, fg="#000000", highlightbackground="#d9d9d9",
                                     highlightcolor="#000000", pady="0", text="Purge Nodes", command=self.purgenode,
@@ -1581,14 +1571,12 @@ class MainWindow(Frame):
 
         # Adding some texts to console window at program start
         self.writelog("This is " + VERSION + ", a GUI written for python 2/3 with Tk")
-        self.writelog("All credits to Christoph Mayer for his excellent TDoA work : http://hcab14.blogspot.com")
-        self.writelog("Thanks to Pierre (linkfanel) for his listing of available KiwiSDR nodes and their SNR values")
+        self.writelog("All credits to Christoph Mayer for his excellent TDoA work (http://hcab14.blogspot.com)")
         self.writelog(
             "Already computed TDoA runs : " + str([len(d) for r, d, folder in os.walk(os.path.join('TDoA', 'iq'))][0]))
         self.writelog("There are " + str(NODE_COUNT) + " KiwiSDRs in the db. Have fun !")
-        self.writelog("The default IQ recording bandwidth is set to " + IQBW + " Hz")
         self.writelog("TDoA default settings : plot_kiwi_json=" + PKJ + " | use_constraints=" + UC + " | " + (
-            "former TDoA calculation method" if TDOAVERSION == "false" else "new TDoA calculation method (2020)"))
+            "former TDoA algorithm" if TDOAVERSION == "false" else "new TDoA algorithm (2020)"))
 
         # Status window
         self.status_window = Text(parent)
@@ -1671,31 +1659,28 @@ class MainWindow(Frame):
         # TDoA settings menu
         menu_3 = Menu(menubar, tearoff=0)
         menubar.add_cascade(label="TDoA settings", menu=menu_3)
-        sm7 = Menu(menu_3, tearoff=0)
         sm8 = Menu(menu_3, tearoff=0)
         sm9 = Menu(menu_3, tearoff=0)
         sm10 = Menu(menu_3, tearoff=0)
+
         menu_3.add_cascade(label='plot_kiwi_json', menu=sm8, underline=0)
+        menu_3.add_cascade(label='algorithm', menu=sm10, underline=0)
         sm8.add_command(label="yes",
                         command=lambda *args: [SaveCfg().save_cfg("iq", "pkj", "true"), ReadCfg().read_cfg()])
         sm8.add_command(label="no",
                         command=lambda *args: [SaveCfg().save_cfg("iq", "pkj", "false"), ReadCfg().read_cfg()])
-        menu_3.add_cascade(label='use_constraints', menu=sm9, underline=0)
-        sm9.add_command(label="yes",
-                        command=lambda *args: [SaveCfg().save_cfg("iq", "uc", "true"), ReadCfg().read_cfg()])
-        sm9.add_command(label="no",
-                        command=lambda *args: [SaveCfg().save_cfg("iq", "uc", "false"), ReadCfg().read_cfg()])
-        menu_3.add_cascade(label='tdoa calculation mode', menu=sm10, underline=0)
-        sm10.add_command(label="standard",
-                         command=lambda *args: [SaveCfg().save_cfg("iq", "mode", "false"), ReadCfg().read_cfg()])
-        sm10.add_command(label="new (2020)",
-                         command=lambda *args: [SaveCfg().save_cfg("iq", "mode", "true"), ReadCfg().read_cfg()])
-        menu_3.add_cascade(label="IQ bandwidth", menu=sm7, underline=0)
-        sm7.add_command(label="Set Default BW", command=self.set_bw)
-        iqset = ['10000', '9000', '8000', '7000', '6000', '5000', '4000', '3000', '2000', '1000', '900', '800', '700',
-                 '600', '500', '400', '300', '200', '100', '50']
-        for bwlist in iqset:
-            sm7.add_command(label=bwlist + " Hz", command=lambda bwlist=bwlist: self.set_iq(bwlist))
+        sm9.add_command(label="option: use_constraints = 1",
+                        command=lambda *args: [SaveCfg().save_cfg("iq", "uc", "true"),
+                                               SaveCfg().save_cfg("iq", "mode", "false"),
+                                               ReadCfg().read_cfg()])
+        sm9.add_command(label="option: use_constraints = 0",
+                        command=lambda *args: [SaveCfg().save_cfg("iq", "uc", "false"),
+                                               SaveCfg().save_cfg("iq", "mode", "false"),
+                                               ReadCfg().read_cfg()])
+        sm10.add_cascade(label='former (2018)', menu=sm9, underline=0)
+        sm10.add_command(label="new (2020)", command=lambda *args: [SaveCfg().save_cfg("iq", "mode", "true"),
+                                                                    SaveCfg().save_cfg("iq", "uc", "false"),
+                                                                    ReadCfg().read_cfg()])
 
         # GUI design
         menu_4 = Menu(menubar, tearoff=0)
@@ -1709,14 +1694,15 @@ class MainWindow(Frame):
         menu_4.add_cascade(label='Status window', menu=sm6, underline=0)
         sm6.add_command(label="background color", command=lambda *args: self.color_change(8))
         sm6.add_command(label="foreground color", command=lambda *args: self.color_change(9))
-        menu_4.add_command(label="SNR gradiant ratio", command=lambda *args: self.gradiant_change())
+        menu_4.add_command(label="SNR gradient ratio", command=lambda *args: self.gradient_change())
         menu_4.add_command(label="White/Black font color threshold", command=lambda *args: self.threshold_change())
 
         # TCP client settings
         menu_5 = Menu(menubar, tearoff=0)
         menubar.add_cascade(label="TCP settings", menu=menu_5)
-        menu_5.add_command(label="Sorcerer host IP address", command=lambda *args: self.tcp_settings(0))
-        menu_5.add_command(label="Sorcerer host port number", command=lambda *args: self.tcp_settings(1))
+        menu_5.add_command(label="TCP server IP address", command=lambda *args: self.tcp_settings(0))
+        menu_5.add_command(label="TCP server port number", command=lambda *args: self.tcp_settings(1))
+        menu_5.add_command(label="Set trigger word", command=lambda *args: self.tcp_settings(3))
         menu_5.add_command(label="IQ auto-recording duration", command=lambda *args: self.tcp_settings(2))
 
         # About menu
@@ -1738,6 +1724,23 @@ class MainWindow(Frame):
 
         # Check if new version is available at program start
         self.checkversion(source="at_start")
+
+    def modechoice(self, event=None):
+        """ Selection of modulation and adjust the IQ recording LP & HP values accordingly.
+        USB = 0..3600 Hz, LSB = -3600..0 Hz, AM = -5000..5000 Hz, CW = -500..500 Hz etc... """
+        global lpcut, hpcut, mode
+        modulations = {'USB': [0, 3600, '█ USB BW: 3.6 kHz', 'USB'],
+                       'LSB': [-3600, 0, '█ LSB BW: 3.6 kHz', 'LSB'],
+                       'CW': [-500, 500, '█ CW BW: 1 kHz', 'CW'],
+                       'AM': [-5000, 5000, '█ AM BW: 10 kHz', 'AM'],
+                       'IQ 2kHz': [-1000, 1000, '█ IQ BW: 2 kHz', 'AM'],
+                       'IQ 4kHz': [-2000, 2000, '█ IQ BW: 4 kHz', 'AM'],
+                       'IQ 6kHz': [-3000, 3000, '█ IQ BW: 6 kHz', 'AM'],
+                       'IQ 8kHz': [-4000, 4000, '█ IQ BW: 8 kHz', 'AM']}
+        lpcut = modulations[self.modulation_box.get()][0]
+        hpcut = modulations[self.modulation_box.get()][1]
+        self.label05.configure(text=modulations[self.modulation_box.get()][2])
+        mode = modulations[self.modulation_box.get()][3]
 
     def redraw(self):
         self.member1.redraw_map_cmd()
@@ -1777,16 +1780,16 @@ class MainWindow(Frame):
             self.run_ultimate_intf_checkbox.configure(state="disabled")
 
     @staticmethod
-    def sorcerercheck():
-        """ TCP Client for Sorcerer software checkbox management. """
-        if sorcerer.get() == 1:
-            SorcererTcpClient().start()
+    def tcpclientcheck():
+        """ TCP Client checkbox management. """
+        if tcpclient.get() == 1:
+            TcpClient(TCPTRIGGER).start()
             runultimateintf.set(0)
             APP.gui.start_rec_button.configure(state="disabled")
             if ultimate.get() == 0:
                 APP.gui.autorun_checkbox.configure(state="normal")
         elif rec_in_progress == 1:
-            APP.gui.writelog("You asked to disconnect the Sorcerer TCP client. IQ recording discontinued")
+            APP.gui.writelog("Disconnected from the TCP server. IQ recording discontinued.")
             APP.gui.start_stop_rec()
 
         else:
@@ -1804,13 +1807,13 @@ class MainWindow(Frame):
         """ freq input box. """
         try:
             if self.freq_input.get() != "" and len(fulllist) >= 3 and 5 < float(APP.gui.freq_input.get()) < 30000:
-                APP.gui.sorcerer_checkbox.configure(state="normal")
+                APP.gui.tcpclient_checkbox.configure(state="normal")
                 if (ultimate.get()) == 0 and mapboundaries_set == 1:
                     APP.gui.autorun_checkbox.configure(state="normal")
             else:
-                APP.gui.sorcerer_checkbox.configure(state="disabled")
+                APP.gui.tcpclient_checkbox.configure(state="disabled")
         except ValueError:
-            APP.gui.sorcerer_checkbox.configure(state="disabled")
+            APP.gui.tcpclient_checkbox.configure(state="disabled")
             APP.gui.autorun_checkbox.configure(state="disabled")
 
     def on_keyrelease(self, event):
@@ -1854,7 +1857,9 @@ class MainWindow(Frame):
         self.choice.delete(0, 'end')
         if selectedcity:
             self.member1.delete_point(n="#POI")
-            selectedcity = selectedlat = selectedlon = ""
+            selectedcity = " "
+            selectedlat = "-90"
+            selectedlon = "180"
 
     def writelog(self, msg):
         """ The main console log text feed. """
@@ -1902,9 +1907,6 @@ class MainWindow(Frame):
             mapboundaries_set = 1
             map_preset = 1
             map_manual = 0
-            self.label4.configure(
-                text="[LAT] range: " + str(lat_min_map) + "° " + str(lat_max_map) + "°  [LON] range: " + str(
-                    lon_min_map) + "° " + str(lon_max_map) + "°")
         else:
             self.writelog("ERROR : The boundaries selection is forbidden unless map un-zoomed.")
 
@@ -1930,30 +1932,30 @@ class MainWindow(Frame):
         ICON_CFG.destroy()
         APP.gui.redraw()
 
-    def gradiant_change(self):
-        """ Change SNR gradiant ratio window. """
+    def gradient_change(self):
+        """ Change SNR gradient ratio window. """
         global GRAD_CFG
         GRAD_CFG = Tk()
         GRAD_CFG.geometry("280x50+50+50")
-        GRAD_CFG.title('Default SNR gradiant ratio')
-        icon_slider2 = Scale(GRAD_CFG, from_=1, to=50)
+        GRAD_CFG.title('Default SNR gradient ratio')
+        icon_slider2 = Scale(GRAD_CFG, from_=1, to=30)
         icon_slider2.place(x=10, y=0, width=200, height=100)
         icon_slider2.configure(orient="horizontal", showvalue="1", resolution=1, label="")
         icon_slider2.set(GRAD)
-        icon_save_button2 = Button(GRAD_CFG, command=lambda *args: self.set_default_gradiant(icon_slider2.get()))
+        icon_save_button2 = Button(GRAD_CFG, command=lambda *args: self.set_default_gradient(icon_slider2.get()))
         icon_save_button2.place(x=220, y=20, height=20)
         icon_save_button2.configure(text="Save")
 
     @staticmethod
-    def set_default_gradiant(grad_val):
+    def set_default_gradient(grad_val):
         """ Save choosed icon size to config file. """
-        APP.gui.writelog("SNR gradiant set to " + str(grad_val))
+        APP.gui.writelog("SNR gradient set to " + str(grad_val))
         SaveCfg().save_cfg("guicolors", "grad", grad_val)
         GRAD_CFG.destroy()
         APP.gui.redraw()
 
     def threshold_change(self):
-        """ Change SNR gradiant ratio window. """
+        """ Change SNR gradient ratio window. """
         global THRES_CFG
         THRES_CFG = Tk()
         THRES_CFG.geometry("280x50+50+50")
@@ -1999,9 +2001,8 @@ class MainWindow(Frame):
                 SaveCfg().save_cfg("guicolors", "main_b", color_n)
                 APP.gui.writelog("GUI background color is now " + color_n)
                 nums = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-                chg_list = [APP.gui.label0, APP.gui.label1, APP.gui.label2, APP.gui.label4, APP.gui.ultimate_checkbox,
-                            APP.gui.ultimate_fav_checkbox, APP.gui.run_ultimate_intf_checkbox,
-                            APP.gui.sorcerer_checkbox, APP.gui.autorun_checkbox]
+                chg_list = [APP.gui.label0, APP.gui.label1, APP.gui.ultimate_checkbox, APP.gui.ultimate_fav_checkbox,
+                            APP.gui.run_ultimate_intf_checkbox, APP.gui.tcpclient_checkbox, APP.gui.autorun_checkbox]
                 APP.gui.ultimate_checkbox.configure(activebackground=color_n,
                                                     activeforeground=GuiCanvas.get_font_color(color_n),
                                                     selectcolor=color_n)
@@ -2011,9 +2012,9 @@ class MainWindow(Frame):
                 APP.gui.run_ultimate_intf_checkbox.configure(activebackground=color_n,
                                                              activeforeground=GuiCanvas.get_font_color(color_n),
                                                              selectcolor=color_n)
-                APP.gui.sorcerer_checkbox.configure(activebackground=color_n,
-                                                    activeforeground=GuiCanvas.get_font_color(color_n),
-                                                    selectcolor=color_n)
+                APP.gui.tcpclient_checkbox.configure(activebackground=color_n,
+                                                     activeforeground=GuiCanvas.get_font_color(color_n),
+                                                     selectcolor=color_n)
                 APP.gui.autorun_checkbox.configure(activebackground=color_n,
                                                    activeforeground=GuiCanvas.get_font_color(color_n),
                                                    selectcolor=color_n)
@@ -2053,35 +2054,46 @@ class MainWindow(Frame):
         SaveCfg().save_cfg("map", "y0", str(b_box2[1]))
         SaveCfg().save_cfg("map", "x1", str(b_box2[2]))
         SaveCfg().save_cfg("map", "y1", str(b_box2[3]))
-        Restart().run()
+        APP.gui.writelog("Restart the application to take into account the change of the world map")
 
     @staticmethod
     def tcp_settings(value):
-        global TCPHOST, TCPPORT, IQDURATION
+        global TCPHOST, TCPPORT, IQDURATION, TCPTRIGGER
         if value == 0:
-            tcp_ip_address = askstring(" ", "Enter Sorcerer host IP address - current=" + TCPHOST)
+            tcp_ip_address = askstring("Enter TCP server IP address", "current=" + TCPHOST)
             if tcp_ip_address:
                 SaveCfg().save_cfg("tcp", "host", tcp_ip_address)
                 ReadCfg().read_cfg()
-                APP.gui.writelog("Sorcerer host IP address has been set to " + str(tcp_ip_address))
+                APP.gui.writelog("TCP server IP address has been set to " + str(tcp_ip_address))
             else:
                 APP.gui.writelog("Sorry, the server host IP address is incorrect. retry.")
         if value == 1:
-            tcp_port_number = askinteger(" ", "Enter Sorcerer host port number (49152-65535) current=" + str(TCPPORT))
+            tcp_port_number = askinteger("Enter TCP server port number", "(49152-65535) - current=" + str(TCPPORT))
             if 49151 < tcp_port_number < 65536:
                 SaveCfg().save_cfg("tcp", "port", tcp_port_number)
                 ReadCfg().read_cfg()
-                APP.gui.writelog("Sorcerer port number has been set to " + str(tcp_port_number))
+                APP.gui.writelog("TCP server port number has been set to " + str(tcp_port_number))
             else:
                 APP.gui.writelog("Sorry, that port number is incorrect. retry.")
         if value == 2:
-            auto_iq_duration = askinteger(" ", "Enter auto-recording duration (3-180s) current=" + str(IQDURATION))
-            if 2 < auto_iq_duration < 181:
+            auto_iq_duration = askinteger("Enter auto-recording duration (3-120s)", "current=" + str(IQDURATION) + "s")
+            if 2 < auto_iq_duration < 121:
                 SaveCfg().save_cfg("tcp", "duration", auto_iq_duration)
                 ReadCfg().read_cfg()
                 APP.gui.writelog("Auto-recording IQ duration has been set to " + str(auto_iq_duration) + "s")
             else:
-                APP.gui.writelog("Warning, auto-recording IQ duration is out of limits.")
+                APP.gui.writelog("Sorry, auto-recording IQ duration is out of limits. retry")
+        if value == 3:
+            trigger = askstring("Enter trigger word", "simple or regexp accepted - current= " + str(TCPTRIGGER))
+            if trigger:
+                SaveCfg().save_cfg("tcp", "word", trigger)
+                ReadCfg().read_cfg()
+                APP.gui.writelog("Trigger word has been set to " + str(trigger))
+            else:
+                SaveCfg().save_cfg("tcp", "word", "")
+                ReadCfg().read_cfg()
+                APP.gui.writelog(
+                    "Warning, with blank word the recording will start on any event appearing on TCP server side.")
 
     @staticmethod
     def set_map_position():
@@ -2098,6 +2110,7 @@ class MainWindow(Frame):
         self.start_tdoa_button.configure(state="disabled")
         self.update_button.configure(state="disabled")
         self.purge_button.configure(state="disabled")
+        self.purgenode()
         # start the Check update thread
         CheckUpdate().start()
 
@@ -2107,37 +2120,11 @@ class MainWindow(Frame):
         fulllist = []
         APP.title(VERSION)
         self.member1.unselect_allpoint()
-        self.writelog("Node listing has been cleared.")
-        sorcerer.set(0)
+        # self.writelog("Node listing has been cleared.")
+        tcpclient.set(0)
         auto_run_tdoa.set(0)
-        APP.gui.sorcerer_checkbox.configure(state="disabled")
+        APP.gui.tcpclient_checkbox.configure(state="disabled")
         APP.gui.autorun_checkbox.configure(state="disabled")
-
-    def set_iq(self, iq_bw):
-        """ On-the-fly IQ bandwidth value setting. """
-        global lpcut, hpcut, currentbw
-        self.label05.configure(text="█ IQ BW: " + str(iq_bw) + " Hz")
-        try:
-            if 5 < int(self.freq_input.get()) < 30000:
-                self.writelog("Setting IQ bandwidth at " + iq_bw + " Hz       | " + str(
-                    float(self.freq_input.get()) - (float(iq_bw) / 2000)) + " | <---- " + str(
-                        float(self.freq_input.get())) + " ----> | " + str(
-                            float(self.freq_input.get()) + (float(iq_bw) / 2000)) + " |")
-                currentbw = iq_bw
-                lpcut = hpcut = int(iq_bw) / 2
-            else:
-                self.writelog("Error, frequency is too low or too high")
-        except ValueError:
-            currentbw = iq_bw
-            lpcut = hpcut = int(iq_bw) / 2
-            self.writelog("Setting IQ bandwidth at " + iq_bw + " Hz")
-
-    @staticmethod
-    def set_bw():
-        """ Save default IQ bandwidth to config file. """
-        SaveCfg().save_cfg("iq", "bw", currentbw)
-        APP.gui.writelog("Default IQ recording BW has been saved in config file.")
-        ReadCfg().read_cfg()
 
     @staticmethod
     def checkversion(source):
@@ -2157,7 +2144,7 @@ class MainWindow(Frame):
         """ Actions to perform when Record button is clicked. """
         global FREQUENCY
         global starttime, rec_in_progress, tdoa_mode
-        tdoa_mode = "_" + ("U" if ultimate.get() == 1 else "S") + ("A" if sorcerer.get() == 1 else "") + "_F"
+        tdoa_mode = "_" + ("U" if ultimate.get() == 1 else "S") + ("A" if tcpclient.get() == 1 else "") + "_F"
         try:
             if rec_in_progress == 1:  # stop rec process
                 os.kill(PROC2_PID, signal.SIGTERM)  # kills the kiwirecorder.py process
@@ -2166,25 +2153,25 @@ class MainWindow(Frame):
                 self.start_rec_button.configure(text="Start recording")
                 self.purge_button.configure(state="normal")
                 self.create_m_file()
-                self.writelog("IQ Recordings manually stopped... files has been saved in " + str(
+                self.writelog("IQ Recordings stopped... files have been saved in " + str(
                     os.sep + os.path.join('TDoA', 'iq') + os.sep + starttime) + tdoa_mode + str(FREQUENCY) + str(
                     os.sep))
+                r_dir = os.path.join('TDoA', 'iq') + os.sep + starttime + tdoa_mode + str(FREQUENCY)
+                try:
+                    if platform.system() == "Windows":
+                        webbrowser.open(r_dir)
+                    elif platform.system() == "Darwin":
+                        subprocess.Popen(["open", r_dir])
+                    else:
+                        subprocess.Popen(["xdg-open", r_dir])
+                except ValueError:
+                    pass
                 for GNSSfile in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.txt"):
                     shutil.move(GNSSfile, os.path.join('TDoA', 'gnss_pos') + os.sep + GNSSfile.rsplit(os.sep, 2)[2])
                 if (ultimate.get()) == 1:
                     self.start_tdoa_button.configure(text="", state="disabled")
-                    try:
-                        r_dir = os.path.join('TDoA', 'iq') + os.sep + starttime + tdoa_mode + str(FREQUENCY)
-                        if platform.system() == "Windows":
-                            webbrowser.open(r_dir)
-                        elif platform.system() == "Darwin":
-                            subprocess.Popen(["open", r_dir])
-                        else:
-                            subprocess.Popen(["xdg-open", r_dir])
-                        if sorcerer.get() != 1 and runultimateintf.get() == 1:
-                            ComputeUltimate().start()
-                    except ValueError as ultimate_failure:
-                        print(ultimate_failure)
+                    if tcpclient.get() != 1 and runultimateintf.get() == 1:
+                        ComputeUltimate().start()
 
             else:  # start rec process
                 if (ultimate.get()) == 0 and mapboundaries_set is None:
@@ -2199,8 +2186,8 @@ class MainWindow(Frame):
                     elif (ultimate.get()) == 0 and len(fulllist) > 6:  # debug
                         self.writelog("ERROR : Too much nodes selected for a standard TDoA processing, remove " + str(
                             len(fulllist) - 6) + " nodes please !")
-                    elif (ultimate.get()) == 1 and len(fulllist) == 0:
-                        self.writelog("ERROR : Node listing is empty !")
+                    elif (ultimate.get()) == 1 and len(fulllist) < 3:
+                        self.writelog("ERROR : Select at least 3 nodes for an ultimateTDoA recording !")
                     else:
                         if (ultimate.get()) == 1:
                             self.start_tdoa_button.configure(text="", state="disabled")
@@ -2208,8 +2195,6 @@ class MainWindow(Frame):
                         self.start_rec_button.configure(text="Stop recording")
                         if (ultimate.get()) == 0:
                             self.start_tdoa_button.configure(text="Start TDoA proc", state="normal")
-                        # self.update_button.configure(state="disabled")
-                        # self.purge_button.configure(state="disabled")
                         for wavfiles in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
                             os.remove(wavfiles)
                         time.sleep(0.2)
@@ -2270,16 +2255,28 @@ class MainWindow(Frame):
             os_sep = os.sep
         iq_files = []
         run_dir = os.path.join('TDoA', 'iq') + os_sep + starttime + tdoa_mode + str(FREQUENCY) + os_sep
-        run_type = "initial"
         os.makedirs(run_dir)
+        run_type = ""
         for iq_file in glob.glob(os.path.join('TDoA', 'iq') + os.sep + "*.wav"):
             copyfile(iq_file, run_dir + iq_file.rsplit(os.sep, 1)[1])
             iq_files.append(os.path.split(iq_file)[1])
         try:
-            if sorcerer.get() == 1:
+            if tcpclient.get() == 1:
                 with open(run_dir + ale_file_name, "w") as ale_file_desc:
                     ale_file_desc.write(ale_file_data.decode('utf-8'))
                 ale_file_desc.close()
+                try:
+                    for ale_file in glob.glob(run_dir + "ALE*.txt"):
+                        a = open(ale_file, 'r')
+                        aledata = a.read()
+                        a.close()
+                        try:
+                            run_type = " - [ALE ID: " + str(
+                                re.search(r".+\[(TWS|TIS)\]\[(.*)\]\[", aledata).group(2)) + "]"
+                        except AttributeError:
+                            run_type = " - [ALE]"
+                except NameError:
+                    pass
         except NameError:
             pass
         firstfile = iq_files[0]
@@ -2288,6 +2285,7 @@ class MainWindow(Frame):
         with open(proc_m_name + ".m", "w") as m_file:
             m_file.write("""## -*- octave -*-
 ## This file was auto-generated by """ + VERSION + """
+## """ + str(b_box2[0]) + """,""" + str(b_box2[1]) + """
 \nfunction [tdoa,input]=proc_tdoa_""" + KHZ_FREQ + """
   exitcode = 0;
   status   = struct;\n
@@ -2296,7 +2294,6 @@ class MainWindow(Frame):
 
 """)
             if (ultimate.get()) == 1:
-                run_type = "ultimateTDoA"
                 m_file.write("  # nodes\n")
             else:
                 for i in range(len(iq_files)):
@@ -2306,12 +2303,12 @@ class MainWindow(Frame):
                     'lon_range', [""" + str(lon_min_map) + """ """ + str(lon_max_map) + """],""")
             if selectedlat == "" or selectedlon == "":
                 m_file.write("""
-                    'known_location', struct('coord', [0 0],
+                    'known_location', struct('coord', [-90 180],
                                               'name',  ' '),""")
             else:
                 m_file.write("""
                     'known_location', struct('coord', [""" + str(selectedlat) + """ """ + str(selectedlon) + """],
-                                             'name',  '""" + str(selectedcity.rsplit(' (')[0]).replace('_', ' ') + """'),""")
+                                             'name',  '""" + str(selectedcity.rsplit(' (')[0].replace('_', ' ')) + """'),""")
             m_file.write("""
                     'dir', 'png',
                     'plot_kiwi', false,
@@ -2326,10 +2323,9 @@ class MainWindow(Frame):
     [input,status.input] = tdoa_read_data(config, input, 'gnss_pos');
 
     config.plotname = sprintf('TDoA_""" + KHZ_FREQ + """');
-    config.title    = sprintf('CF=""" + FREQUENCY + """ BW=""" + str(currentbw) + """ ["""
-                         + str(float(FREQUENCY) - (float(currentbw) / 2000)) + """ <-> """
-                         + str(float(FREQUENCY) + (float(currentbw) / 2000)) + """] - REC on """
-                         + str(datetime.utcnow().strftime('%d %b %Y %H%M.%Sz')) + """ - [""" + run_type + """ run]');
+    config.title    = sprintf('""" + FREQUENCY + """ """ + mode + """ [BW=""" + str(abs(lpcut - hpcut))
+                         + """] - REC on """ + str(datetime.utcnow().strftime('%d %b %Y %H%M.%Sz'))
+                         + run_type + """');
     
     if config.new
       [tdoa, status.cross_correlations] = tdoa_compute_lags_new(input);
@@ -2387,13 +2383,15 @@ global mlp;
                 python_path = 'python'
             if selectedlat == "" or selectedlon == "":
                 m_file.write("""
-[curlcmd] = [\"""" + python_path + """ ", "..""" + os_sep + """getmap.py ", lat, " ", lon, " 0", " 0", " """
-                             + MAP_BOX + """ ", \"""" + run_dir[5:] + """TDoA_Map.png"];""")
+[curlcmd] = [\"""" + python_path + """ ", "..""" + os_sep + """getmap.py ", lat, " ", lon, " -90", " 180", " """
+                             + MAP_BOX + """ ", \"""" + run_dir[5:] + """TDoA_Map.png", " proc_tdoa_"""
+                             + KHZ_FREQ + """.m"];""")
             else:
                 m_file.write("""
 [curlcmd] = [\"""" + python_path + """ ", "..""" + os_sep + """getmap.py ", lat, " ", lon, " """
                              + str(selectedlat) + """", " """ + str(selectedlon) + """", " """
-                             + MAP_BOX + """ ", \"""" + run_dir[5:] + """TDoA_Map.png"];""")
+                             + MAP_BOX + """ ", \"""" + run_dir[5:] + """TDoA_Map.png", " proc_tdoa_"""
+                             + KHZ_FREQ + """.m"];""")
 
             m_file.write("""
 system(curlcmd);
@@ -2474,7 +2472,6 @@ class MainW(Tk, object):
 
 def on_closing():
     """ Actions to perform when software is closed using the top-right check button. """
-
     if tkMessageBox.askokcancel("Quit", "Do you want to quit?"):
         try:  # to kill octave
             os.kill(PROC_PID, signal.SIGTERM)
@@ -2488,6 +2485,8 @@ def on_closing():
             os.kill(kiwisdrclient_pid, signal.SIGTERM)
         except (NameError, OSError):
             pass
+        APP.update_idletasks()
+        SaveCfg().save_cfg("map", "gui", APP.geometry())
         os.kill(os.getpid(), signal.SIGTERM)
         APP.destroy()
 

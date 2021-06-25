@@ -2,7 +2,7 @@
 echo "1/3 Upgrading python pip and installing python modules"
 sudo python -m pip install --upgrade pip
 python -m pip install pillow requests matplotlib numpy future sounddevice samplerate
-echo "2/3 Compilating TDoA binaries and installing packages for GNU Octave"
+echo "2/3 Compilating TDoA binaries and installing packages for GNU Octave (ignore warnings)"
 cd TDoA/src
 patch -i ../../json_save_patch.diff json_save_cc.cc
 rm -f ../../json_save_patch.diff
@@ -18,6 +18,7 @@ patch -i kiwiworker_patch.diff ./kiwiclient/kiwi/worker.py
 patch -i kiwiclient_patch.diff ./kiwiclient/kiwi/client.py
 patch -i kiwirecorder_patch.diff ./kiwiclient/kiwirecorder.py
 patch -i microkiwi_patch.diff ./kiwiclient/microkiwi_waterfall.py
+patch -i modsocket_patch.diff ./kiwiclient/mod_pywebsocket/util.py
 patch -i plot_map_patch.diff ./TDoA/m/tdoa_plot_map.m
 patch -i read_data_patch.diff ./TDoA/m/tdoa_read_data.m
 rm -f *.diff
