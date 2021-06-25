@@ -1,0 +1,35 @@
+--- util.py	2021-02-21 15:10:41.318806871 +0100
++++ util.py	2021-02-21 15:10:39.728806882 +0100
+@@ -33,6 +33,7 @@
+ 
+ import array
+ import errno
++import sys
+ 
+ # Import hash classes from a module available and recommended for each Python
+ # version and re-export those symbol. Use sha and md5 module in Python 2.4, and
+@@ -198,7 +199,10 @@
+     def _mask_using_array(self, s):
+         """Perform the mask via python."""
+         result = array.array('B')
+-        result.fromstring(bytes(s))
++        if sys.version_info[0] == 3 and sys.version_info[1] >= 9:
++            result.frombytes(bytes(s))
++        else:
++            result.fromstring(bytes(s))
+ 
+         # Use temporary local variables to eliminate the cost to access
+         # attributes
+@@ -214,8 +218,10 @@
+             masking_key_index = (masking_key_index + 1) % masking_key_size
+ 
+         self._masking_key_index = masking_key_index
+-
+-        return result.tostring()
++        if sys.version_info[0] == 3 and sys.version_info[1] >= 9:
++            return result.tobytes()
++        else:
++            return result.tostring()
+ 
+     if 'fast_masking' in globals():
+         mask = _mask_using_swig
