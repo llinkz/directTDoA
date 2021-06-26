@@ -24,14 +24,14 @@ Install python 3 and python-pip using your package manager
 
 Install GNU octave
 
-Install git, patch, gcc, base-devel, ttf-dejavu, gcc-fortran, tk, portaudio, xdg-utils, epdfview
+Install git, patch, gcc, base-devel, ttf-dejavu, gcc-fortran, tk, portaudio, xdg-utils, epdfview, fltk
 
 `git clone --recursive https://github.com/llinkz/directTDoA`
 
 `cd directTDoA`
 
 `./setup.sh` (this script will install python modules, compile the necessary .oct file and apply some files patchs)
-
+#### IMPORTANT: The octave files compilation process takes a lot of time, be patient, ignore warnings and don't stop the script
 `./directTDoA.py`
 
 > NOTE: on some distros you may need to install liboctave-dev

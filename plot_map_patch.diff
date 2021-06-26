@@ -1,5 +1,16 @@
---- tdoa_plot_map.m	2020-02-03 21:02:16.088313158 +0000
-+++ tdoa_plot_map.m	2020-02-02 00:06:29.207199473 +0000
+--- tdoa_plot_map.m	2021-06-26 08:55:29.072579377 +0200
++++ tdoa_plot_map.m	2021-03-23 22:54:27.067070000 +0100
+@@ -38,8 +38,8 @@
+   if ~plot_kiwi
+     set(0,'defaultaxesposition', [0.05, 0.05, 0.90, 0.9])
+     figure(1, 'position', [100,100, 900,600])
+-    plot_info.titlefontsize = 10;
+-    plot_info.labelfontsize =  7.5;
++    plot_info.titlefontsize = 10; # 10
++    plot_info.labelfontsize =  5; # 7.5
+   end
+ 
+   n_stn      = length(input_data);
 @@ -140,6 +140,7 @@
      end
      set(colorbar(),'XLabel', 'sqrt(\chi^2)/ndf')
@@ -16,9 +27,10 @@
 +    text(0.5, 0.98,  strcat(plot_info.title, mlp), ...
           'fontweight', 'bold', ...
           'horizontalalignment', 'center', ...
-          'fontsize', 15);
+-         'fontsize', 15);
 -    print('-dpng','-S900,600', fullfile('png', sprintf('%s.png', plot_info.plotname)));
-+    # print('-dpng','-S900,600', fullfile('png', sprintf('%s.png', plot_info.plotname)));
++         'fontsize', 9); # 15
++    ## print('-dpng','-S3600,2400', fullfile('png', sprintf('%s.png', plot_info.plotname)));
      print('-dpdf','-S900,600', fullfile('pdf', sprintf('%s.pdf', plot_info.plotname)));
    end
    if plot_info.plot_kiwi_json
