@@ -12,8 +12,6 @@ Download [directTDoA-windows.zip](https://github.com/llinkz/directTDoA/releases/
 
 Then double-click on `directTDoA.bat`
 
-##### NB: Windows users will get directTDoA v6.20
-
 #### IMPORTANT: You must use only this method to launch the program to avoid file path issues.
 
 > Info: this archive contains all the necessary files already patched and compiled and also includes light versions of GNU Octave and python, so no need to install the full versions of the last two on your machine. The unzipped archive is 272 MB, compared to ~2 GB in the other installer way.
