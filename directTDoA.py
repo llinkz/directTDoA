@@ -47,7 +47,7 @@ else:
     from tkinter.simpledialog import askstring, askinteger
     from tkinter.font import Font
 
-VERSION = "directTDoA v7.00"
+VERSION = "directTDoA v7.01"
 
 
 class ReadKnownPointFile(object):
@@ -178,7 +178,7 @@ class RunUpdate(threading.Thread):
                 rx = {}
                 for m in re.finditer("<!-- (id|fixes_min|tdoa_id|gps|name|snr)=(.*) -->", html):
                     rx[m.group(1)] = m.group(2)
-                for n in re.finditer("<a href='http://(.*)' .+<br>", html):
+                for n in re.finditer("<a href='(http|https)://(.*)' .+<br>", html):
                     rx['url'] = n.group(1).strip()
                 if rx["fixes_min"] > "20":
                     out.append(rx)
