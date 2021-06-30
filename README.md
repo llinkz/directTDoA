@@ -1,4 +1,4 @@
-# directTDoA v7.00
+# directTDoA v7.01
 
 This software is JUST a python 2/3 GUI designed to compute TDoA runs on shortwave radio transmissions using remote (GPS enabled) KiwiSDR receivers around the World.
 
