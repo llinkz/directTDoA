@@ -6,6 +6,7 @@ Ozernoye (Russian MIL Buzzer RUS),60.3113,30.2784
 Naro-Fominsk (Russian MIL Buzzer RUS),55.3268,36.8086
 Khokhlovo (Russian MIL Smolensk RUS),54.6885,31.8483
 Rivne (Ukrainian MIL Velyka Lyubasha UKR),50.9745,26.3741
+Orenburg (Russian MIL RUS),52.0310,55.2960
 RNZN_Irirangi (New Zealand Navy NZL),-39.4613,175.6685
 RNZAF_Whenuipai (New Zealand AF NZL),-36.7854,174.6050
 RJH25 (Russian Navy Bishkek KGZ),42.989,74.455
@@ -124,7 +125,7 @@ Kangilinnguit (Danish Navy GRL),61.2263,-48.0993
 SVO (Civil Maritime Olympia Radio Volakas GRC),37.6042,21.4885
 SXA (Greek Navy Athens GRC),37.9751,23.9182
 SXH (Greek Navy Thessalonique GRC),40.5042,22.8249
-IAR (Italian Navy Roma I),41.7861,12.4586
+IDR (Italian Navy Roma I),41.98,12.3619
 DDH (Civil Maritime Pinneberg D),53.6733,9.8097
 DHO38_VLF (German Navy Saterland-Ramsloh D),53.0805,7.6124
 Hurup (German Navy D),54.7606,9.5499
@@ -171,6 +172,7 @@ Kernenried (Swiss ex-MFA EMCOM SUI),47.0585,7.5447
 HBM46 (Swiss MIL Wald SUI),46.8867,7.4782
 Chinese_OTHB_1 (Ionopheric system Zhangwa Zaoyang CHN),32.3375,112.7075
 Chinese_OTHB_2 (Ionopheric system Xinjiancun Baotou CHN),40.3720,111.1107
+Constanta (Romanian navy Corbu ROU),44.3523,28.6863
 Lashkar_Gah (Afghanistan),31.583,64.36
 Kondoz (Afghanistan),36.728,68.8725
 Jalalabad (Afghanistan),34.4415,70.4361
@@ -1507,7 +1509,6 @@ Chelyabinsk (Russia),55.155,61.4387
 Kirov (Russia),58.5901,49.67
 Nizhny_Tagil (Russia),57.92,59.975
 Astrakhan (Russia),46.3487,48.055
-Orenburg (Russia),51.78,55.11
 Saratov (Russia),51.58,46.03
 Ulyanovsk (Russia),54.33,48.41
 Omsk (Russia),54.99,73.4
@@ -1537,7 +1538,7 @@ Chita (Russia),52.055,113.465
 Vladivostok (Russia),43.13,131.91
 Yakutsk (Russia),62.035,129.735
 Perm (Russia),58,56.25
-St._Petersburg (Russia),59.939,30.316
+St_Petersburg (Russia),59.939,30.316
 Moscow (Russia),55.7522,37.6155
 Nyanza (Rwanda),-2.3496,29.74
 Kigali (Rwanda),-1.9536,30.0605
