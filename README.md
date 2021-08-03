@@ -4,6 +4,15 @@ This software is JUST a python 2/3 GUI designed to compute TDoA runs on shortwav
 
 > TDoA = Time Difference of Arrival .. (in this case: the Arrival of shortwave radio transmissions)
 
+## KNOWN ISSUES:
+#### 1/ If you plan to use the software on a machine without a sound card then you must comment out lines 15 & 16 in `/directTDoA/kiwiclient/kiwirecorder.py`
+`#stream = sounddevice.OutputStream(12000, 2048, channels=1, dtype='int16')`
+
+`#stream.start()`
+
+#### 2/ The software is not working yet with GNU Octave v6.3.0, use an older version else you will get an `Octave:undefined-function` error with `"'papersize_points' undefined near line 502, column 502"` message
+https://savannah.gnu.org/bugs/?60236
+
 ## INSTALL AND RUN (on WINDOWS)
 
 ##### The decision was made not to support installation from the repository.

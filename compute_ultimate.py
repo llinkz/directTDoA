@@ -922,7 +922,7 @@ class MainWindow(Frame):
         # plot IQ preview window
         self.plot_iq_button = Button(parent, command=lambda: APP.gui.openinbrowser(
             [tag_list[tag_list.index(x)].rsplit("$", 4)[0] for x in tag_list if CLICKEDNODE in x],
-            ''.join(re.match(r"(\d.+)\s\[(.+)\s", FREQUENCY).groups())))
+            ''.join(re.match(r"(\d+.\d+)", FREQUENCY).group(1))))
         self.plot_iq_button.place(relx=0.73, rely=0.65, height=240, width=320)
 
         # Adding some texts to console window at program start
