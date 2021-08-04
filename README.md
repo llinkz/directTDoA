@@ -13,6 +13,9 @@ This software is JUST a python 2/3 GUI designed to compute TDoA runs on shortwav
 #### 2/ The software is not working yet with GNU Octave v6.3.0, use an older version else you will get an `Octave:undefined-function` error with `"'papersize_points' undefined near line 502, column 502"` message
 https://savannah.gnu.org/bugs/?60236
 
+#### 3/ On recent versions of Octave the handling of the font size has been changed (pixels Vs points) and you may find that they are too large in the final file, you can reduce the fontsize values on lines 41, 42 & 154 in `/directTDoA/TDoA/m/tdoa_plot_map.m`
+
+
 ## INSTALL AND RUN (on WINDOWS)
 
 ##### The decision was made not to support installation from the repository.
