@@ -10,11 +10,28 @@ This software is JUST a python 2/3 GUI designed to compute TDoA runs on shortwav
 
 `#stream.start()`
 
-#### 2/ The software is not working yet with GNU Octave v6.3.0, use an older version else you will get an `Octave:undefined-function` error with `"'papersize_points' undefined near line 502, column 502"` message
-https://savannah.gnu.org/bugs/?60236
+#### 2/ ~~The software is not working yet with GNU Octave v6.3.0, use an older version else you will get an~~ `Octave:undefined-function` ~~error with~~ `"'papersize_points' undefined near line 502, column 502"`
+**FIX:** modify`directTDoA/TDoA/m/tdoa_plot_map.m` near line 155 
+
+
+    print('-dpdf','-S900,600', fullfile('pdf', sprintf('%s.pdf', plot_info.plotname)));
+
+becomes 
+
+
+    set(gcf, "paperunits", "points", "papersize", [900, 600], 'PaperPosition', [0 0 900 600]);
+    print('-dpdf', fullfile('pdf', sprintf('%s.pdf', plot_info.plotname)));
 
 #### 3/ On recent versions of Octave the handling of the font size has been changed (pixels Vs points) and you may find that they are too large in the final file, you can reduce the fontsize values on lines 41, 42 & 154 in `/directTDoA/TDoA/m/tdoa_plot_map.m`
 
+#### 4/ On recent versions of python you may get the error `AttributeError: module 'collections' has no attribute 'Iterator'`
+**FIX:** modify `directTDoA/kiwiclient/kiwi/wavreader.py` near line 11
+
+`class KiwiIQWavReader(collections.Iterator):`
+
+becomes
+
+`class KiwiIQWavReader(collections.abc.Iterator):`
 
 ## INSTALL AND RUN (on WINDOWS)
 
