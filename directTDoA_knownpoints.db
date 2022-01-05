@@ -1,7 +1,7 @@
 ## This is the directTDoa known point database file, please use the following format
 ## LAT/LON in decimal format with minus (-) symbol for West & South, don't forget the _ for spaces in the first field and keep the " , , " entry please
 ## Name|Names_with_spaces|Callsign (country|details|whatever|notimportant),LAT,LON     
- , , 
+ , ,
 Ozernoye (Russian MIL Buzzer RUS),60.3113,30.2784
 Naro-Fominsk (Russian MIL Buzzer RUS),55.3268,36.8086
 Khokhlovo (Russian MIL Smolensk RUS),54.6885,31.8483
@@ -15,10 +15,10 @@ RJH66 (Russian Navy Chaldybar KGZ),43.033603,73.617061
 RJH69 (Russian Navy Vileyka BLR),54.466667,26.783333
 RJH77 (Russian Navy Arkhangelsk RUS),64.359358,41.559361
 RJH90 (Russian Navy Nizhny Novgorod RUS),56.166517,43.935178
-RIT (Russian Navy Severomorsk Northern Fleet RUS),69.0588,33.3266
-RMP (Russian Navy Yantarny Baltic Fleet RUS),54.8589,19.9418
+RIT (Russian Navy Severomorsk North Sea Fleet RUS),69.0588,33.3266
+RMP (Russian Navy Yantarny Baltic Sea Fleet RUS),54.8589,19.9418
 RCV (Russian Navy Sevastopol Black Sea Fleet RUS),44.9247,34.4685
-RIW (Russian Navy Moscow Navy HQ RUS),56.0022,37.1065
+RIW (Russian Navy HQ Novopetrovskoye RUS),55.9516,36.4635
 Rumia (Polish Navy POL),54.5547,18.3856
 Balice (Polish AF POL),50.0658,19.7988
 Nostradamus (Ionospheric sounder ONERA OTHR F),48.6416,1.0806
@@ -97,7 +97,10 @@ HFGCS_Offutt (USAF OFF Elkorn USA),41.3464,-96.2441
 HFGCS_Hickam (USAF HIK Waianae HWA),21.43,-158.1533
 HFGCS_Yokota (USAF JTY Tokorozawa J),35.8077,139.4728
 HFGCS_West_Coast (USAF MCC Dixon USA),38.3713,-121.7756
-Oxford_Junction (US UrgentLink Rockwell Collins, Iowa USA),41.9626,-90.8946
+Oxford_Junction (UrgentLink Rockwell Collins Iowa USA),41.9626,-90.8946
+ROTHR_TX (Palito Blanco Virginia USA),27.5274,-98.1112
+ROTHR_VA (Poplar Grove Texas USA),37.5657,-77.0241
+ROTHR_PR (Vieques PR),18.0983,-65.5128
 Landhi (Pakistan Navy Karachi PAK),24.826,67.1917
 Zvolen (Slovakian AF SVK),48.5835,19.0913
 KEA5 (Civil Aviation New York Radio Riverhead USA),40.8818,-72.6373
@@ -133,10 +136,10 @@ Neuharlingersiel (German Navy D),53.6770,7.6120
 Marlow (German Navy D),54.1430,12.5534
 Albersloh (German AF D),51.8864,7.7221
 Staberhuk_Radar (German Navy D),54.4162,11.3026
-MHFCS_North_West_Cape (Australian MIL Exmouth AUS),-21.9089,114.1319
-MHFCS_Humpty_Doo (Australian MIL Darwin AUS),-12.5344,131.0636
-MHFCS_Townsville (Australian MIL Boyle AUS),-19.2380,146.7222
-MHFCS_Riverina (Australian MIL Lyndoch AUS),-35.1255,146.9794
+MHFCS_North_West_Cape (VHU Exmouth AUS),-21.9089,114.1319
+MHFCS_Humpty_Doo (VHM Darwin AUS),-12.5344,131.0636
+MHFCS_Townsville (AXH Boyle AUS),-19.2380,146.7222
+MHFCS_Riverina (VHK Lyndoch AUS),-35.1255,146.9794
 WWV (Time Signal Fort Collins USA),40.6797,-105.0425
 EIP (Civil Aviation Shannon Volmet IRL),52.7447,-8.9269
 DHFCS_Ascension (British MIL Georgetown ASC),-7.9173,-14.3895
@@ -148,7 +151,7 @@ DHFCS_Crimond (British MIL Crimond G),57.6111,-1.8835
 Amici_di_ITALCABLE (Time Signal Viareggio I),43.9141,10.2956
 JORN_Longreach (Ionospheric sounder Longreach AUS),-23.6580,144.1454
 JORN_Leonora (Ionospheric sounder Leonora AUS),-28.3173,122.8434
-JORN_Harts_Range (Ionospheric sounder Harts Range R&D site AUS),-22.9675,134.4479
+JORN_Harts_Range (Ionospheric sounder Harts Range AUS),-22.9675,134.4479
 JMSDF_Ichihara (Japanese MIL JJF Ichihara J),35.4460,140.1821
 JMSDF_Mutsu (Japanese MIL JJF2 Mutsu J),41.1938,141.2855
 JMSDF_Kushira (Japanese MIL JJF6 Kushira J),31.4603,130.9189
@@ -1847,7 +1850,6 @@ Hartford (United States of America),41.77,-72.68
 Providence (United States of America),41.8211,-71.415
 Birmingham (United States of America),33.53,-86.825
 Mobile (United States of America),30.68,-88.05
-St._Petersburg (United States of America),27.7705,-82.6794
 Greensboro (United States of America),36.07,-79.8
 Dayton (United States of America),39.7504,-84.2
 Virginia_Beach (United States of America),36.8532,-75.9783
