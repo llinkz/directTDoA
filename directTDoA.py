@@ -1094,36 +1094,24 @@ class GuiCanvas(Frame):
         try:  # check if the node is answering
             chktimeout = 2  # timeout of the node check
             checkthenode = requests.get("http://" + n_field[1] + "/status", timeout=chktimeout)
-            i_node = []
+            i_node = {}
             try:
                 for line in checkthenode.text.splitlines():
-                    i_node.append(line.rsplit("=", 1)[1])
-                # i_node = each parameter of the retrieved "address:port/status" webpage lines
-                # 0 = status (private / public)    10 = good received GPS sats
-                # 1 = offline (no / yes)           11 = total GPS fixes
-                # 2 = name                         12 = GPS fixes per minute (max = 30)
-                # 3 = sdr_hw                       13 = GPS fixes per hour
-                # 4 = op_email                     14 = TDoA id
-                # 5 = bands (KiwiSDR freq range)   15 = TDoA receiver slots
-                # 6 = users                        16 = Receiver altitude
-                # 7 = max users                    17 = Receiver location
-                # 8 = avatar ctime                 18 = Software version
-                # 9 = gps coordinates              19 = Antenna description
-                # 20 = KiwiSDR uptime (in sec)
+                    i_node[line.rsplit("=", 1)[0]] = line.rsplit("=", 1)[1]
                 permit_web = False
                 gps_ready = False
-                n_stat = " [" + i_node[6] + "/" + i_node[7] + " users]"
-                g_stat = " [GNSS: " + i_node[12] + " fixes/min] [GPS: " + i_node[10] + "/12]"
+                n_stat = " [" + i_node['users'] + "/" + i_node['users_max'] + " users]"
+                g_stat = " [GNSS: " + i_node['fixes_min'] + " fixes/min] [GPS: " + i_node['gps_good'] + "/12]"
                 s_stat = " [SNR: " + n_field[3] + " dB]"
                 # If no socket slots are available on this node :
-                if i_node[6] == i_node[7]:
+                if i_node['users'] == i_node['users_max']:
                     menu.add_command(label=n_field[2] + " is full" + g_stat + n_stat + s_stat, background=rbg,
                                      foreground=dfg, command=None)
                 # If node is offline :
-                elif i_node[1] == "yes":
+                elif i_node['offline'] == "yes":
                     menu.add_command(label=n_field[2] + " is offline", background=rbg, foreground=dfg, command=None)
                 # If node had no GPS fix in the last minute :
-                elif i_node[12] == "0":
+                elif i_node['fixes_min'] == "0":
                     if len(matches) != 1:
                         menu.add_cascade(label=n_field[2] + " is not useful for TDoA" + g_stat + n_stat + s_stat,
                                          background=rbg, foreground=dfg, menu=menu2)
@@ -1138,7 +1126,7 @@ class GuiCanvas(Frame):
                     gps_ready = True
                 # matches = [el for el in fulllist if n_field[0] in el]
                 # if node is NOT already listed in the TDoA node group, allow the ADD command
-                if len(matches) != 1 and int(i_node[12]) > 0 and gps_ready:
+                if len(matches) != 1 and int(i_node['fixes_min']) > 0 and gps_ready:
                     menu.add_command(label="Add " + n_field[2] + " for TDoA process" + g_stat + n_stat + s_stat,
                                      background=cbg, foreground=dfg, font="TkFixedFont 7 bold",
                                      command=lambda *args: self.populate("add", "no", n_field))
@@ -1168,7 +1156,7 @@ class GuiCanvas(Frame):
 
         # Always try to print out KiwiSDR's full name line
         try:
-            menu.add_command(label=i_node[2], state=NORMAL, background=cbg, foreground=dfg, command=None)
+            menu.add_command(label=i_node['name'], state=NORMAL, background=cbg, foreground=dfg, command=None)
         except (UnboundLocalError, IndexError):
             pass
 
