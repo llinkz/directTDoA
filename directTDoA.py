@@ -1157,8 +1157,8 @@ class GuiCanvas(Frame):
         # Always try to print out KiwiSDR's full name line
         try:
             menu.add_command(label=i_node['name'], state=NORMAL, background=cbg, foreground=dfg, command=None)
-        except (UnboundLocalError, IndexError):
-            pass
+        except (UnboundLocalError, IndexError, KeyError):
+            menu.add_command(label="", state=NORMAL, background=cbg, foreground=dfg, command=None)
 
         # EXTRA commands and lines
         if permit_web and APP.gui.freq_input.get() != "" and 5 < float(APP.gui.freq_input.get()) < 30000:
