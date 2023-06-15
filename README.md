@@ -1,37 +1,20 @@
-# directTDoA v7.02
+# directTDoA v7.10
 
 This software is JUST a python 2/3 GUI designed to compute TDoA runs on shortwave radio transmissions using remote (GPS enabled) KiwiSDR receivers around the World.
 
 > TDoA = Time Difference of Arrival .. (in this case: the Arrival of shortwave radio transmissions)
 
+> # Linux users : GNU Octave version < 8 only !
+> because read_kiwi_iq_wav.cc will not compile - fix in progress...
+
 ## KNOWN ISSUES:
+
 #### 1/ If you plan to use the software on a machine without a sound card then you must comment out lines 15 & 16 in `/directTDoA/kiwiclient/kiwirecorder.py`
 `#stream = sounddevice.OutputStream(12000, 2048, channels=1, dtype='int16')`
 
 `#stream.start()`
 
-#### 2/ ~~The software is not working yet with GNU Octave v6.3.0, use an older version else you will get an~~ `Octave:undefined-function` ~~error with~~ `"'papersize_points' undefined near line 502, column 502"`
-**FIX:** modify`directTDoA/TDoA/m/tdoa_plot_map.m` near line 155 
-
-
-    print('-dpdf','-S900,600', fullfile('pdf', sprintf('%s.pdf', plot_info.plotname)));
-
-becomes 
-
-
-    set(gcf, "paperunits", "points", "papersize", [900, 600], 'PaperPosition', [0 0 900 600]);
-    print('-dpdf', fullfile('pdf', sprintf('%s.pdf', plot_info.plotname)));
-
-#### 3/ On recent versions of Octave the handling of the font size has been changed (pixels Vs points) and you may find that they are too large in the final file, you can reduce the fontsize values on lines 41, 42 & 154 in `/directTDoA/TDoA/m/tdoa_plot_map.m`
-
-#### 4/ On recent versions of python you may get the error `AttributeError: module 'collections' has no attribute 'Iterator'`
-**FIX:** modify `directTDoA/kiwiclient/kiwi/wavreader.py` near line 11
-
-`class KiwiIQWavReader(collections.Iterator):`
-
-becomes
-
-`class KiwiIQWavReader(collections.abc.Iterator):`
+#### 2/ On recent versions of Octave the handling of the font size has been changed (pixels Vs points) and you may find that they are too large in the final file, you can reduce the fontsize values on lines 41, 42 & 154 in `/directTDoA/TDoA/m/tdoa_plot_map.m`
 
 ## INSTALL AND RUN (on WINDOWS)
 
@@ -47,9 +30,9 @@ Then double-click on `directTDoA.bat`
 
 ## INSTALL AND RUN (on LINUX)
 
-Install python 3 and python-pip using your package manager
+Install python 3 and python3-pip using your package manager
 
-Install GNU octave
+Install GNU octave (important: only versions < 8)
 
 Install git, patch, gcc, base-devel, ttf-dejavu, gcc-fortran, tk, portaudio, xdg-utils, epdfview, fltk
 
@@ -129,6 +112,7 @@ Install GNU Octave in Terminal : `brew install octave`
 * v7.00: Adding USB/LSB/CW/AM/2kHz/4kHz/6kHz/8kHz IQ BW presets + display bug fix for known places on map + adding recorded nodes Vs selected nodes counter + recording time in file size window + IQ rec length max limit set to 120 seconds (just in case) + TCP client modified, possibility to change the trigger word (regexp supported) + PDF title mods + remember GUI size & position on close + MAP & SNR update only via KiwiSDR.com/public now + nognss.py script added, to remove GNSS ticks from the IQs so files can get opened and demodulated fine
 * v7.01: Bug fix on map update because of a single KiwiSDR node using https (ofc it just happened after the v7.00 release - haha)
 * v7.02: Small but important fix
+* v7.10: Bug fix on Start/Stop Listen function + TKinter exception at start fixed + modified patches for wavreader.py & tdoa_plot_map.m + more map POIs + more recording mode choices + legend showing current TDoA algo + files directories shortcut menu + some ultimateTDoA interface improvements
 ## Thanks
 * Christoph Mayer @ https://github.com/hcab14/TDoA for the main TDoA code, excellent work and thanks for the public release !
 * John Seamons, KiwiSDR developper @ https://github.com/jks-prv

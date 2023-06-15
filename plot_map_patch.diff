@@ -1,5 +1,5 @@
---- tdoa_plot_map.m	2021-06-26 08:55:29.072579377 +0200
-+++ tdoa_plot_map.m	2021-03-23 22:54:27.067070000 +0100
+--- tdoa_plot_map.m	2023-06-15 07:39:12.531485461 +0200
++++ tdoa_plot_map.m	2021-12-29 02:38:55.195793080 +0100
 @@ -38,8 +38,8 @@
    if ~plot_kiwi
      set(0,'defaultaxesposition', [0.05, 0.05, 0.90, 0.9])
@@ -9,7 +9,7 @@
 +    plot_info.titlefontsize = 10; # 10
 +    plot_info.labelfontsize =  5; # 7.5
    end
- 
+
    n_stn      = length(input_data);
 @@ -140,6 +140,7 @@
      end
@@ -19,7 +19,7 @@
      ha = axes('Position', [0 0 1 1], ...
                'Xlim',     [0 1], ...
                'Ylim',     [0 1], ...
-@@ -147,11 +148,11 @@
+@@ -147,12 +148,13 @@
                'Visible',  'off', ...
                'Units',    'normalized', ...
                'clipping', 'off');
@@ -29,16 +29,19 @@
           'horizontalalignment', 'center', ...
 -         'fontsize', 15);
 -    print('-dpng','-S900,600', fullfile('png', sprintf('%s.png', plot_info.plotname)));
-+         'fontsize', 9); # 15
+-    print('-dpdf','-S900,600', fullfile('pdf', sprintf('%s.pdf', plot_info.plotname)));
++         'fontsize', 12); # 15
 +    ## print('-dpng','-S3600,2400', fullfile('png', sprintf('%s.png', plot_info.plotname)));
-     print('-dpdf','-S900,600', fullfile('pdf', sprintf('%s.pdf', plot_info.plotname)));
++    set(gcf, "paperunits", "points", "papersize", [900, 600], 'PaperPosition', [0 0 900 600]);
++    print('-dpdf', fullfile('pdf', sprintf('%s.pdf', plot_info.plotname)));
    end
    if plot_info.plot_kiwi_json
-@@ -184,6 +185,7 @@
+     [h,h_max] = adjust_scale(plot_info, h);
+@@ -184,6 +186,7 @@
    _i = _i(_j);
    pos = [plot_info.lat(_i) plot_info.lon(_j)];
    printf('most likely position: lat = %.2f deg  lon = %.2f deg\n', pos);
 +  global mlp=cstrcat(sprintf(' - [lat %.2f lon %.2f]', plot_info.lat(_i), plot_info.lon(_j)));
  endfunction
- 
+
  function [bb_lon, bb_lat, idx_lon, idx_lat] = find_bounding_box(plot_info, h)

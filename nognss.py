@@ -13,11 +13,13 @@ import struct
 import os
 import glob
 
+os.makedirs('NOGPS')
+
 
 def removegnss(source):
     """ Removes GNSS from the KiwiSDR original IQ file and save it as standard wav. """
     old_f = open(source, 'rb')
-    new_f = open(source + '.nogps.wav', 'wb')
+    new_f = open(os.path.join('NOGPS') + os.sep + source[:-4] + '.nogps.wav', 'wb')
     old_size = os.path.getsize(source)
     data_size = 2048 * ((old_size - 36) // 2074)
     new_f.write(old_f.read(36))

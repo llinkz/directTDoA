@@ -2,11 +2,18 @@
 ## LAT/LON in decimal format with minus (-) symbol for West & South, don't forget the _ for spaces in the first field and keep the " , , " entry please
 ## Name|Names_with_spaces|Callsign (country|details|whatever|notimportant),LAT,LON     
  , ,
+PWW Rio Grande (Brazilian Navy ERMRG BRA),-32.1434,-52.1108
+PWF Salvador (Brazilian Navy ERMS BRA),-12.8083,-38.4964
+PWB Belem (Brazilian Navy ERMBe BRA),-1.3924,-48.4442
+PWN Natal (Brazilian Navy ERMN BRA),-5.8590,-35.2694
+PWX Brasilia (Brazilian Navy ERMB BRA),-16.0190,-47.9770
+PWZ Rio de Janeiro (Brazilian navy ERMRJ BRA),-22.7394,-43.2765
+Novopetrovskoye (Russian MIL RIW?),55.9516,36.4635
 Ozernoye (Russian MIL Buzzer RUS),60.3113,30.2784
 Naro-Fominsk (Russian MIL Buzzer RUS),55.3268,36.8086
 Khokhlovo (Russian MIL Smolensk RUS),54.6885,31.8483
-Rivne (Ukrainian MIL Velyka Lyubasha UKR),50.9745,26.3741
-Orenburg (Russian MIL RUS),52.0310,55.2960
+Rivne (Ukrainian Gov Velyka Lyubasha UKR),50.9745,26.3741
+Orenburg (Russian Gov RUS),52.0310,55.2960
 RNZN_Irirangi (New Zealand Navy NZL),-39.4613,175.6685
 RNZAF_Whenuipai (New Zealand AF NZL),-36.7854,174.6050
 RJH25 (Russian Navy Bishkek KGZ),42.989,74.455
@@ -21,6 +28,8 @@ RCV (Russian Navy Sevastopol Black Sea Fleet RUS),44.9247,34.4685
 RIW (Russian Navy HQ Novopetrovskoye RUS),55.9516,36.4635
 Rumia (Polish Navy POL),54.5547,18.3856
 Balice (Polish AF POL),50.0658,19.7988
+Chotomow (Polish Gov POL),52.4295,20.8813
+Janowek (Polish Gov POL),52.4438,20.7987
 Nostradamus (Ionospheric sounder ONERA OTHR F),48.6416,1.0806
 ZSJ (South African Navy Cape Town AFS),-33.6827,18.7171
 Punta_Arenas (Chilean Navy CHL),-52.9297,-70.8875
@@ -113,7 +122,8 @@ SAQ (Historical Grimeton S),57.1131,12.3972
 EBA (Spanish Navy Madrid E),40.4770,-3.1970
 EBK (Spanish Navy Almatriche CNR),28.0867,-15.4567
 PBB (Dutch Navy Den Helder HOL),52.9192,4.7436
-PBC (Dutch Navy Goeree Isl HOL),51.8073,3.8931
+PBB (Dutch Navy Goeree Isl HOL),51.8073,3.8931
+PBB (Dutch Navy Zeewolde HOL),52.3621,5.4555
 PJK (Dutch Navy Willemstad CUW),12.1718,-68.8658
 OSN (Belgium Navy Ruiselede BEL),51.0788,3.3355
 Oostende_Radio (Civil Maritime Middelkerke BEL),51.1824,2.8076

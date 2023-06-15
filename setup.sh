@@ -16,6 +16,7 @@ cd ../..
 echo "3/3 Patching some python and GNU Octave files"
 patch -i kiwiworker_patch.diff ./kiwiclient/kiwi/worker.py
 patch -i kiwiclient_patch.diff ./kiwiclient/kiwi/client.py
+patch -i kiwiwavreader_patch.diff ./kiwiclient/kiwi/wavreader.py
 patch -i kiwirecorder_patch.diff ./kiwiclient/kiwirecorder.py
 patch -i microkiwi_patch.diff ./kiwiclient/microkiwi_waterfall.py
 patch -i modsocket_patch.diff ./kiwiclient/mod_pywebsocket/util.py

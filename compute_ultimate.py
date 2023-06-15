@@ -31,16 +31,16 @@ from PIL import Image, ImageTk
 if sys.version_info[0] == 2:
     import tkMessageBox
     from Tkinter import Checkbutton, CURRENT, IntVar, Listbox
-    from Tkinter import Entry, Text, Menu, Label, Button, Frame, Tk, Canvas
+    from Tkinter import Entry, Text, Menu, Label, Button, Frame, Tk, PhotoImage, Canvas
     from tkFont import Font
 
 else:
     import tkinter.messagebox as tkMessageBox
     from tkinter import Checkbutton, CURRENT, IntVar, Listbox
-    from tkinter import Entry, Text, Menu, Label, Button, Frame, Tk, Canvas
+    from tkinter import Entry, Text, Menu, Label, Button, Frame, Tk, PhotoImage, Canvas
     from tkinter.font import Font
 
-VERSION = "ultimateTDoA interface v2.00 "
+VERSION = "ultimateTDoA interface v2.10 "
 for mfi_le in glob.glob('*.*m*'):
     ff = open(mfi_le, 'r')
     fi_le_d = ff.read()
@@ -144,7 +144,7 @@ class ReadCfg(object):
         """ compute_ultimate.py configuration file read process. """
         global CFG, DX0, DY0, DX1, DY1, DMAP
         global POICOLOR, ICONSIZE, ICONTYPE, HIGHLIGHT
-        global BGC, FGC, CONS_B, CONS_F, MAP_BOX
+        global BGC, FGC, CONS_B, CONS_F, MAP_BOX, GUI
         try:
             # Read the config file v5.0 format and declare variables
             with open(up(up(up(os.getcwd()))) + os.sep + 'directTDoA.cfg', 'r') as config_file:
@@ -156,7 +156,7 @@ class ReadCfg(object):
             HIGHLIGHT = CFG["map"]["hlt"]
             BGC, FGC = CFG["guicolors"]["main_b"], CFG["guicolors"]["main_f"]
             CONS_B, CONS_F = CFG["guicolors"]["cons_b"], CFG["guicolors"]["cons_f"]
-            MAP_BOX = CFG["map"]["mapbox"]
+            MAP_BOX, GUI = CFG["map"]["mapbox"], CFG["map"]["gui"]
         except (ImportError, ValueError):
             sys.exit("config file not found")
 
@@ -360,7 +360,8 @@ class ProcessFinished(threading.Thread):
             elif platform.system() == "Darwin":
                 subprocess.Popen(["open", os.getcwd() + os.sep + sorted(glob.iglob('*.pdf'), key=os.path.getctime)[-1]])
             else:
-                subprocess.Popen(["xdg-open", os.getcwd() + os.sep + sorted(glob.iglob('*.pdf'), key=os.path.getctime)[-1]])
+                subprocess.Popen(
+                    ["xdg-open", os.getcwd() + os.sep + sorted(glob.iglob('*.pdf'), key=os.path.getctime)[-1]])
         for spec_file in glob.glob(os.getcwd() + os.sep + "*temp.pdf"):
             os.remove(spec_file)
 
@@ -505,13 +506,15 @@ class GuiCanvas(Frame):
     def __init__(self, parent):
         Frame.__init__(self, parent=None)
         # tip: GuiCanvas is member1
-        parent.geometry("1200x700+150+10")
+        parent.call('wm', 'iconphoto', parent, PhotoImage(file='../../../icon.gif'))
         global fulllist, mapboundaries_set, map_preset, selectedcity
         global lat_min_map, lat_max_map, lon_min_map, lon_max_map, selectedlat, selectedlon
         fulllist = []
         mapboundaries_set = None
         map_preset = 1
         ReadCfg().read_cfg()
+        parent.geometry(GUI)
+        parent.geometry('+0+60')
         self.x = self.y = 0
         # Create canvas and put image on it
         self.canvas = Canvas(self.master, highlightthickness=0)
@@ -860,6 +863,25 @@ class MainWindow(Frame):
         self.label0 = Label(parent)
         self.label0.place(relx=0, rely=0.64, relheight=0.4, relwidth=1)
         self.label0.configure(bg=BGC, fg=FGC, width=214)
+        # get values from the original .empty proc file
+        for mfile in glob.glob(os.getcwd() + os.sep + "proc*.empty"):
+            f = open(mfile, 'r')
+            file_d = f.read()
+            f.close()
+        use_constraints_origin = re.search(r"(\s{16}'use_constraints', (.+),)", file_d).group(2)
+        algo_origin = re.search(r"(\s{16}'new', (.+))", file_d).group(2)
+        mapbox_style = re.search(r"(?:\S+ ){15}(\S+)", file_d).group(1)
+        self.label01 = Label(parent)
+        self.label01.place(x=14, y=14, height=14, width=105)
+        self.label01.configure(bg="black", font=la_f, anchor="w", fg="deepskyblue2",
+                               text="Algorithm: 2020" if algo_origin == "true" else "Algorithm: 2018")
+        self.label02 = Label(parent)
+        self.label02.place(x=14, y=28, height=14, width=105)
+        self.label02.configure(bg="black", font=la_f, anchor="w", fg="deepskyblue2",
+                               text="Constraints: yes" if use_constraints_origin == "true" else "Constraints: no")
+        self.label03 = Label(parent)
+        self.label03.place(x=14, y=42, height=14, width=105)
+        self.label03.configure(bg="black", font=la_f, anchor="w", fg="deepskyblue2", text="Map: " + mapbox_style)
 
         # Compute button
         self.compute_button = Button(parent)
@@ -872,32 +894,25 @@ class MainWindow(Frame):
         # Trim_iq button
         self.trim_iq_button = Button(parent)
         self.trim_iq_button.place(relx=0.61, rely=0.75, height=24, relwidth=0.115)
-        self.trim_iq_button.configure(activebackground="#d9d9d9", activeforeground="#000000", bg="lightblue",
+        self.trim_iq_button.configure(activebackground="lightblue3", activeforeground="#000000", bg="lightblue",
                                       disabledforeground=dfgc, fg="#000000", highlightbackground="#d9d9d9",
-                                      highlightcolor="#000000", pady="0", text="Run trim_iq.py",
-                                      command=TrimIQ(os.getcwd()).start, state="normal")
+                                      highlightcolor="#000000", pady="0", text="run trim_iq.py",
+                                      command=lambda: APP.gui.trimbutton(), state="normal")
 
         # Purge node listing button
         self.purge_button = Button(parent)
         self.purge_button.place(relx=0.61, rely=0.8, height=24, relwidth=0.115)
-        self.purge_button.configure(activebackground="#d9d9d9", activeforeground="#000000", bg="orange",
+        self.purge_button.configure(activebackground="red", activeforeground="#000000", bg="red3",
                                     disabledforeground=dfgc, fg="#000000", highlightbackground="#d9d9d9",
-                                    highlightcolor="#000000", pady="0", text="Purge Nodes", command=self.purgenode,
+                                    highlightcolor="#000000", pady="0", text="purge node list", command=self.purgenode,
                                     state="normal")
-
-        # Restart button
-        self.restart_button = Button(parent)
-        self.restart_button.place(relx=0.61, rely=0.85, height=24, relwidth=0.115)
-        self.restart_button.configure(activebackground="#d9d9d9", activeforeground="#000000", bg="red",
-                                      disabledforeground=dfgc, fg="#000000", highlightbackground="#d9d9d9",
-                                      highlightcolor="#000000", pady="0", text="Restart GUI", command=Restart().run,
-                                      state="normal")
 
         # Auto open TDoA PDF result file
         self.open_pdf_checkbox = Checkbutton(parent)
-        self.open_pdf_checkbox.place(relx=0.62, rely=0.9, height=21, relwidth=0.11)
+        self.open_pdf_checkbox.place(relx=0.61, rely=0.85, height=21, relwidth=0.11)
         self.open_pdf_checkbox.configure(bg=BGC, fg=FGC, activebackground=BGC, activeforeground=FGC,
-                                         font="TkFixedFont 8", width=214, selectcolor=BGC, text="auto-open result",
+                                         font="TkFixedFont 8", width=214, selectcolor=BGC,
+                                         text="open pdf automatically?",
                                          anchor="w", variable=open_pdf, command=None)
 
         # Known places search textbox
@@ -906,11 +921,6 @@ class MainWindow(Frame):
         self.choice.insert(0, "TDoA map city/site search here")
         self.listbox = Listbox(parent)
         self.listbox.place(relx=0.2, rely=0.95, height=21, relwidth=0.3)
-
-        # Known places found text label
-        self.label3 = Label(parent)
-        self.label3.place(relx=0.54, rely=0.95, height=21, relwidth=0.3)
-        self.label3.configure(bg=BGC, font="TkFixedFont", fg=FGC, width=214, text="", anchor="w")
 
         # Console window
         self.console_window = Text(parent)
@@ -978,6 +988,11 @@ class MainWindow(Frame):
         self.choice.bind('<KeyRelease>', self.on_keyrelease)
 
     @staticmethod
+    def trimbutton():
+        if tkMessageBox.askokcancel("Modify IQ files ?", "Do you want to run the trim_iq script ?", icon="warning"):
+            TrimIQ(os.getcwd()).start()
+
+    @staticmethod
     def openinbrowser(host_port, freq_and_mode):
         """ Web browser call to connect on the node (default = IQ mode & fixed zoom level at 8). """
         if len(host_port) == 1:
@@ -985,7 +1000,7 @@ class MainWindow(Frame):
 
     def mapbox_style(self, value):
         global MAP_BOX
-        self.writelog("OPTION: Mapbox output style set to " + value)
+        self.label03.configure(text="Map: " + value)
         MAP_BOX = value
 
     def tdoa_settings(self, value):
@@ -1000,14 +1015,20 @@ class MainWindow(Frame):
             self.writelog("OPTION: former TDoA algorithm selected w/ option \'use_constraints\' set to YES.")
             algo_new = "false"
             use_constraints_new = "true"
+            self.label01.configure(text="Algorithm: 2018")
+            self.label02.configure(text="Constraints: yes")
         if value == 3:
             self.writelog("OPTION: former TDoA algorithm selected w/ option \'use_constraints\' set to NO.")
             algo_new = "false"
             use_constraints_new = "false"
+            self.label01.configure(text="Algorithm: 2018")
+            self.label02.configure(text="Constraints: no")
         if value == 4:
             self.writelog("OPTION: new TDoA algorithm selected.")
             algo_new = "true"
             use_constraints_new = "false"
+            self.label01.configure(text="Algorithm: 2020")
+            self.label02.configure(text="Constraints: no")
 
     def map_preset(self, pmap):
         """ Map boundaries static presets. """
@@ -1093,10 +1114,11 @@ class MainWindow(Frame):
 
     def purgenode(self):
         """ Purge ultimateTDoA list process. """
-        global fulllist
-        fulllist = []
-        APP.title(VERSION + "| " + FREQUENCY + ALEID)
-        self.member1.unselect_allpoint()
+        if tkMessageBox.askokcancel("Purge node listing ?", "Do you want to purge the listing ?", icon="warning"):
+            global fulllist
+            fulllist = []
+            APP.title(VERSION + "| " + FREQUENCY + ALEID)
+            self.member1.unselect_allpoint()
 
     def start_stop_tdoa(self):
         """ Actions to perform when Compute button is clicked. """
@@ -1163,7 +1185,8 @@ class MainWindow(Frame):
                     'new', """ + al + """
                    );"""
                     new_mapbox = "lon, \" " + selectedlat + "\", \" " + selectedlon + "\", \" " + MAP_BOX + " \", \"iq"
-                    dir_new = os.path.basename(os.path.dirname(mfile)) if os.path.basename(os.path.dirname(mfile)) != dir_origin else dir_origin
+                    dir_new = os.path.basename(os.path.dirname(mfile)) if os.path.basename(
+                        os.path.dirname(mfile)) != dir_origin else dir_origin
                     # replace old config block by the new one
                     file_d = re.sub('(\n    config = struct(.*)(\n(.*)){9})', new_config, file_d, flags=re.M)
                     file_d = re.sub(r'lon(.*)iq', new_mapbox, file_d)

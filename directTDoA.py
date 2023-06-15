@@ -47,7 +47,7 @@ else:
     from tkinter.simpledialog import askstring, askinteger
     from tkinter.font import Font
 
-VERSION = "directTDoA v7.02"
+VERSION = "directTDoA v7.10"
 
 
 class ReadKnownPointFile(object):
@@ -193,7 +193,7 @@ class RunUpdate(threading.Thread):
                     # Add progress bar in the console window (* char for each node)
                     APP.gui.console_window.insert('end -1 lines', "*")
                     APP.gui.console_window.see('end')
-                    time.sleep(0.005)
+                    time.sleep(0.001)
 
                     # Check if the "tdoa_id" field of the node has not been filled by the admin
                     if not json_data[i]['tdoa_id']:
@@ -343,14 +343,9 @@ class StartRecording(threading.Thread):
         CheckFileSize().start()
         which_list = fulllist
         which_action = "IQ Recordings in progress..."
+        client_type = VERSION
         if (ultimate.get()) == 1:
             which_action = "ultimateTDoA IQ Recordings in progress..."
-        if platform.system() == "Windows":
-            client_type = VERSION + ' [win/record]'
-        elif platform.system() == "Darwin":
-            client_type = VERSION + ' [macOS/record]'
-        else:
-            client_type = VERSION + ' [linux/record]'
         proc2 = subprocess.Popen([sys.executable, 'kiwiclient' + os.sep + 'kiwirecorder.py', '-s',
                                   ','.join(str(p).rsplit('$')[0] for p in which_list), '-p',
                                   ','.join(str(p).rsplit('$')[1] for p in which_list),
@@ -430,12 +425,12 @@ class OctaveProcessing(threading.Thread):
                          b'n_stn=2 is not supported', b'resample.m: p and q must be positive integers',
                          b'Octave:invalid-index', b'incomplete \'data\' chunk',
                          b'reshape: can\'t reshape 0x0 array to 242x258 array', b'malformed filename:']
-        tdoa_filename = "proc_tdoa_" + KHZ_FREQ + ".m"
+        tdoa_filename = "proc_tdoa_" + HZ_FREQ + ".m"
         proc = subprocess.Popen(['octave-cli', tdoa_filename], cwd=os.path.join('TDoA'), stderr=subprocess.STDOUT,
                                 stdout=subprocess.PIPE, shell=False)
         PROC_PID = proc.pid
         logfile = open(os.path.join('TDoA', 'iq') + os.sep + starttime + tdoa_mode + str(
-            FREQUENCY) + os.sep + "TDoA_" + KHZ_FREQ + "_log.txt", 'w')
+            FREQUENCY) + os.sep + "TDoA_" + HZ_FREQ + "_log.txt", 'w')
         if sys.version_info[0] == 2:
             for octave_output in proc.stdout:
                 logfile.write(octave_output)
@@ -526,9 +521,9 @@ class ProcessFinished(threading.Thread):
             if mfiles != "TDoA/proc_tdoa_kiwi.m":
                 os.remove(mfiles)
         tdoa_in_progress = 0
-        with open(r_dir + "proc_tdoa_" + KHZ_FREQ + ".m", 'r') as read_file:
+        with open(r_dir + "proc_tdoa_" + HZ_FREQ + ".m", 'r') as read_file:
             content = read_file.readlines()
-        with open(r_dir + "proc_tdoa_" + KHZ_FREQ + ".m", 'w') as write_file:
+        with open(r_dir + "proc_tdoa_" + HZ_FREQ + ".m", 'w') as write_file:
             for line in content:
                 write_file.write(line.replace("initial", "recomputed"))
         APP.gui.writelog("TDoA process finished successfully.")
@@ -592,12 +587,7 @@ class StartDemodulation(threading.Thread):
             low_cut = "300"
             hi_cut = "3300"
         try:
-            if platform.system() == "Windows":
-                client_type = VERSION + ' [win/listen]'
-            elif platform.system() == "Darwin":
-                client_type = VERSION + ' [macOS/listen]'
-            else:
-                client_type = VERSION + ' [linux/listen]'
+            client_type = VERSION
             proc8 = subprocess.Popen(
                 [sys.executable, 'kiwiclient' + os.sep + 'kiwirecorder.py', '-s', self.s_host, '-p', self.s_port, '-f',
                  self.s_freq, '-m', self.s_mod, '-L', low_cut, '-H', hi_cut, '-u', client_type.replace(' ', '_'), '-q',
@@ -651,7 +641,7 @@ class FillMapWithNodes(object):
                         NODE_COUNT_FILTER += 1
                         self.add_point(node_index, node_color, db_data)
         if 'APP' in globals():
-            APP.gui.label04.configure(text="█ Visible: " + str(NODE_COUNT_FILTER) + "/" + str(NODE_COUNT))
+            APP.gui.label04.configure(text="Visible: " + str(NODE_COUNT_FILTER) + "/" + str(NODE_COUNT))
         self.parent.show_image()
 
     @staticmethod
@@ -844,9 +834,7 @@ class GuiCanvas(Frame):
     def __init__(self, parent):
         Frame.__init__(self, parent=None)
         # tip: GuiCanvas is member1
-
-        img = PhotoImage(file='icon.gif')
-        parent.after(50, parent.call('wm', 'iconphoto', parent, img))
+        parent.call('wm', 'iconphoto', parent, PhotoImage(file='icon.gif'))
         global fulllist, LISTENMODE, mapboundaries_set
         fulllist = []
         LISTENMODE = "0"
@@ -1176,11 +1164,10 @@ class GuiCanvas(Frame):
                 # Add demodulation process line
                 menu.add_command(label="Listen to that frequency using " + n_field[2], state=NORMAL, background=cbg,
                                  foreground=dfg,
-                                 command=lambda *args: [self.listenmode(n_field, APP.gui.modulation_box.get()),
-                                                        self.populate("add", "yes", n_field)])
+                                 command=lambda *args: [self.listenmode(n_field, APP.gui.modulation_box.get())])
             else:
                 menu.add_command(label="Stop Listen Mode", state=NORMAL, background=cbg, foreground=dfg,
-                                 command=lambda *args: [self.stoplistenmode(), self.populate("del", "yes", n_field)])
+                                 command=lambda *args: [self.stoplistenmode()])
         if permit_web:
             menu.add_command(label="Get Waterfall & SNR from " + n_field[2], background=cbg, foreground=dfg,
                              command=CheckSnr(n_field[1]).start)
@@ -1431,21 +1418,29 @@ class MainWindow(Frame):
 
         # Map Legend
         self.label01 = Label(parent)
-        self.label01.place(x=0, y=0, height=14, width=105)
+        self.label01.place(x=14, y=14, height=14, width=105)
         self.label01.configure(bg="black", font=la_f, anchor="w", fg=STDCOLOR, text="█ Standard")
         self.label02 = Label(parent)
-        self.label02.place(x=0, y=14, height=14, width=105)
+        self.label02.place(x=14, y=28, height=14, width=105)
         self.label02.configure(bg="black", font=la_f, anchor="w", fg=FAVCOLOR, text="█ Favorite")
         self.label03 = Label(parent)
-        self.label03.place(x=0, y=28, height=14, width=105)
+        self.label03.place(x=14, y=42, height=14, width=105)
         self.label03.configure(bg="black", font=la_f, anchor="w", fg=BLKCOLOR, text="█ Blacklisted")
         self.label04 = Label(parent)
-        self.label04.place(x=0, y=42, height=14, width=105)
-        self.label04.configure(bg="black", font=la_f, anchor="w", fg="white",
-                               text="█ Visible: " + str(NODE_COUNT_FILTER) + "/" + str(NODE_COUNT))
+        self.label04.place(x=14, y=56, height=14, width=105)
+        self.label04.configure(bg="black", font=la_f, anchor="w", fg="lightgrey",
+                               text="Visible: " + str(NODE_COUNT_FILTER) + "/" + str(NODE_COUNT))
         self.label05 = Label(parent)
-        self.label05.place(x=0, y=56, height=14, width=105)
-        self.label05.configure(bg="black", font=la_f, anchor="w", fg="white", text="█ USB BW: 3.6 kHz")
+        self.label05.place(x=14, y=77, height=14, width=105)
+        self.label05.configure(bg="black", font=la_f, anchor="w", fg="deepskyblue1",
+                               text="Algorithm: 2020" if TDOAVERSION == "true" else "Algorithm: 2018")
+        self.label06 = Label(parent)
+        self.label06.place(x=14, y=91, height=14, width=105)
+        self.label06.configure(bg="black", font=la_f, anchor="w", fg="deepskyblue1",
+                               text="Constraints: Yes" if UC == "true" else "Constraints: No")
+        self.label07 = Label(parent)
+        self.label07.place(x=14, y=105, height=14, width=105)
+        self.label07.configure(bg="black", font=la_f, anchor="w", fg="deepskyblue1", text="Map: " + MAP_BOX)
 
         # Frequency entry field
         self.freq_input = Entry(parent)
@@ -1466,9 +1461,12 @@ class MainWindow(Frame):
 
         # Modulation Combobox
         self.modulation_box = ttk.Combobox(parent, state="readonly")
-        self.modulation_box.place(x=180, rely=0.892, height=24, width=Font(family="TkFixedFont").measure("abcdefg"))
+        self.modulation_box.place(x=180, rely=0.892, height=24,
+                                  width=Font(family="TkFixedFont").measure("abcdefghijklm"))
         self.modulation_box.configure(font="TkTextFont",
-                                      values=["USB", "LSB", "CW", "AM", "IQ 2kHz", "IQ 4kHz", "IQ 6kHz", "IQ 8kHz"])
+                                      values=["USB 3.6kHz", "USBn 2.4kHz", "LSB 3.6kHz", "LSBn 2.4kHz", "CW 500Hz",
+                                              "AM 10kHz", "IQ 1kHz", "IQ 2kHz", "IQ 3kHz", "IQ 4kHz", "IQ 5kHz",
+                                              "IQ 6kHz", "IQ 7kHz", "IQ 8kHz", "IQ 9kHz"])
         self.modulation_box.current(0)
         self.modulation_box.bind("<<ComboboxSelected>>", self.modechoice)
 
@@ -1537,7 +1535,7 @@ class MainWindow(Frame):
         # Update button
         self.update_button = Button(parent)
         self.update_button.place(relx=0.90, rely=0.94, height=24, relwidth=0.08)
-        self.update_button.configure(activebackground="#d9d9d9", activeforeground="#000000", bg="#d9d9d9",
+        self.update_button.configure(activebackground="green", activeforeground="#000000", bg="green3",
                                      disabledforeground=dfgc, fg="#000000", highlightbackground="#d9d9d9",
                                      highlightcolor="#000000", pady="0", text="update map", command=self.runupdate,
                                      state="normal")
@@ -1545,9 +1543,9 @@ class MainWindow(Frame):
         # Purge node listing button
         self.purge_button = Button(parent)
         self.purge_button.place(relx=0.81, rely=0.94, height=24, relwidth=0.08)
-        self.purge_button.configure(activebackground="#d9d9d9", activeforeground="#000000", bg="orange",
+        self.purge_button.configure(activebackground="red", activeforeground="#000000", bg="red3",
                                     disabledforeground=dfgc, fg="#000000", highlightbackground="#d9d9d9",
-                                    highlightcolor="#000000", pady="0", text="Purge Nodes", command=self.purgenode,
+                                    highlightcolor="#000000", pady="0", text="purge node list", command=self.purgenode,
                                     state="normal")
 
         # Console window
@@ -1563,8 +1561,6 @@ class MainWindow(Frame):
         self.writelog(
             "Already computed TDoA runs : " + str([len(d) for r, d, folder in os.walk(os.path.join('TDoA', 'iq'))][0]))
         self.writelog("There are " + str(NODE_COUNT) + " KiwiSDRs in the db. Have fun !")
-        self.writelog("TDoA default settings : plot_kiwi_json=" + PKJ + " | use_constraints=" + UC + " | " + (
-            "former TDoA algorithm" if TDOAVERSION == "false" else "new TDoA algorithm (2020)"))
 
         # Status window
         self.status_window = Text(parent)
@@ -1606,43 +1602,67 @@ class MainWindow(Frame):
         sm4.add_command(label="■", command=lambda *args: [SaveCfg().save_cfg("map", "icontype", 1), self.redraw()])
         sm5.add_command(label="streets",
                         command=lambda *args: [SaveCfg().save_cfg("map", "mapbox", "streets-v11"), ReadCfg().read_cfg(),
-                                               self.writelog("Mapbox style is now set to " + MAP_BOX)])
+                                               self.label07.configure(text="Map: " + MAP_BOX)])
         sm5.add_command(label="outdoors",
                         command=lambda *args: [SaveCfg().save_cfg("map", "mapbox", "outdoors-v11"),
                                                ReadCfg().read_cfg(),
-                                               self.writelog("Mapbox style is now set to " + MAP_BOX)])
+                                               self.label07.configure(text="Map: " + MAP_BOX)])
         sm5.add_command(label="light",
                         command=lambda *args: [SaveCfg().save_cfg("map", "mapbox", "light-v10"), ReadCfg().read_cfg(),
-                                               self.writelog("Mapbox style is now set to " + MAP_BOX)])
+                                               self.label07.configure(text="Map: " + MAP_BOX)])
         sm5.add_command(label="dark",
                         command=lambda *args: [SaveCfg().save_cfg("map", "mapbox", "dark-v10"), ReadCfg().read_cfg(),
-                                               self.writelog("Mapbox style is now set to " + MAP_BOX)])
+                                               self.label07.configure(text="Map: " + MAP_BOX)])
         sm5.add_command(label="satellite",
                         command=lambda *args: [SaveCfg().save_cfg("map", "mapbox", "satellite-v9"),
                                                ReadCfg().read_cfg(),
-                                               self.writelog("Mapbox style is now set to " + MAP_BOX)])
+                                               self.label07.configure(text="Map: " + MAP_BOX)])
         sm5.add_command(label="satellite-streets",
                         command=lambda *args: [SaveCfg().save_cfg("map", "mapbox", "satellite-streets-v11"),
                                                ReadCfg().read_cfg(),
-                                               self.writelog("Mapbox style is now set to " + MAP_BOX)])
+                                               self.label07.configure(text="Map: " + MAP_BOX)])
 
         # Map Presets menu
         menu_2 = Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Map Presets", menu=menu_2)
-        menu_2.add_command(label="Europe", command=lambda *args: self.map_preset("EU"))
-        menu_2.add_command(label="Africa", command=lambda *args: self.map_preset("AF"))
-        menu_2.add_command(label="Middle-East", command=lambda *args: self.map_preset("ME"))
-        menu_2.add_command(label="South Asia", command=lambda *args: self.map_preset("SAS"))
-        menu_2.add_command(label="South-East Asia", command=lambda *args: self.map_preset("SEAS"))
-        menu_2.add_command(label="East Asia", command=lambda *args: self.map_preset("EAS"))
-        menu_2.add_command(label="North America", command=lambda *args: self.map_preset("NAM"))
-        menu_2.add_command(label="Central America", command=lambda *args: self.map_preset("CAM"))
-        menu_2.add_command(label="South America", command=lambda *args: self.map_preset("SAM"))
-        menu_2.add_command(label="Oceania", command=lambda *args: self.map_preset("O"))
-        menu_2.add_command(label="West Russia", command=lambda *args: self.map_preset("WR"))
-        menu_2.add_command(label="East Russia", command=lambda *args: self.map_preset("ER"))
-        menu_2.add_command(label="USA", command=lambda *args: self.map_preset("US"))
-        menu_2.add_command(label="World (use with caution)", command=lambda *args: self.map_preset("W"))
+        menu_2.add_command(label="Europe", command=lambda *args: [self.map_preset("EU"), self.member1.on_button_release(
+            event=FillMapWithNodes)])
+        menu_2.add_command(label="Africa", command=lambda *args: [self.map_preset("AF"), self.member1.on_button_release(
+            event=FillMapWithNodes)])
+        menu_2.add_command(label="Middle-East", command=lambda *args: [self.map_preset("ME"),
+                                                                       self.member1.on_button_release(
+                                                                           event=FillMapWithNodes)])
+        menu_2.add_command(label="South Asia", command=lambda *args: [self.map_preset("SAS"),
+                                                                      self.member1.on_button_release(
+                                                                          event=FillMapWithNodes)])
+        menu_2.add_command(label="South-East Asia", command=lambda *args: [self.map_preset("SEAS"),
+                                                                           self.member1.on_button_release(
+                                                                               event=FillMapWithNodes)])
+        menu_2.add_command(label="East Asia", command=lambda *args: [self.map_preset("EAS"),
+                                                                     self.member1.on_button_release(
+                                                                         event=FillMapWithNodes)])
+        menu_2.add_command(label="North America", command=lambda *args: [self.map_preset("NAM"),
+                                                                         self.member1.on_button_release(
+                                                                             event=FillMapWithNodes)])
+        menu_2.add_command(label="Central America", command=lambda *args: [self.map_preset("CAM"),
+                                                                           self.member1.on_button_release(
+                                                                               event=FillMapWithNodes)])
+        menu_2.add_command(label="South America", command=lambda *args: [self.map_preset("SAM"),
+                                                                         self.member1.on_button_release(
+                                                                             event=FillMapWithNodes)])
+        menu_2.add_command(label="Oceania", command=lambda *args: [self.map_preset("O"), self.member1.on_button_release(
+            event=FillMapWithNodes)])
+        menu_2.add_command(label="West Russia", command=lambda *args: [self.map_preset("WR"),
+                                                                       self.member1.on_button_release(
+                                                                           event=FillMapWithNodes)])
+        menu_2.add_command(label="East Russia", command=lambda *args: [self.map_preset("ER"),
+                                                                       self.member1.on_button_release(
+                                                                           event=FillMapWithNodes)])
+        menu_2.add_command(label="USA", command=lambda *args: [self.map_preset("US"),
+                                                               self.member1.on_button_release(event=FillMapWithNodes)])
+        menu_2.add_command(label="World (use with caution)", command=lambda *args: [self.map_preset("W"),
+                                                                                    self.member1.on_button_release(
+                                                                                        event=FillMapWithNodes)])
 
         # TDoA settings menu
         menu_3 = Menu(menubar, tearoff=0)
@@ -1660,15 +1680,19 @@ class MainWindow(Frame):
         sm9.add_command(label="option: use_constraints = 1",
                         command=lambda *args: [SaveCfg().save_cfg("iq", "uc", "true"),
                                                SaveCfg().save_cfg("iq", "mode", "false"),
-                                               ReadCfg().read_cfg()])
+                                               ReadCfg().read_cfg(), self.label05.configure(text="Algorithm: 2018"),
+                                               self.label06.configure(text="Constraints: Yes")])
         sm9.add_command(label="option: use_constraints = 0",
                         command=lambda *args: [SaveCfg().save_cfg("iq", "uc", "false"),
                                                SaveCfg().save_cfg("iq", "mode", "false"),
-                                               ReadCfg().read_cfg()])
+                                               ReadCfg().read_cfg(), self.label05.configure(text="Algorithm: 2018"),
+                                               self.label06.configure(text="Constraints: No")])
         sm10.add_cascade(label='former (2018)', menu=sm9, underline=0)
         sm10.add_command(label="new (2020)", command=lambda *args: [SaveCfg().save_cfg("iq", "mode", "true"),
                                                                     SaveCfg().save_cfg("iq", "uc", "false"),
-                                                                    ReadCfg().read_cfg()])
+                                                                    ReadCfg().read_cfg(),
+                                                                    self.label05.configure(text="Algorithm: 2020"),
+                                                                    self.label06.configure(text="Constraints: No")])
 
         # GUI design
         menu_4 = Menu(menubar, tearoff=0)
@@ -1693,12 +1717,19 @@ class MainWindow(Frame):
         menu_5.add_command(label="Set trigger word", command=lambda *args: self.tcp_settings(3))
         menu_5.add_command(label="IQ auto-recording duration", command=lambda *args: self.tcp_settings(2))
 
-        # About menu
+        # Files menu
         menu_6 = Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="?", menu=menu_6)
-        menu_6.add_command(label="Help", command=self.help)
-        menu_6.add_command(label="About", command=self.about)
-        menu_6.add_command(label="Update check", command=lambda *args: self.checkversion(source="from_menu"))
+        menubar.add_cascade(label="Files", menu=menu_6)
+        menu_6.add_command(label="iq/",
+                           command=lambda *args: subprocess.Popen(["xdg-open", os.path.join('TDoA', 'iq')]))
+        menu_6.add_command(label="./", command=lambda *args: subprocess.Popen(["xdg-open", os.path.join('.')]))
+
+        # About menu
+        menu_7 = Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="?", menu=menu_7)
+        menu_7.add_command(label="Help", command=self.help)
+        menu_7.add_command(label="About", command=self.about)
+        menu_7.add_command(label="Update check", command=lambda *args: self.checkversion(source="from_menu"))
 
         # Various GUI binds
         self.listbox_update(my_info1)
@@ -1717,18 +1748,24 @@ class MainWindow(Frame):
         """ Selection of modulation and adjust the IQ recording LP & HP values accordingly.
         USB = 0..3600 Hz, LSB = -3600..0 Hz, AM = -5000..5000 Hz, CW = -500..500 Hz etc... """
         global lpcut, hpcut, mode
-        modulations = {'USB': [0, 3600, '█ USB BW: 3.6 kHz', 'USB'],
-                       'LSB': [-3600, 0, '█ LSB BW: 3.6 kHz', 'LSB'],
-                       'CW': [-500, 500, '█ CW BW: 1 kHz', 'CW'],
-                       'AM': [-5000, 5000, '█ AM BW: 10 kHz', 'AM'],
-                       'IQ 2kHz': [-1000, 1000, '█ IQ BW: 2 kHz', 'AM'],
-                       'IQ 4kHz': [-2000, 2000, '█ IQ BW: 4 kHz', 'AM'],
-                       'IQ 6kHz': [-3000, 3000, '█ IQ BW: 6 kHz', 'AM'],
-                       'IQ 8kHz': [-4000, 4000, '█ IQ BW: 8 kHz', 'AM']}
+        modulations = {'USB 3.6kHz': [0, 3600, 'USB'],
+                       'USBn 2.4kHz': [300, 2700, 'USB'],
+                       'LSB 3.6kHz': [-3600, 0, 'LSB'],
+                       'LSBn 2.4kHz': [-2700, -300, 'LSB'],
+                       'CW 500Hz': [-250, 250, 'CW'],
+                       'AM 10kHz': [-5000, 5000, 'AM'],
+                       'IQ 1kHz': [-500, 500, 'AM'],
+                       'IQ 2kHz': [-1000, 1000, 'AM'],
+                       'IQ 3kHz': [-1500, 1500, 'AM'],
+                       'IQ 4kHz': [-2000, 2000, 'AM'],
+                       'IQ 5kHz': [-2500, 2500, 'AM'],
+                       'IQ 6kHz': [-3000, 3000, 'AM'],
+                       'IQ 7kHz': [-3500, 3500, 'AM'],
+                       'IQ 8kHz': [-4000, 4000, 'AM'],
+                       'IQ 9kHz': [-4500, 4500, 'AM']}
         lpcut = modulations[self.modulation_box.get()][0]
         hpcut = modulations[self.modulation_box.get()][1]
-        self.label05.configure(text=modulations[self.modulation_box.get()][2])
-        mode = modulations[self.modulation_box.get()][3]
+        mode = modulations[self.modulation_box.get()][2]
 
     def redraw(self):
         self.member1.redraw_map_cmd()
@@ -2236,7 +2273,7 @@ class MainWindow(Frame):
 
     def create_m_file(self):
         """ Octave .m files creation processes. """
-        global KHZ_FREQ, ale_file_name, ale_file_data, tdoa_mode
+        global HZ_FREQ, ale_file_name, ale_file_data, tdoa_mode
         if platform.system() == "Windows":
             os_sep = "\\\\"
         else:
@@ -2268,13 +2305,13 @@ class MainWindow(Frame):
         except NameError:
             pass
         firstfile = iq_files[0]
-        KHZ_FREQ = str(firstfile.split("_", 2)[1].split("_", 1)[0])
+        HZ_FREQ = str(firstfile.split("_", 2)[1].split("_", 1)[0])
         proc_m_name = os.path.join('TDoA') + os.sep + "proc_tdoa_" + str(firstfile.split("_", 2)[1].split("_", 1)[0])
         with open(proc_m_name + ".m", "w") as m_file:
             m_file.write("""## -*- octave -*-
 ## This file was auto-generated by """ + VERSION + """
 ## """ + str(b_box2[0]) + """,""" + str(b_box2[1]) + """
-\nfunction [tdoa,input]=proc_tdoa_""" + KHZ_FREQ + """
+\nfunction [tdoa,input]=proc_tdoa_""" + HZ_FREQ + """
   exitcode = 0;
   status   = struct;\n
   try
@@ -2310,7 +2347,7 @@ class MainWindow(Frame):
 
     [input,status.input] = tdoa_read_data(config, input, 'gnss_pos');
 
-    config.plotname = sprintf('TDoA_""" + KHZ_FREQ + """');
+    config.plotname = sprintf('TDoA_""" + HZ_FREQ + """');
     config.title    = sprintf('""" + FREQUENCY + """ """ + mode + """ [BW=""" + str(abs(lpcut - hpcut))
                          + """] - REC on """ + str(datetime.utcnow().strftime('%d %b %Y %H%M.%Sz'))
                          + run_type + """');
@@ -2373,22 +2410,22 @@ global mlp;
                 m_file.write("""
 [curlcmd] = [\"""" + python_path + """ ", "..""" + os_sep + """getmap.py ", lat, " ", lon, " -90", " 180", " """
                              + MAP_BOX + """ ", \"""" + run_dir[5:] + """TDoA_Map.png", " proc_tdoa_"""
-                             + KHZ_FREQ + """.m"];""")
+                             + HZ_FREQ + """.m"];""")
             else:
                 m_file.write("""
 [curlcmd] = [\"""" + python_path + """ ", "..""" + os_sep + """getmap.py ", lat, " ", lon, " """
                              + str(selectedlat) + """", " """ + str(selectedlon) + """", " """
                              + MAP_BOX + """ ", \"""" + run_dir[5:] + """TDoA_Map.png", " proc_tdoa_"""
-                             + KHZ_FREQ + """.m"];""")
+                             + HZ_FREQ + """.m"];""")
 
             m_file.write("""
 system(curlcmd);
 \n# Merge TDoA result (pdf) + Mapbox (pdf) + plot_iq (pdf) into a single .pdf file
 [gscmd] = ["gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=""" + run_dir[5:] + """TDoA_"""
-                         + str(KHZ_FREQ) + """_", tdoatime, ".pdf pdf""" + os_sep + """TDoA_""" + str(KHZ_FREQ) + """.pdf """
+                         + str(HZ_FREQ) + """_", tdoatime, ".pdf pdf""" + os_sep + """TDoA_""" + str(HZ_FREQ) + """.pdf """
                          + run_dir[5:] + """TDoA_Map.pdf """ + run_dir[5:] + """TDoA_"""
-                         + str(KHZ_FREQ) + """_spec.pdf -c \\\"[ /Title (TDoA_"""
-                         + str(KHZ_FREQ) + """_", tdoatime, ".pdf) /DOCINFO pdfmark\\\" -f\"];
+                         + str(HZ_FREQ) + """_spec.pdf -c \\\"[ /Title (TDoA_"""
+                         + str(HZ_FREQ) + """_", tdoatime, ".pdf) /DOCINFO pdfmark\\\" -f\"];
 system(gscmd);
 \n# Delete some files
 delete(\"""" + run_dir[5:] + """TDoA_Map.pdf")
@@ -2398,55 +2435,60 @@ endfunction
         m_file.close()
         time.sleep(0.2)
         if (ultimate.get()) == 1:
-            copyfile(proc_m_name + ".m", run_dir + "proc_tdoa_" + KHZ_FREQ + ".empty")
+            copyfile(proc_m_name + ".m", run_dir + "proc_tdoa_" + HZ_FREQ + ".empty")
             if platform.system() == "Windows":
                 copyfile("compute_ultimate.bat", run_dir + "compute_ultimate.bat")
             copyfile("compute_ultimate.py", run_dir + "compute_ultimate.py")
             copyfile('plot_iq.py', run_dir + "plot_iq.py")
             copyfile('trim_iq.py', run_dir + "trim_iq.py")
+            copyfile('nognss.py', run_dir + "nognss.py")
             os.chmod(run_dir + "compute_ultimate.py", 0o777)
             os.chmod(run_dir + "plot_iq.py", 0o777)
             os.chmod(run_dir + "trim_iq.py", 0o777)
+            os.chmod(run_dir + "nognss.py", 0o777)
             # PlotIQ().start()
         else:
-            copyfile(proc_m_name + ".m", run_dir + "proc_tdoa_" + KHZ_FREQ + ".m")
+            copyfile(proc_m_name + ".m", run_dir + "proc_tdoa_" + HZ_FREQ + ".m")
             if platform.system() == "Windows":
                 with open(run_dir + "recompute.bat", "w") as recompute:
                     recompute.write(""":: """ + VERSION + """ - Windows recompute TDoA batch file
-:: This script moves *.wav back to iq directory and proc_tdoa_""" + KHZ_FREQ + """.m to
+:: This script moves *.wav back to iq directory and proc_tdoa_""" + HZ_FREQ + """.m to
 :: TDoA directory then opens a file editor so you can modify .m file parameters.
 @echo off
 set PATH=%CD%\..\..\..\octave\\bin;%CD%\..\..\..\python;%PATH%
 if not exist *spec.pdf pythonw.exe plot_iq.py
 copy *.wav ..\\
-copy proc_tdoa_""" + KHZ_FREQ + """.m ..\..\\
+copy proc_tdoa_""" + HZ_FREQ + """.m ..\..\\
 cd ..\..
-start /W notepad "proc_tdoa_""" + KHZ_FREQ + """.m"
-octave-cli.exe proc_tdoa_""" + KHZ_FREQ + """.m
-del proc_tdoa_""" + KHZ_FREQ + """.m""")
+start /W notepad "proc_tdoa_""" + HZ_FREQ + """.m"
+octave-cli.exe proc_tdoa_""" + HZ_FREQ + """.m
+del proc_tdoa_""" + HZ_FREQ + """.m""")
                 recompute.close()
                 copyfile('plot_iq.py', run_dir + "plot_iq.py")
                 copyfile('trim_iq.py', run_dir + "trim_iq.py")
+                copyfile('nognss.py', run_dir + "nognss.py")
             else:
                 with open(run_dir + "recompute.sh", "w") as recompute:
                     recompute.write("""#!/bin/bash
-## This script moves *.wav back to iq directory and proc_tdoa_""" + KHZ_FREQ + """.m to
+## This script moves *.wav back to iq directory and proc_tdoa_""" + HZ_FREQ + """.m to
 ## TDoA directory then opens a file editor so you can modify .m file parameters.
-[ ! -f ./TDoA_""" + KHZ_FREQ + """_spec.pdf ] && python plot_iq.py
+[ ! -f ./TDoA_""" + HZ_FREQ + """_spec.pdf ] && python plot_iq.py
 cp ./*.wav ../
-cp proc_tdoa_""" + KHZ_FREQ + """.m ../../
+cp proc_tdoa_""" + HZ_FREQ + """.m ../../
 cd ../..
-$EDITOR proc_tdoa_""" + KHZ_FREQ + """.m
-octave-cli proc_tdoa_""" + KHZ_FREQ + """.m
-rm -f proc_tdoa_""" + KHZ_FREQ + """.m""")
-                # octave-cli """ + ("--eval " if sys.version_info[0] == 3 else "") + """proc_tdoa_""" + KHZ_FREQ
+$EDITOR proc_tdoa_""" + HZ_FREQ + """.m
+octave-cli proc_tdoa_""" + HZ_FREQ + """.m
+rm -f proc_tdoa_""" + HZ_FREQ + """.m""")
+                # octave-cli """ + ("--eval " if sys.version_info[0] == 3 else "") + """proc_tdoa_""" + HZ_FREQ
                 # + (".m" if sys.version_info[0] == 2 else "") + """
                 recompute.close()
                 os.chmod(run_dir + "recompute.sh", 0o777)
                 copyfile('plot_iq.py', run_dir + "plot_iq.py")
                 copyfile('trim_iq.py', run_dir + "trim_iq.py")
+                copyfile('nognss.py', run_dir + "nognss.py")
                 os.chmod(run_dir + "plot_iq.py", 0o777)
                 os.chmod(run_dir + "trim_iq.py", 0o777)
+                os.chmod(run_dir + "nognss.py", 0o777)
 
 
 class MainW(Tk, object):
@@ -2460,7 +2502,7 @@ class MainW(Tk, object):
 
 def on_closing():
     """ Actions to perform when software is closed using the top-right check button. """
-    if tkMessageBox.askokcancel("Quit", "Do you want to quit?"):
+    if tkMessageBox.askokcancel("Exit program ?", "", icon="warning"):
         try:  # to kill octave
             os.kill(PROC_PID, signal.SIGTERM)
         except (NameError, OSError):

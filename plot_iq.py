@@ -91,7 +91,7 @@ def plot(files, order, cols):
         file_d = oct_file.read()
         oct_file.close()
         fig.suptitle(re.search(r".+title.+\'(.+)\'", file_d).group(1), fontsize=20)
-    fig.savefig('TDoA_' + path.rsplit('_', 3)[1] + '_spec.pdf', bbox_inches='tight', dpi=50)
+    fig.savefig('TDoA_' + path.rsplit('_', 3)[1] + '_spectrogram.pdf', bbox_inches='tight', dpi=50)
 
 
 if __name__ == '__main__':
