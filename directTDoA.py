@@ -176,11 +176,11 @@ class RunUpdate(threading.Thread):
             # Get kiwisdr listing from kiwisdr.com/public and convert to JSON
             for html in req.text.split("<div class='cl-entry'>")[1:]:
                 rx = {}
-                for m in re.finditer("<!-- (id|fixes_min|tdoa_id|gps|name|snr)=(.*) -->", html):
+                for m in re.finditer("<!-- (id|fixes_min|tdoa_id|gps|name|snr|tdoa_ch)=(.*) -->", html):
                     rx[m.group(1)] = m.group(2)
                 for n in re.finditer("<a href='(http|https)://(.*)' .+<br>", html):
                     rx['url'] = n.group(2).strip()
-                if rx["fixes_min"] > "20":
+                if rx["fixes_min"] > "20" and rx["tdoa_ch"] > "0":
                     out.append(rx)
             json_kiwisdr = json.dumps(out, ensure_ascii=False)
             json_data = json.loads(json_kiwisdr)
