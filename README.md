@@ -1,5 +1,7 @@
 # directTDoA v7.10
 
+![directTDoA picture](http://linkz.ddns.net/directTDoA.png)
+
 This software is JUST a python 2/3 GUI designed to compute TDoA runs on shortwave radio transmissions using remote (GPS enabled) KiwiSDR receivers around the World.
 
 > TDoA = Time Difference of Arrival .. (in this case: the Arrival of shortwave radio transmissions)
