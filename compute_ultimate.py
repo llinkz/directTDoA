@@ -1190,7 +1190,7 @@ class MainWindow(Frame):
                     # replace old config block by the new one
                     file_d = re.sub('(\n    config = struct(.*)(\n(.*)){9})', new_config, file_d, flags=re.M)
                     file_d = re.sub(r'lon(.*)iq', new_mapbox, file_d)
-                    file_d = file_d.replace("spec.pdf", "temp.pdf")
+                    file_d = file_d.replace("spectrogram.pdf", "temp.pdf")
                     file_d = file_d.replace(os.sep + dir_origin, os.sep + dir_new)
                     # get some file names and directory
                     logfile = os.path.basename(mfile).replace("empty", "txt")

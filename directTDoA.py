@@ -2424,7 +2424,7 @@ system(curlcmd);
 [gscmd] = ["gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=""" + run_dir[5:] + """TDoA_"""
                          + str(HZ_FREQ) + """_", tdoatime, ".pdf pdf""" + os_sep + """TDoA_""" + str(HZ_FREQ) + """.pdf """
                          + run_dir[5:] + """TDoA_Map.pdf """ + run_dir[5:] + """TDoA_"""
-                         + str(HZ_FREQ) + """_spec.pdf -c \\\"[ /Title (TDoA_"""
+                         + str(HZ_FREQ) + """_spectrogram.pdf -c \\\"[ /Title (TDoA_"""
                          + str(HZ_FREQ) + """_", tdoatime, ".pdf) /DOCINFO pdfmark\\\" -f\"];
 system(gscmd);
 \n# Delete some files
@@ -2456,7 +2456,7 @@ endfunction
 :: TDoA directory then opens a file editor so you can modify .m file parameters.
 @echo off
 set PATH=%CD%\..\..\..\octave\\bin;%CD%\..\..\..\python;%PATH%
-if not exist *spec.pdf pythonw.exe plot_iq.py
+if not exist *spectrogram.pdf pythonw.exe plot_iq.py
 copy *.wav ..\\
 copy proc_tdoa_""" + HZ_FREQ + """.m ..\..\\
 cd ..\..
@@ -2472,7 +2472,7 @@ del proc_tdoa_""" + HZ_FREQ + """.m""")
                     recompute.write("""#!/bin/bash
 ## This script moves *.wav back to iq directory and proc_tdoa_""" + HZ_FREQ + """.m to
 ## TDoA directory then opens a file editor so you can modify .m file parameters.
-[ ! -f ./TDoA_""" + HZ_FREQ + """_spec.pdf ] && python plot_iq.py
+[ ! -f ./TDoA_""" + HZ_FREQ + """_spectrogram.pdf ] && python plot_iq.py
 cp ./*.wav ../
 cp proc_tdoa_""" + HZ_FREQ + """.m ../../
 cd ../..
