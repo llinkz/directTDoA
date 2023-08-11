@@ -1,5 +1,22 @@
 # directTDoA v7.10
 
+>##RESTRICTION BECAUSE OF MAPBOX ABUSE (11-aug-2023) directTDoA is now running in degraded mode.
+>### The Mapbox token has been changed, PDF output files will be truncated ! (solution below)
+
+>I knew it was a bad idea to share this in code but today I got a bill because some bad guys made **too many unrelated** requests using the Mapbox token.
+>
+>![mapbox abuse](http://linkz.ddns.net/mapbox-abuse.png)
+![mapbox abuse](http://linkz.ddns.net/mapbox-abuse2.png)
+####
+### Here's your solution to fix it (it seems not possible to restrict the token to Static Images API only) 
+>1/ Create your own [Mapbox.com](https://account.mapbox.com/auth/signup/) account
+>
+>2/ Go to account and get/create a default public token
+>
+>3/ Edit [getmap.py](https://github.com/llinkz/directTDoA/blob/master/getmap.py#L30) and modify `MAP_TOK` variable with your default public token
+>
+>####directTDoA use [Static Images API](https://docs.mapbox.com/api/maps/static-images/) and you'll get 50000 free monthly requests
+---
 ![directTDoA picture](http://linkz.ddns.net/directTDoA.png)
 
 This software is JUST a python 2/3 GUI designed to compute TDoA runs on shortwave radio transmissions using remote (GPS enabled) KiwiSDR receivers around the World.
