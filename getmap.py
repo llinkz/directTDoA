@@ -158,6 +158,15 @@ class GetMaps(threading.Thread):
                 draw.line((0, 600, 1800, 600), fill="#000")
                 NEW_IMAGE.save(sys.argv[6].replace("_[[]", "_[").replace("[]]_", "]_").replace(".png", ".pdf"), "PDF",
                                resolution=144, append_images=[NEW_IMAGE])
+        else:
+            img = Image.new('RGB', (900, 600), (255, 255, 255))
+            NEW_IMAGE.paste(img, (self.x_pos, self.y_pos))
+            NB_OF_FILES += 1
+            if NB_OF_FILES == 4:
+                draw = ImageDraw.Draw(NEW_IMAGE)
+                draw.text((15, 15), "Error: unable to get maps, check Mapbox token", (0, 0, 0), font=FONT)
+                NEW_IMAGE.save(sys.argv[6].replace("_[[]", "_[").replace("[]]_", "]_").replace(".png", ".pdf"), "PDF",
+                               resolution=144, append_images=[NEW_IMAGE])
 
 
 if sys.version_info[0] == 2:
