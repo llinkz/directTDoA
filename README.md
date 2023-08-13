@@ -1,8 +1,7 @@
 # directTDoA v7.10
 
->###RESTRICTION BECAUSE OF MAPBOX ABUSE (11-aug-2023) 
->###directTDoA is now running in degraded mode.
->### The Mapbox token has been changed, PDF output files will be truncated ! (solution below)
+>### RESTRICTION BECAUSE OF MAPBOX ABUSE (11-aug-2023) 
+>### directTDoA code is now running in degraded mode as the Mapbox token is no longer valid (solution below)
 
 >I knew it was a bad idea to share this in code but today I got a bill because some bad guys made **too many unrelated** requests using the Mapbox token.
 >
@@ -16,7 +15,7 @@
 >
 >3/ Edit [getmap.py](https://github.com/llinkz/directTDoA/blob/master/getmap.py#L30) and modify `MAP_TOK` variable with your default public token
 >
->###directTDoA use [Static Images API](https://docs.mapbox.com/api/maps/static-images/) and you'll get 50000 free monthly requests
+>### directTDoA use [Static Images API](https://docs.mapbox.com/api/maps/static-images/) and you'll get 50000 free monthly requests
 ---
 ![directTDoA picture](http://linkz.ddns.net/directTDoA.png)
 
