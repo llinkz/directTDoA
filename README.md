@@ -39,7 +39,7 @@ This software is JUST a python 2/3 GUI designed to compute TDoA runs on shortwav
 
 ##### The decision was made not to support installation from the repository.
 
-Download [directTDoA-windows.zip](https://github.com/llinkz/directTDoA/releases/download/v7.02/directTDoA-windows.zip), unzip and extract it
+Download [directTDoA-windows.zip](https://github.com/llinkz/directTDoA/releases), unzip and extract it
 
 Then double-click on `directTDoA.bat`
 
