@@ -1,5 +1,7 @@
 # directTDoA v7.10
 
+>### Hmmm latest KiwiSDR software broke directTDoA (no GNSS/GPS detected), let's see if I can figure out what's the problem or simply wait. (03-Jan-2024) - Happy New Year ?
+---
 >### RESTRICTION BECAUSE OF MAPBOX ABUSE (11-aug-2023) 
 >### directTDoA code is now running in degraded mode as the Mapbox token is no longer valid (solution below)
 
