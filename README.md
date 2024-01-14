@@ -1,23 +1,9 @@
-# directTDoA v7.10
+# directTDoA v7.20
 
->### Hmmm latest KiwiSDR software broke directTDoA (no GNSS/GPS detected), let's see if I can figure out what's the problem or simply wait. (03-Jan-2024) - Happy New Year ?
----
->### RESTRICTION BECAUSE OF MAPBOX ABUSE (11-aug-2023) 
->### directTDoA code is now running in degraded mode as the Mapbox token is no longer valid (solution below)
-
->I knew it was a bad idea to share this in code but today I got a bill because some bad guys made **too many unrelated** requests using the Mapbox token.
->
->![mapbox abuse](http://linkz.ddns.net/mapbox-abuse.png)
-![mapbox abuse](http://linkz.ddns.net/mapbox-abuse2.png)
-####
-### Here's your solution to fix it (it seems not possible to restrict the token to Static Images API only) 
->1/ Create your own [Mapbox.com](https://account.mapbox.com/auth/signup/) account
->
->2/ Go to account and get/create a default public token
->
->3/ Edit [getmap.py](https://github.com/llinkz/directTDoA/blob/master/getmap.py#L30) and modify `MAP_TOK` variable with your default public token
->
->### directTDoA use [Static Images API](https://docs.mapbox.com/api/maps/static-images/) and you'll get 50000 free monthly requests
+>### 03 Jan 2024 - KiwiSDR software version > v1.647 broke directTDoA (no GNSS/GPS detected because of IQ wav incompatibility)
+>### 12 Jan 2024 - Good news! Christoph, our TDoA master fixed the issue (was a bug in kiwirecorder.py) 
+>#### FIX : https://github.com/jks-prv/kiwiclient/commit/bc189087cf503820d56ddcc0f8781d7eed1b6337
+>#### The fix is simple and can be done by hand, just edit your kiwiclient/kiwirecorder.py file if you want a quick one !
 ---
 ![directTDoA picture](http://linkz.ddns.net/directTDoA.png)
 
@@ -25,69 +11,77 @@ This software is JUST a python 2/3 GUI designed to compute TDoA runs on shortwav
 
 > TDoA = Time Difference of Arrival .. (in this case: the Arrival of shortwave radio transmissions)
 
-> # Linux users : GNU Octave version < 8 only !
-> because read_kiwi_iq_wav.cc will not compile - fix in progress...
+>## Linux users : GNU Octave version < 8 only !
+> else, read_kiwi_iq_wav.cc will not compile - fix in progress...
 
 ## KNOWN ISSUES:
 
 #### 1/ If you plan to use the software on a machine without a sound card then you must comment out lines 15 & 16 in `/directTDoA/kiwiclient/kiwirecorder.py`
-`#stream = sounddevice.OutputStream(12000, 2048, channels=1, dtype='int16')`
+`#stream = sounddevice.OutputStream(48000, 2048, channels=1, dtype='int16')`
 
 `#stream.start()`
 
 #### 2/ On recent versions of Octave the handling of the font size has been changed (pixels Vs points) and you may find that they are too large in the final file, you can reduce the fontsize values on lines 41, 42 & 154 in `/directTDoA/TDoA/m/tdoa_plot_map.m`
 
-## INSTALL AND RUN (on WINDOWS)
+---
+## WINDOWS
 
 ##### The decision was made not to support installation from the repository.
 
-Download [directTDoA-windows.zip](https://github.com/llinkz/directTDoA/releases), unzip and extract it
+1/ Download the latest [directTDoA-windows.zip](https://github.com/llinkz/directTDoA/releases), unzip and extract it
 
-Then double-click on `directTDoA.bat`
+2/ Create your own [Mapbox.com](https://account.mapbox.com/auth/signup/) account, go to account and get/create a default public token then edit [getmap.py](https://github.com/llinkz/directTDoA/blob/master/getmap.py#L30) and modify `MAP_TOK` variable with your default public token
+> NOTE: directTDoA use [Static Images API](https://docs.mapbox.com/api/maps/static-images/) and you'll get 50000 free monthly requests
 
-#### IMPORTANT: You must use only this method to launch the program to avoid file path issues.
+3/ double-click on `directTDoA.bat`
 
-> Info: this archive contains all the necessary files already patched and compiled and also includes light versions of GNU Octave and python, so no need to install the full versions of the last two on your machine. The unzipped archive is 272 MB, compared to ~2 GB in the other installer way.
+>#### IMPORTANT: You must use only this method to launch the program to avoid file path issues.
+#### This .zip archive contains all the necessary files already patched and compiled and also includes light versions of GNU Octave and python, so no need to install the full versions of the last two on your machine. The unzipped archive is 272 MB, compared to ~2 GB in the other installer way.
 
-## INSTALL AND RUN (on LINUX)
+---
+## LINUX
 
-Install python 3 and python3-pip using your package manager
+1/ Install python 3 and python3-pip using your package manager
 
-Install GNU octave (important: only versions < 8)
+2/ Install GNU octave (important: only versions < 8)
 
-Install git, patch, gcc, base-devel, ttf-dejavu, gcc-fortran, tk, portaudio, xdg-utils, epdfview, fltk
+3/ Install git, patch, gcc, base-devel, ttf-dejavu, gcc-fortran, tk, portaudio, xdg-utils, epdfview, fltk, liboctave-dev
 
-`git clone --recursive https://github.com/llinkz/directTDoA`
+4/ `git clone --recursive https://github.com/llinkz/directTDoA && cd directTDoA`
 
-`cd directTDoA`
+5/ `./setup.sh`
+> ####This setup script will install python modules, compile the necessary .oct file and apply some files patchs
+> ####IMPORTANT: The octave files compilation process takes a lot of time, be patient, ignore warnings and don't stop the script
 
-`./setup.sh` (this script will install python modules, compile the necessary .oct file and apply some files patchs)
-#### IMPORTANT: The octave files compilation process takes a lot of time, be patient, ignore warnings and don't stop the script
-`./directTDoA.py`
+6/ Create your own [Mapbox.com](https://account.mapbox.com/auth/signup/) account, go to account and get/create a default public token then edit file named [getmap.py](https://github.com/llinkz/directTDoA/blob/master/getmap.py#L30) and modify `MAP_TOK` variable with your default public token  (directTDoA use [Static Images API](https://docs.mapbox.com/api/maps/static-images/) and you'll get 50000 free monthly requests)
 
-> NOTE: on some distros you may need to install liboctave-dev
+7/ `./directTDoA.py`
 
-## INSTALL AND RUN (on MAC OS X)
+---
+## MAC OS X
 
 * REQUIREMENT 	Xcode + Homebrew (https://brew.sh/index_fr)
 
-Install Homebrew, in terminal : `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
+1/ Install Homebrew, in terminal : `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
 
-Install Python, in terminal : `brew install python@2` or `brew install python@3`
+2/ Install Python, in terminal : `brew install python@2` or `brew install python@3`
 
-Install GNU Octave in Terminal : `brew install octave`
+3/ Install GNU Octave in Terminal : `brew install octave`
 
-`git clone --recursive https://github.com/llinkz/directTDoA`
+4/ `git clone --recursive https://github.com/llinkz/directTDoA && cd directTDoA`
 
-`cd directTDoA`
+5/ `./setup.sh`
+> ####This setup script will install python modules, compile the necessary .oct file and apply some files patchs
+> ####IMPORTANT: The octave files compilation process takes a lot of time, be patient, ignore warnings and don't stop the script
 
-`./setup.sh`  (this script will install python modules, compile the necessary .oct file and apply patches to some files. Check errors but Ignore warnings)
+6/ Create your own [Mapbox.com](https://account.mapbox.com/auth/signup/) account, go to account and get/create a default public token then edit file named [getmap.py](https://github.com/llinkz/directTDoA/blob/master/getmap.py#L30) and modify `MAP_TOK` variable with your default public token  (directTDoA use [Static Images API](https://docs.mapbox.com/api/maps/static-images/) and you'll get 50000 free monthly requests)
 
-`./directTDoA.py`
+7/ `./directTDoA.py`
 
+---
 ## LICENSE
 * This python GUI code has been written and released under the "do what the f$ck you want with it" license
-
+---
 ## CHANGE LOG
 * v1.00-1.50 : first working version, basic, static map, manual host adding, hardcoded coordinates, manual octave code run etc...
 * v2.00 : current work, update & dynamic maps full of GPS enabled nodes, auto octave code run, easier to use
@@ -134,6 +128,8 @@ Install GNU Octave in Terminal : `brew install octave`
 * v7.01: Bug fix on map update because of a single KiwiSDR node using https (ofc it just happened after the v7.00 release - haha)
 * v7.02: Small but important fix
 * v7.10: Bug fix on Start/Stop Listen function + TKinter exception at start fixed + modified patches for wavreader.py & tdoa_plot_map.m + more map POIs + more recording mode choices + legend showing current TDoA algo + files directories shortcut menu + some ultimateTDoA interface improvements
+* v7.20: TDoA broken because of early 2024 software mods, a bug was fixed in kiwirecorder.py (credit: Christoph Mayer, Thanks !) - only kiwirecorder_patch.diff has been modified (we will still use an old kiwiclient version) - apparently Listen mode is not working anymore - this version is only for bug correction.
+---
 ## Thanks
 * Christoph Mayer @ https://github.com/hcab14/TDoA for the main TDoA code, excellent work and thanks for the public release !
 * John Seamons, KiwiSDR developper @ https://github.com/jks-prv

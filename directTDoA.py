@@ -47,7 +47,7 @@ else:
     from tkinter.simpledialog import askstring, askinteger
     from tkinter.font import Font
 
-VERSION = "directTDoA v7.10"
+VERSION = "directTDoA v7.20"
 
 
 class ReadKnownPointFile(object):

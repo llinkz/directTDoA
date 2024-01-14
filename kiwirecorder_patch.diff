@@ -1,17 +1,31 @@
---- kiwirecorder.py	2020-04-19 22:07:10.613484893 +0000
-+++ kiwirecorder.py	2020-04-19 22:05:07.786030210 +0000
+--- kiwirecorder.py	2024-01-14 09:48:45.338711534 +0100
++++ kiwirecorder.py	2024-01-14 09:36:05.647684241 +0100
 @@ -10,6 +10,10 @@
  from kiwi import KiwiSDRStream, KiwiWorker
  from optparse import OptionParser
  from optparse import OptionGroup
 +import sounddevice
 +
-+stream = sounddevice.OutputStream(12000, 2048, channels=1, dtype='int16')
++stream = sounddevice.OutputStream(48000, 2048, channels=1, dtype='int16')
 +stream.start()
  
  HAS_RESAMPLER = True
  try:
-@@ -151,8 +155,10 @@
+@@ -21,11 +25,12 @@
+ 
+ 
+ def _write_wav_header(fp, filesize, samplerate, num_channels, is_kiwi_wav):
++    samplerate = int(samplerate+0.5);
+     fp.write(struct.pack('<4sI4s', b'RIFF', filesize - 8, b'WAVE'))
+     bits_per_sample = 16
+     byte_rate       = samplerate * num_channels * bits_per_sample // 8
+     block_align     = num_channels * bits_per_sample // 8
+-    fp.write(struct.pack('<4sIHHIIHH', b'fmt ', 16, 1, num_channels, int(samplerate+0.5), byte_rate, block_align, bits_per_sample))
++    fp.write(struct.pack('<4sIHHIIHH', b'fmt ', 16, 1, num_channels, samplerate, byte_rate, block_align, bits_per_sample))
+     if not is_kiwi_wav:
+         fp.write(struct.pack('<4sI', b'data', filesize - 12 - 8 - 16 - 8))
+ 
+@@ -151,8 +156,10 @@
              # For AM, ignore the low pass filter cutoff
              lp_cut = -hp_cut if hp_cut is not None else hp_cut
          self.set_mod(mod, lp_cut, hp_cut, self._freq)
@@ -24,8 +38,12 @@
          else:
              self.set_agc(on=True)
          if self._options.compression is False:
-@@ -270,31 +276,34 @@
-                 _write_wav_header(fp, filesize, int(self._output_sample_rate), self._num_channels, self._options.is_kiwi_wav)
+@@ -267,34 +274,37 @@
+ 
+             # fp.tell() sometimes returns zero. _write_wav_header writes filesize - 8
+             if filesize >= 8:
+-                _write_wav_header(fp, filesize, int(self._output_sample_rate), self._num_channels, self._options.is_kiwi_wav)
++                _write_wav_header(fp, filesize, self._output_sample_rate, self._num_channels, self._options.is_kiwi_wav)
  
      def _write_samples(self, samples, *args):
 -        """Output to a file on the disk."""
@@ -65,7 +83,7 @@
 +                self._start_time = time.time()
 +                # Write a static WAV header
 +                with open(self._get_output_filename(), 'wb') as fp:
-+                    _write_wav_header(fp, 100, int(self._output_sample_rate), self._num_channels, self._options.is_kiwi_wav)
++                    _write_wav_header(fp, 100, self._output_sample_rate, self._num_channels, self._options.is_kiwi_wav)
 +                if self._options.is_kiwi_tdoa:
 +                    # NB: MUST be a print (i.e. not a logging.info)
 +                    print("file=%d %s" % (self._options.idx, self._get_output_filename()))
@@ -84,7 +102,7 @@
  
      def _on_gnss_position(self, pos):
          pos_record = False
-@@ -371,9 +380,9 @@
+@@ -371,9 +381,9 @@
          opt_single.server_host = s
          opt_single.status = 0
  
@@ -96,7 +114,7 @@
              opt_single.__dict__[x] = _sel_entry(i, opt_single.__dict__[x])
          l.append(opt_single)
          multiple_connections = i
-@@ -567,6 +576,11 @@
+@@ -567,6 +577,11 @@
                        default=False,
                        action='store_true',
                        help='Also process sound data when in waterfall or S-meter mode (sound connection options above apply)')
@@ -108,7 +126,7 @@
      parser.add_option_group(group)
  
      group = OptionGroup(parser, "S-meter mode options", "")
-@@ -635,7 +649,7 @@
+@@ -635,7 +650,7 @@
              if opt.launch_delay != 0 and i != 0 and options[i-1].server_host == options[i].server_host:
                  time.sleep(opt.launch_delay)
              r.start()
@@ -117,7 +135,7 @@
              logging.info("started sound recorder %d" % i)
  
          for i,r in enumerate(wf_recorders):
-@@ -664,6 +678,7 @@
+@@ -664,6 +679,7 @@
  
      logging.debug('gc %s' % gc.garbage)
  

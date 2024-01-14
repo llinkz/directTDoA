@@ -27,7 +27,7 @@ else:
 # navigation-preview-day-v4 / navigation-preview-night-v4
 # navigation-guidance-day-v4 / navigation-guidance-night-v4
 
-MAP_TOK = "pk.eyJ1IjoibGxpbmt6IiwiYSI6ImNrM3JzMzE4ZTBlY3gzZXM1MnR5ODZrcnAifQ.fdqW8wmA7qhPYzFsGufZXg"
+MAP_TOK = "Your_Mapbox_token_here"
 DATA_L = []
 MAPBOX_ZOOM = {'2': [0, 0], '4': [900, 0], '6': [0, 600], '8': [900, 600]}
 NB_OF_NODES = len(glob.glob1(sys.argv[6].rsplit(os.sep, 1)[0], "*.wav"))
